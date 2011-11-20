@@ -1,0 +1,14 @@
+*.class
+*.pyc
+*.pyo
+css
+img
+js
+libs
+win
+AIRIntrospector.js
+application.xml
+cert
+compile.bat
+main.html
+updateConfig.xml
