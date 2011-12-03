@@ -1,0 +1,1 @@
+adt -package -tsa none -storetype pkcs12 -keystore cert ..\Crunch.air application.xml main.html updateConfig.xml css img js libs win
