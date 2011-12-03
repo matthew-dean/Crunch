@@ -274,9 +274,9 @@ $(document).ready(function() {
 		else
 			el.find('a.tab').removeClass('other');
 	}
-	var canon = require("pilot/canon");
+	var commands = require("ace/commands/default_commands").commands;
 	
-	canon.addCommand({
+	commands.push({
 		name: "find",
 		bindKey: {
 			win: "Ctrl-F",
@@ -286,9 +286,7 @@ $(document).ready(function() {
 		exec: function() {
 			$("#findbar").animate({ top: '0' }, 100 ).find('input').focus();
 		}
-	});
-	
-	canon.addCommand({
+	}, {
 		name: "replace",
 		bindKey: {
 			win: "Ctrl-R",
@@ -298,9 +296,7 @@ $(document).ready(function() {
 		exec: function() {
 			// Not implemented
 		}
-	});
-
-	canon.addCommand({
+	}, {
 		name: "replaceall",
 		bindKey: {
 			win: "Ctrl-Shift-R",
