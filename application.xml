@@ -1,0 +1,44 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<application xmlns="http://ns.adobe.com/air/application/3.0">
+
+  <versionNumber>1.0.1</versionNumber>
+  <versionLabel>1.0.1 Beta</versionLabel>
+
+	<filename>Crunch</filename>
+	<programMenuFolder>Crunch</programMenuFolder>
+	<description>The Crunchiest LESS compiler.</description>
+	<name>Crunch</name>
+	<copyright>2011</copyright>
+	<customUpdateUI>false</customUpdateUI>
+	<id>app.Crunch</id>
+  <initialWindow>
+    <content>main.html</content>
+    <height>700</height>
+    <width>900</width>
+    <systemChrome>standard</systemChrome>
+    <transparent>false</transparent>
+    <visible>true</visible>
+	<minSize>800 600</minSize>
+  </initialWindow>
+  <fileTypes> 
+    <fileType> 
+        <name>LESS</name> 
+        <extension>less</extension> 
+        <description>LESSCSS.org file</description> 
+        <contentType>text/css</contentType> 
+        <icon> 
+			<image16x16>img/ico/crunch-icon_16.png</image16x16> 
+			<image32x32>img/ico/crunch-icon_32.png</image32x32> 
+			<image48x48>img/ico/crunch-icon_48.png</image48x48> 
+			<image128x128>img/ico/crunch-icon_128.png</image128x128>  
+        </icon> 
+    </fileType> 
+</fileTypes>
+  <installFolder>Crunch</installFolder>
+	<icon> 
+		<image16x16>img/ico/crunch-icon_16.png</image16x16> 
+		<image32x32>img/ico/crunch-icon_32.png</image32x32> 
+		<image48x48>img/ico/crunch-icon_48.png</image48x48> 
+		<image128x128>img/ico/crunch-icon_128.png</image128x128>  
+	</icon> 
+</application>

@@ -1,0 +1,126 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+	<title>Crunch</title>
+	<link rel="stylesheet" type="text/css" href="/css/main.css">
+	<script>
+	function preventDefault(event){ 
+            event.preventDefault(); 
+        } 
+	</script>
+</head>
+<body onDragEnter="preventDefault(event)" onDragOver="preventDefault(event)">
+
+<div id="wrapper">
+
+	<div id="toolbar">
+		<button id="new-file" class="new-less icon"><span>New File</span></button>
+		<span class="sep"></span>
+		<button id="open-file" class="open-file icon"><span>Open File...</span></button>
+		<span class="sep"></span>
+		<button id="save" disabled="disabled" class="icon"><span>Save</span></button>
+		<span class="sep"></span>
+		<button id="save-as" disabled="disabled" class="icon"><span>Save As...</span></button>
+		<span class="sep"></span>
+		<button id="convert" disabled="disabled"><span>Crunch!</span></button>
+		
+		<div style="float: right;">
+			<span class="sep"></span>
+			<button id="info" class="icon"><span>About</span></button>
+			<span class="sep"></span>
+			<button id="help" class="icon"><span>Help</span></button>
+		</div>
+	</div>
+	<div id="container"><table border="0" cellspacing="0" cellpadding="0" ><tr>
+		
+		<td id="panel-left"><div class="inner">
+			<div id="project-header">
+				<button id="refresh" disabled="disabled"></button><span>Website Files</span>
+			</div>
+			<div id="project" class="jstree">
+				<button id="open-project" class="primary big" style="color: #6a5a4c;">
+					<span class="icon"><img src="img/skin/open.png"></span>
+					<span class="text">Open Website...</span>
+				</button>
+				<div class="drop">
+					<span class="icon"><img src="img/skin/drop-project.png"></span>
+					<span class="text">Or, Drag In A Folder</span>
+				</div>				
+				<div id="filelist"></div>
+			</div>
+		</div></td>
+	
+		<td id="editor-window"><div class="inner">
+			<div id="editor-bg"></div>
+			
+			<div id="splash">
+				<h1>Create a new file...</h1>
+				<button class="primary big new-less">
+					<span class="icon"><img src="img/skin/icon-less.png"></span>
+					<span class="text">New LESS file</span>
+				</button>
+				<button class="primary big new-css">
+					<span class="icon"><img src="img/skin/icon-css.png" alt="CSS"></span>
+					<span class="text">New CSS file</span>
+				</button>
+				
+				<hr>
+				
+				<h2>or Open one...</h2>
+				<button class="primary big open-file">
+					<span class="icon"><img src="img/skin/icon-folder.png"></span>
+					<span class="text">Open file...</span>
+				</button>
+				
+				<div class="drop">
+					<span class="icon"><img src="img/skin/drop-file.png"></span>
+					<span class="text">Or, Drag In A File</span>
+				</div>
+				
+			</div>
+			
+			<div id="scroller">
+				<ul id="tabs">
+					<li>
+						<a class="tab" href="#"><span class="filename">new.less</span><span class="save" style="display: none;">*</span><span class="close"><img src="img/skin/closeicon.png"></span></a>
+						<div class="messages"><h3>Compiler Errors</h3><div class="description"></div></div>
+						<div class="editor"></div>
+					</li>
+				</ul>
+			</div>
+			<div id="findbar-outer"><div id="findbar">
+				<form id="find"><input type="text" /></form>
+				<button class="up"></button>
+				<button class="down"></button>
+				<span class="close"><img src="img/skin/closeicon.png"></span>
+			</div></div>
+			<button class="tabarrow" id="arrow-left" disabled="disabled"><span></span></button>
+			<button class="tabarrow" id="arrow-right" disabled="disabled"><span></span></button>
+		</div></td>
+
+	</tr></table></div>
+		<div id="preview">
+			<textarea name="output" id="output"></textarea>
+		</div>
+	<script src="libs/air/AIRAliases.js"></script>
+	<script src="libs/air/ApplicationUpdater_UI.swf" type="application/x-shockwave-flash"></script>
+	<script src="AIRIntrospector.js"></script>
+	<script src="js/ace/ace.js"></script>
+	<!-- <script src="js/ace/theme-textmate.js"></script> -->
+	<script src="js/ace/mode-less.js"></script>
+	<script src="js/less-1.1.4-MODIFIED_url.js"></script>
+	<script src="js/jquery.min.js"></script>
+	<script src="js/jwerty.js"></script>
+	<script src="js/resize.js"></script>
+	<script src="js/pulse.js"></script>
+	<script src="js/jquery.color.js"></script>
+	<script src="js/jsizes.min.js"></script>
+	<script src="js/jstree/jquery.jstree.js"></script>
+	<script src="js/jquery.mockjax.js"></script>
+	<script src="js/mock.js"></script>
+	<script src="js/scripts.js"></script>
+
+</div>
+</body>
+</html>

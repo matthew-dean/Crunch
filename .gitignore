@@ -1,14 +1,8 @@
 *.class
 *.pyc
 *.pyo
-css
-img
-js
-libs
-win
-AIRIntrospector.js
-application.xml
+.gitignore
+bin
 cert
+._*
 compile.bat
-main.html
-updateConfig.xml

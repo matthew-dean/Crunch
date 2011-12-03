@@ -1,0 +1,405 @@
+<section id="docs" class="page">
+  <h1>Help</h1>
+  <h2>The LESS Language</h2>
+  <p><em>From LESSCSS.org</em></p>
+  <div class="content">
+      <p>As an extension to CSS, LESS is not only backwards compatible with CSS, but the extra features it adds use <em>existing</em> CSS syntax. This makes learning LESS a <em>breeze</em>, and if in doubt, lets you fall back to CSS.</p>
+
+<h2 id="-variables">Variables</h2>
+
+<p>These are pretty self-explanatory:</p>
+
+<pre><code><span class="variable">@nice-blue</span>: <span class="color">#5B83AD</span>;
+<span class="variable">@light-blue</span>: <span class="variable">@nice-blue </span>+ <span class="color">#111</span>;
+
+<span class="id">#header</span> { <span class="attribute">color</span>: <span class="variable">@light-blue</span>; }
+</code></pre>
+
+<p>Outputs:</p>
+
+<pre><code><span class="id">#header</span> { <span class="attribute">color</span>: <span class="color">#6c94be</span>; }
+</code></pre>
+
+<p>It is also possible to define variables with a variable name:</p>
+
+<pre><code><span class="variable">@fnord</span>: <span class="string">"I am fnord."</span>;
+<span class="variable">@var</span>: <span class="string">'fnord'</span>;
+<span class="attribute">content</span>: <span class="variable">@@var</span>;
+</code></pre>
+
+<p>Which compiles to:</p>
+
+<pre><code><span class="attribute">content</span>: <span class="string">"I am fnord."</span>;
+</code></pre>
+
+<p>Note that variables in LESS are actually ‘constants’ in that they can only be defined once.</p>
+
+<h2 id="-mixins">Mixins</h2>
+
+<p>In LESS, it is possible to include a bunch of properties from one ruleset into another ruleset. So say we have the following class:</p>
+
+<pre><code><span class="class">.bordered</span> {
+  <span class="attribute">border-top</span>: dotted <span class="number">1px</span> black;
+  <span class="attribute">border-bottom</span>: solid <span class="number">2px</span> black;
+}
+</code></pre>
+
+<p>And we want to use these properties inside other rulesets. Well, we just have to drop in the name of
+the class in any ruleset we want to include its properties, like so:</p>
+
+<pre><code><span class="id">#menu</span> <span class="element">a</span> {
+  <span class="attribute">color</span>: <span class="color">#111</span>;
+  <span class="mixin">.bordered</span>;
+}
+<span class="class">.post</span> <span class="element">a</span> {
+  <span class="attribute">color</span>: red;
+  <span class="mixin">.bordered</span>;
+}
+</code></pre>
+
+<p>The properties of the <code>.bordered</code> class will now appear in both <code>#menu a</code> and <code>.post a</code>:</p>
+
+<pre><code><span class="id">#menu</span> <span class="element">a</span> {
+  <span class="attribute">color</span>: <span class="color">#111</span>;
+  <span class="attribute">border-top</span>: dotted <span class="number">1px</span> black;
+  <span class="attribute">border-bottom</span>: solid <span class="number">2px</span> black;
+}
+<span class="class">.post</span> <span class="element">a</span> {
+  <span class="attribute">color</span>: red;
+  <span class="attribute">border-top</span>: dotted <span class="number">1px</span> black;
+  <span class="attribute">border-bottom</span>: solid <span class="number">2px</span> black;
+}
+</code></pre>
+
+<p>Any CSS <em>class</em>, <em>id</em> or <em>element</em> ruleset can be mixed-in that way.</p>
+
+<h2 id="-parametric-mixins">Parametric Mixins</h2>
+
+<p>LESS has a special type of ruleset which can be mixed in like classes, but accepts parameters. Here’s the canonical example:</p>
+
+<pre><code><span class="class">.border-radius</span> (<span class="variable">@radius</span>) {
+  <span class="attribute">border-radius</span>: <span class="variable">@radius</span>;
+  <span class="attribute">-moz-border-radius</span>: <span class="variable">@radius</span>;
+  <span class="attribute">-webkit-border-radius</span>: <span class="variable">@radius</span>;
+}
+</code></pre>
+
+<p>And here’s how we can mix it into various rulesets:</p>
+
+<pre><code><span class="id">#header</span> {
+  <span class="mixin">.border-radius</span>(<span class="number">4px</span>);
+}
+<span class="class">.button</span> {
+  <span class="mixin">.border-radius</span>(<span class="number">6px</span>);  
+}
+</code></pre>
+
+<p>Parametric mixins can also have default values for their parameters:</p>
+
+<pre><code><span class="class">.border-radius</span> (<span class="variable">@radius</span>: <span class="number">5px</span>) {
+  <span class="attribute">border-radius</span>: <span class="variable">@radius</span>;
+  <span class="attribute">-moz-border-radius</span>: <span class="variable">@radius</span>;
+  <span class="attribute">-webkit-border-radius</span>: <span class="variable">@radius</span>;
+}
+</code></pre>
+
+<p>We can invoke it like this now:</p>
+
+<pre><code><span class="id">#header</span> {
+  <span class="mixin">.border-radius</span>;  
+}
+</code></pre>
+
+<p>And it will include a 5px border-radius.</p>
+
+<p>You can also use parametric mixins which don’t take parameters. This is useful if you want to hide the ruleset from the CSS output,
+but want to include its properties in other rulesets:</p>
+
+<pre><code><span class="class">.wrap</span> () {
+  <span class="attribute">text-wrap</span>: wrap;
+  <span class="attribute">white-space</span>: pre-wrap;
+  <span class="attribute">white-space</span>: -moz-pre-wrap;
+  <span class="attribute">word-wrap</span>: break-word;
+}
+
+<span class="element">pre</span> { <span class="mixin">.wrap</span> }
+</code></pre>
+
+<p>Which would output:</p>
+
+<pre><code><span class="element">pre</span> {
+  <span class="attribute">text-wrap</span>: wrap;
+  <span class="attribute">white-space</span>: pre-wrap;
+  <span class="attribute">white-space</span>: -moz-pre-wrap;
+  <span class="attribute">word-wrap</span>: break-word;
+}
+</code></pre>
+
+<h3>The <code><span class="variable">@arguments</span></code> variable</h3>
+
+<p><code><span class="variable">@arguments</span></code> has a special meaning inside mixins, it contains all the arguments passed, when the mixin was called. This is useful
+if you don’t want to deal with individual parameters:</p>
+
+<pre><code><span class="class">.box-shadow</span> (<span class="variable">@x</span>: <span class="number">0</span>, <span class="variable">@y</span>: <span class="number">0</span>, <span class="variable">@blur</span>: <span class="number">1px</span>, <span class="variable">@color</span>: #<span class="number">000</span>) {
+  <span class="attribute">box-shadow</span>: <span class="variable">@arguments</span>;
+  <span class="attribute">-moz-box-shadow</span>: <span class="variable">@arguments</span>;
+  <span class="attribute">-webkit-box-shadow</span>: <span class="variable">@arguments</span>;
+}
+<span class="mixin">.box-shadow</span>(<span class="number">2px</span>, <span class="number">5px</span>);
+</code></pre>
+
+<p>Which results in:</p>
+
+<pre><code>  <span class="attribute">box-shadow</span>: <span class="number">2px</span> <span class="number">5px</span> <span class="number">1px</span> <span class="color">#000</span>;
+  <span class="attribute">-moz-box-shadow</span>: <span class="number">2px</span> <span class="number">5px</span> <span class="number">1px</span> <span class="color">#000</span>;
+  <span class="attribute">-webkit-box-shadow</span>: <span class="number">2px</span> <span class="number">5px</span> <span class="number">1px</span> <span class="color">#000</span>;
+</code></pre>
+
+<h2 id="-nested-rules">Nested rules</h2>
+
+<p>LESS gives you the ability to use <em>nesting</em> instead of, or in combination with cascading.
+Lets say we have the following CSS:</p>
+
+<pre><code><span class="id">#header</span> { <span class="attribute">color</span>: black; }
+<span class="id">#header</span> <span class="class">.navigation</span> {
+  <span class="attribute">font-size</span>: <span class="number">12px</span>;
+}
+<span class="id">#header</span> <span class="class">.logo</span> { 
+  <span class="attribute">width</span>: <span class="number">300px</span>; 
+}
+<span class="id">#header</span> <span class="class">.logo</span><span class="class">:hover</span> {
+  <span class="attribute">text-decoration</span>: none;
+}
+</code></pre>
+
+<p>In LESS, we can also write it this way:</p>
+
+<pre><code><span class="id">#header</span> {
+  <span class="attribute">color</span>: black;
+
+  <span class="class">.navigation</span> {
+    <span class="attribute">font-size</span>: <span class="number">12px</span>;
+  }
+  <span class="class">.logo</span> {
+    <span class="attribute">width</span>: <span class="number">300px</span>;
+    &amp;<span class="class">:hover</span> { <span class="attribute">text-decoration</span>: none }
+  }
+}
+</code></pre>
+
+<p>Or this way:</p>
+
+<pre><code><span class="id">#header</span>        { <span class="attribute">color</span>: black;
+  <span class="class">.navigation</span>  { <span class="attribute">font-size</span>: <span class="number">12px</span> }
+  <span class="class">.logo</span>        { <span class="attribute">width</span>: <span class="number">300px</span>;
+    &amp;<span class="class">:hover</span>    { <span class="attribute">text-decoration</span>: none }
+  }
+}
+</code></pre>
+
+<p>The resulting code is more concise, and mimics the structure of your <code>DOM tree</code>.</p>
+
+<p>Notice the <code>&amp;</code> combinator—it’s used when you want a nested selector to be concatinated to its parent selector, instead
+of acting as a descendent. This is especially important for pseudo-classes like <code>:hover</code> and <code>:focus</code>.</p>
+
+<p>For example:</p>
+
+<pre><code><span class="class">.bordered</span> {
+  &amp;<span class="class">.float</span> {
+    <span class="attribute">float</span>: left; 
+  }
+  <span class="class">.top</span> {
+    <span class="attribute">margin</span>: <span class="number">5px</span>; 
+  }
+}
+</code></pre>
+
+<p>Will output</p>
+
+<pre><code><span class="class">.bordered</span><span class="class">.float</span> {
+  <span class="attribute">float</span>: left;  
+}
+<span class="class">.bordered</span> <span class="class">.top</span> {
+  <span class="attribute">margin</span>: <span class="number">5px</span>;
+}
+</code></pre>
+
+<h2 id="-operations">Operations</h2>
+
+<p>Any number, color or variable can be operated on. Here are a couple of examples:</p>
+
+<pre><code><span class="variable">@base</span>: <span class="number">5%</span>;
+<span class="variable">@filler</span>: <span class="variable">@base </span>* <span class="number">2</span>;
+<span class="variable">@other</span>: <span class="variable">@base </span>+ <span class="variable">@filler</span>;
+
+<span class="attribute">color</span>: <span class="color">#888</span> / <span class="number">4</span>;
+<span class="attribute">background-color</span>: <span class="variable">@base-color </span>+ <span class="color">#111</span>;
+<span class="attribute">height</span>: <span class="number">100%</span> / <span class="number">2</span> + <span class="variable">@filler</span>;
+</code></pre>
+
+<p>The output is pretty much what you expect—LESS understands the difference between colors and units. If a unit is used in an operation, like in:</p>
+
+<pre><code><span class="variable">@var</span>: <span class="number">1px</span> + <span class="number">5</span>;
+</code></pre>
+
+<p>LESS will use that unit for the final output—<code><span class="number">6px</span></code> in this case.</p>
+
+<p>Brackets are also authorized in operations:</p>
+
+<pre><code><span class="attribute">width</span>: (<span class="variable">@var </span>+ <span class="number">5</span>) * <span class="number">2</span>;
+</code></pre>
+
+<p>And are required in compound values:</p>
+
+<pre><code><span class="attribute">border</span>: (<span class="variable">@width </span>* <span class="number">2</span>) solid black;
+</code></pre>
+
+<h2 id="-color-functions">Color functions</h2>
+
+<p>LESS provides a variety of functions which transform colors. Colors are first converted to
+the <em>HSL</em> color-space, and then manipulated at the channel level:</p>
+
+<pre><code>lighten(<span class="variable">@color</span>, <span class="number">10%</span>);     <span class="comment">// return a color which is 10% *lighter* than @color</span>
+darken(<span class="variable">@color</span>, <span class="number">10%</span>);      <span class="comment">// return a color which is 10% *darker* than @color</span>
+
+saturate(<span class="variable">@color</span>, <span class="number">10%</span>);    <span class="comment">// return a color 10% *more* saturated than @color</span>
+desaturate(<span class="variable">@color</span>, <span class="number">10%</span>);  <span class="comment">// return a color 10% *less* saturated than @color</span>
+
+fadein(<span class="variable">@color</span>, <span class="number">10%</span>);      <span class="comment">// return a color 10% *less* transparent than @color</span>
+fadeout(<span class="variable">@color</span>, <span class="number">10%</span>);     <span class="comment">// return a color 10% *more* transparent than @color</span>
+
+spin(<span class="variable">@color</span>, <span class="number">10</span>);         <span class="comment">// return a color with a 10 degree larger in hue than @color</span>
+spin(<span class="variable">@color</span>, -<span class="number">10</span>);        <span class="comment">// return a color with a 10 degree smaller hue than @color</span>
+</code></pre>
+
+<p>Using them is pretty straightforward:</p>
+
+<pre><code><span class="variable">@base</span>: <span class="color">#f04615</span>;
+
+<span class="class">.class</span> {
+  <span class="attribute">color</span>: saturate(<span class="variable">@base</span>, <span class="number">5%</span>);
+  <span class="attribute">background-color</span>: lighten(spin(<span class="variable">@base</span>, <span class="number">8</span>), <span class="number">25%</span>);
+}
+</code></pre>
+
+<p>You can also extract color information:</p>
+
+<pre><code>hue(<span class="variable">@color</span>);        <span class="comment">// returns the `hue` channel of @color</span>
+saturation(<span class="variable">@color</span>); <span class="comment">// returns the `saturation` channel of @color</span>
+lightness(<span class="variable">@color</span>);  <span class="comment">// returns the 'lightness' channel of @color</span>
+</code></pre>
+
+<p>This is useful if you want to create a new color based on another color’s channel, for example:</p>
+
+<pre><code><span class="variable">@new</span>: hsl(hue(<span class="variable">@old</span>), <span class="number">45%</span>, <span class="number">90%</span>);
+</code></pre>
+
+<p><code><span class="variable">@new</span></code> will have <code><span class="variable">@old</span></code>’s <em>hue</em>, and its own saturation and lightness.</p>
+
+<h2 id="-namespaces">Namespaces</h2>
+
+<p>Sometimes, you may want to group your variables or mixins, for organizational purposes, or just to offer some encapsulation.
+You can do this pretty intuitively in LESS—say you want to bundle some mixins and variables under <code>#bundle</code>, for later re-use, or for distributing:</p>
+
+<pre><code><span class="id">#bundle</span> {
+  <span class="class">.button</span> () {
+    <span class="attribute">display</span>: block;
+    <span class="attribute">border</span>: <span class="number">1px</span> solid black;
+    <span class="attribute">background-color</span>: grey;
+    &amp;<span class="class">:hover</span> { <span class="attribute">background-color</span>: white }
+  }
+  <span class="class">.tab</span> { ... }
+  <span class="class">.citation</span> { ... }
+}
+</code></pre>
+
+<p>Now if we want to mixin the <code>.button</code> class in our <code>#header a</code>, we can do:</p>
+
+<pre><code><span class="id">#header</span> <span class="element">a</span> {
+  <span class="attribute">color</span>: orange;
+  <span class="mixin">#bundle</span> &gt; <span class="mixin">.button</span>;
+}
+</code></pre>
+
+<h2 id="-scope">Scope</h2>
+
+<p>Scope in LESS is very similar to that of programming languages. Variables and mixins are first looked up locally,
+and if they aren’t found, the compiler will look in the parent scope, and so on.</p>
+
+<pre><code><span class="variable">@var</span>: red;
+
+<span class="id">#page</span> {
+  <span class="variable">@var</span>: white;
+  <span class="id">#header</span> {
+    <span class="attribute">color</span>: <span class="variable">@var</span>; <span class="comment">// white</span>
+  }
+}
+
+<span class="id">#footer</span> {
+  <span class="attribute">color</span>: <span class="variable">@var</span>; <span class="comment">// red  </span>
+}
+</code></pre>
+
+<h2 id="-comments">Comments</h2>
+
+<p>CSS-style comments are preserved by LESS:</p>
+
+<pre><code><span class="comment">/* Hello, I'm a CSS-style comment */</span>
+<span class="class">.class</span> { <span class="attribute">color</span>: black }
+</code></pre>
+
+<p>Single-line comments are also valid in LESS, but they are ‘silent’,
+they don’t show up in the compiled CSS output:</p>
+
+<pre><code><span class="comment">// Hi, I'm a silent comment, I won't show up in your CSS</span>
+<span class="class">.class</span> { <span class="attribute">color</span>: white }
+</code></pre>
+
+<h2 id="-importing">Importing</h2>
+
+<p>You can import <code>.less</code> files, and all the variables and mixins in them will be made available to the main file.
+The <code>.less</code> extension is optional, so both of these are valid:</p>
+
+<pre><code><span class="variable">@import </span><span class="string">"lib.less"</span>;
+<span class="variable">@import </span><span class="string">"lib"</span>;
+</code></pre>
+
+<p>If you want to import a CSS file, and don’t want LESS to process it, just use the <code>.css</code> extension:</p>
+
+<pre><code><span class="variable">@import </span><span class="string">"lib.css"</span>;
+</code></pre>
+
+<p>The directive will just be left as is, and end up in the CSS output.</p>
+
+<h2 id="-string-interpolation">String interpolation</h2>
+
+<p>Variables can be embeded inside strings in a similar way to ruby or PHP, with the <code>@{name}</code> construct:</p>
+
+<pre><code><span class="variable">@base-url</span>: <span class="string">"http://assets.fnord.com"</span>;
+<span class="attribute">background-image</span>: url(<span class="string">"@{base-url}/images/bg.png"</span>);
+</code></pre>
+
+<h2 id="-escaping">Escaping</h2>
+
+<p>Sometimes you might need to output a CSS value which is either not valid CSS syntax,
+or uses propriatery syntax which LESS doesn’t recognize.</p>
+
+<p>To output such value, we place it inside a string prefixed with <code>~</code>, for example:</p>
+
+<pre><code><span class="class">.class</span> {
+  <span class="attribute">filter</span>: ~<span class="string">"progid:DXImageTransform.Microsoft.AlphaImageLoader(src='image.png')"</span>;
+}
+</code></pre>
+
+<p>This is called an “escaped value”, which will result in:</p>
+
+<pre><code><span class="class">.class</span> {
+  <span class="attribute">filter</span>: <span class="attribute">progid</span>:DXImageTransform<span class="mixin">.Microsoft</span><span class="mixin">.AlphaImageLoader</span>(src=<span class="string">'image.png'</span>);
+}
+</code></pre>
+
+
+  </div>
+</section>
+
+<p>Note: Crunch does not evaluate JavaScript in your LESS code, due to limitations of Adobe AIR.</p>

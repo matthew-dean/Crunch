@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title>Help!</title>
+	<link rel="stylesheet" type="text/css" href="/css/scrollbar.css">
+	<link rel="stylesheet" type="text/css" href="/css/about.css">
+	<script>
+	</script>
+</head>
+
+<body class="modal">
+	
+	<div id="left">
+		<div id="icon"></div>
+		
+		<div id="links">
+		
+			<a href="help/crunch.html">What is Crunch?</a>
+			<a href="help/keys.html">Keyboard Shortcuts</a>
+			<a href="help/less.html">What is LESS?</a>
+			<a href="help/language.html">LESS language reference</a>
+		</div>
+	</div>
+	<div id="right">
+		<div id="text">
+			
+		</div>
+	</div>
+    
+	
+	<script src="/libs/air/AIRAliases.js"></script>
+	<script src="/AIRIntrospector.js"></script>
+	<script src="/js/jquery.min.js"></script>
+	<script>
+		$(document).ready(function() {
+			$('a').on('click',function() {
+	            var loader = new air.URLLoader();
+				var request = new air.URLRequest($(this).attr('href'));
+				configureListeners(loader);	
+				loader.load(request);
+				$(this).parent().find('a').removeClass('active');
+				$(this).addClass('active');
+				return false;
+			});
+			$('#left a:first-child').click();
+		});
+		
+        function configureListeners(dispatcher) {
+            dispatcher.addEventListener(air.Event.COMPLETE, completeHandler);
+        }
+
+        function completeHandler(event) {
+            var loader = air.URLLoader(event.target);
+            $("#text").html(loader.data);
+    		$("#right")[0].scrollTop = 0;
+        }
+
+		window.nativeWindow.minSize = new air.Point($(window).width(), $(window).height());
+	</script>
+</body>
+</html>

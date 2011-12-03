@@ -1,0 +1,33 @@
+<h1>Help</h1>
+
+<h2>What is LESS?</h2>
+
+<p>LESS marries basic programming principles to the simple syntax of CSS. In other words, it's a dynamic stylesheet language, but it highly resembles CSS. In fact, if you save your CSS as a LESS file, it's already valid. That makes upgrading a site super-friggin' easy.</p>
+
+<p>LESS was designed by Alexis Sellier. We love him.</p>
+
+
+<h2>So what's wrong with CSS?</h2>
+<p class="quote">
+CSS violates the living crap out of the DRY principle. You are <em>constantly</em> and <em>unavoidably</em> repeating yourself.
+<small>-Jeff Atwood</small>
+</p>
+
+
+<p>
+Because CSS has no variables, you must often copy / paste colors, border values, etc. for elements that are styled similarly. Also, two sites that have very similar layouts and may differ only in color schemes, meaning that each color element has to be replaced. A text editor can find / replace values, but there may be many slight gradations in a color palette chosen by a designer.</p>
+
+<p>Put simply, CSS does not scale well, and is a time-killer to make modifications over large templated projects.</p>
+
+<h2>But why use a server-side compiler like Crunch?</h2>
+<p>Jeez, you ask a lot of questions. The main and most important reason to use Crunch is an even more-important principles of code organization.</p>
+
+<p>In a perfect world, the browser would get the fewest amount of CSS files possible. The fewer network requests, the faster your site will load. But maintaining all your CSS code in one file is crazy. <em>Crazy, I tell you.</em></p>
+
+<p>What if, instead, you could organize your styles into logical, semanatic files and directories? If you needed 30 LESS files to organize things cleanly, no problem, the browser still gets only one file.</p>
+
+<h2>Holy crap, you mean I can build a kick-ass library of LESS files, and only import the styles I need for a particular project?</h2>
+
+<p>That's the ticket.</p>
+
+

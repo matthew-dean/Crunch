@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title></title>
+	<link rel="stylesheet" type="text/css" href="/css/about.css">
+	<script>
+	</script>
+</head>
+
+<body class="modal">
+	
+	<div id="header"><div><div>
+		<div id="icon">
+			<div id="icon-bottom"></div>
+			<div id="icon-top"></div>
+		</div>
+		<div class="description"></div>
+
+
+		
+    </div></div>
+	
+	
+	</div>
+    
+	<div id="main" role="main"><div><div>
+		<div class="description">
+			<p>Crunch was made by Matt and Matt, although Matt did most of the work.
+			</p>
+			<p>Crunch couldn't exist without the engineers of some great projects, including Ace (a JavaScript-based editor) and of course, LESS.</p>
+			<p>Crunch is part of this complete breakfast.</p>
+		</div>
+    </div></div></div>
+	
+	<div id="bio"><div><div>
+		
+		<div class="bios">
+			<span>crunchapp.net</span>
+		</div>
+	</div></div></div>
+	
+    
+	
+	<script src="/libs/air/AIRAliases.js"></script>
+	<script src="/AIRIntrospector.js"></script>
+	<script src="/js/jquery.min.js"></script>
+	<script>
+	
+		var appVersion = $($.parseXML(air.NativeApplication.nativeApplication.applicationDescriptor)).find('versionLabel').text();
+
+		$('#header .description').html("Version " + appVersion);
+		
+    	$('#bio span').click(function() {
+			var url = "http://crunchapp.net"; 
+			var urlReq = new air.URLRequest(url); 
+			air.navigateToURL(urlReq);
+		});
+	</script>
+</body>
+</html>
