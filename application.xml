@@ -1,8 +1,8 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <application xmlns="http://ns.adobe.com/air/application/3.0">
 
-  <versionNumber>1.0.1</versionNumber>
-  <versionLabel>1.0.1 Beta</versionLabel>
+  <versionNumber>1.0.3</versionNumber>
+  <versionLabel>1.0.3 Beta</versionLabel>
 
 	<filename>Crunch</filename>
 	<programMenuFolder>Crunch</programMenuFolder>

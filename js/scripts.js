@@ -5,8 +5,8 @@ Crunch = {};
 Crunch.pendingClose = false;
 Crunch.scrollWidth = 100;
 $(document).ready(function() {
-	
-	
+
+
 	// Keyboard mappings
 	var meta = "ctrl";
 	if(navigator.platform.indexOf('Mac') > -1)
@@ -40,7 +40,7 @@ $(document).ready(function() {
 		jwerty.key(meta + '+' + keys, fn);
 		$('#tabs li textarea').live('keydown', jwerty.event(meta + '+' + keys, false));
 	}
-	
+
 	// Let's get rid of those pesky Mac menus. We can add stuff in later.
 	if (air.NativeApplication.supportsMenu) {
 		var appMenu = air.NativeApplication.nativeApplication.menu;
@@ -48,7 +48,7 @@ $(document).ready(function() {
 			appMenu.removeItemAt(appMenu.items.length - 1);
 		}
 	}
-	
+
 	window.htmlLoader.addEventListener("nativeDragDrop",function(event){ 
         var filelist = event.clipboard.getData(air.ClipboardFormats.FILE_LIST_FORMAT); 
         $.each(filelist, function(index, item) {
@@ -65,7 +65,7 @@ $(document).ready(function() {
 
 	var t = 0;
 	air.NativeApplication.nativeApplication.addEventListener(air.InvokeEvent.INVOKE, invokeHandler);
-	
+
 	window.nativeWindow.addEventListener(air.Event.CLOSING, closingHandler);
 
 	function closingHandler(event){
@@ -83,7 +83,7 @@ $(document).ready(function() {
 		else
 			nativeWindow.close();		
 	}
-	
+
 	function invokeHandler(event) {
 		if (event.arguments.length > 0) {
 			Crunch.openFile(new air.File(event.arguments[0]));
@@ -106,7 +106,7 @@ $(document).ready(function() {
 			Crunch.adjustTabOverflow();
 		}
 	});
-	
+
 	$('#tabs > li > a').click(function() {
 		Crunch.setActive(this);
 	});
@@ -151,7 +151,7 @@ $(document).ready(function() {
 		}
 		var width = $("#scroller").width();
 		var tabs = $('#tabs');
-		
+
 		if((parent.outerWidth() + parent.position().left) > width) {
 			tabs.animate({'margin-left': (tabs[0].scrollWidth - width)*-1}, 
 				{duration: 'fast', complete: function() {
@@ -207,7 +207,7 @@ $(document).ready(function() {
 		var listItem = $(this).parent().parent();
 		Crunch.tryCloseTab(listItem);
 	});
-	
+
 	Crunch.adjustTabOverflow = function() {
 		var tabs = $('#tabs');
 		var width = $("#scroller").width();
@@ -235,12 +235,12 @@ $(document).ready(function() {
 			el = $('#tabs li:first-child').clone(true, true).show().insertAfter(position);
 		else
 			el = $('#tabs li:first-child').clone(true, true).show().appendTo('#tabs');			
-			
+
 		t++;
 		el.attr('id', 'panel-' + t);
 		el.find('.messages').attr('id','messages-' + t);
 		el.find('.editor').attr('id','editor-' + t);
-		
+
 		var editor = ace.edit('editor-' + t);
 		//editor.setTheme("ace/theme/textmate");	
 		editor.setShowPrintMargin(false);
@@ -274,9 +274,9 @@ $(document).ready(function() {
 		else
 			el.find('a.tab').removeClass('other');
 	}
-	var commands = require("ace/commands/default_commands").commands;
-	
-	commands.push({
+	var canon = require("pilot/canon");
+
+	canon.addCommand({
 		name: "find",
 		bindKey: {
 			win: "Ctrl-F",
@@ -286,17 +286,22 @@ $(document).ready(function() {
 		exec: function() {
 			$("#findbar").animate({ top: '0' }, 100 ).find('input').focus();
 		}
-	}, {
+	});
+
+	canon.addCommand({
 		name: "replace",
 		bindKey: {
 			win: "Ctrl-R",
 			mac: "Command-R",
+
 			sender: "editor"
 		},
 		exec: function() {
 			// Not implemented
 		}
-	}, {
+	});
+
+	canon.addCommand({
 		name: "replaceall",
 		bindKey: {
 			win: "Ctrl-Shift-R",
@@ -329,7 +334,7 @@ $(document).ready(function() {
 			});
 		return false;
 	}
-	
+
 	$("#findbar .up").click(function() {
 		$("#tabs li.active").data('editor').findPrevious();
 	});
@@ -351,7 +356,7 @@ $(document).ready(function() {
 
 
 	//newTab();
-	
+
 	Crunch.directory = air.File.documentsDirectory;
 	Crunch.cssDirectory = air.File.documentsDirectory;
 	Crunch.lessDirectory = air.File.documentsDirectory;
@@ -382,7 +387,7 @@ $(document).ready(function() {
 				request.setResponseHeader("Last-Modified", getFile.modificationDate);
 				var fileStream = new air.FileStream();
 				fileStream.open(getFile, air.FileMode.READ);
-				request.receive(200, fileStream.readMultiByte(getFile.size, air.File.systemCharset));
+				request.receive(200, fileStream.readUTFBytes(fileStream.bytesAvailable));
 				fileStream.close();
 			}
 		}
@@ -406,7 +411,7 @@ $(document).ready(function() {
 		el.closest('li').data('editor').resize();
 	}
 	$("#filelist").dblclick(function(e) {
-	
+
 		var $target = $(event.target);
 		if( $target.is("a") ) $target = $target.parent();
 		if( $target.is("li") ) {
@@ -423,7 +428,7 @@ $(document).ready(function() {
 	$('.new-css').click(function() {
 		Crunch.newTab(true);
 	});
-	
+
 	Crunch.openFile = function(file, silent) {
 		// For now, only open CSS and LESS files.
 		if(!file.nativePath.match(/\.(less|css)$/i))
@@ -435,7 +440,7 @@ $(document).ready(function() {
 				if($(this).data('saved') && $(this).data('file-less').modificationDate != file.modificationDate) {
 					var stream = new air.FileStream();
 					stream.open(file, air.FileMode.READ);
-					var fileData = stream.readMultiByte(file.size, air.File.systemCharset);
+					var fileData = stream.readUTFBytes(stream.bytesAvailable);
 					stream.close();
 					$(this).data('editor').getSession().setValue(fileData);				
 				}
@@ -452,9 +457,9 @@ $(document).ready(function() {
 		if(!found) {
 			var stream = new air.FileStream();
 			stream.open(file, air.FileMode.READ);
-			var fileData = stream.readMultiByte(file.size, air.File.systemCharset);
+			var fileData = stream.readUTFBytes(stream.bytesAvailable);
 			stream.close();
-			
+
 			var el;
 			if(silent)
 				el = Crunch.newTab(false, $("#tabs li.active"));
@@ -462,7 +467,7 @@ $(document).ready(function() {
 				el = Crunch.newTab(false);
 			el.find('.filename').html(file.name);
 			el.data('editor').getSession().setValue(fileData);
-			
+
 			el.data('saved',true);
 			el.find('.save').hide();
 			if(!file.name.match(/\.less/i)) {
@@ -473,9 +478,9 @@ $(document).ready(function() {
 			//setTimeout(function() {
 			//	$("li.active").data('editor').resize();
 			//},1000);
-			
+
 		}
-		
+
 	}
 	$('.open-file').click(function() {
 		var fileToOpen = new air.File(Crunch.lessDirectory.nativePath);
@@ -487,7 +492,7 @@ $(document).ready(function() {
 		catch (error) {
 			alert("FRAK. This happened: " + error.message);
 		}
-		
+
 		function fileSelected(event) {
 			Crunch.openFile(event.target);			
 		}
@@ -504,7 +509,7 @@ $(document).ready(function() {
 		var activeEl = $("#tabs li.active");
 		Crunch.lastCrunch = Crunch.crunchFile(activeEl);
 		if(!Crunch.lastCrunch) return;
-		
+
 		if(!(activeEl.data('saved'))) {
 			var answer = confirm('You have to save before crunching. Go ahead and save?');
 			if(answer) {
@@ -514,9 +519,9 @@ $(document).ready(function() {
 				return;
 		}
 		Crunch.trySave(activeEl, true);
-		
+
 	});
-	
+
 	Crunch.crunchFile = function(el) {
 		var output;
 		try {
@@ -524,9 +529,9 @@ $(document).ready(function() {
 					paths: [el.data('file-less').nativePath.replace(/[\w\.-]+$/, '')],
 					filename: el.data('file-less').name
 				}).parse(el.data('editor').getSession().getValue(), function (err, tree) {
-					
+
 					if (err) { throw err; }
-					
+
 					output = "/* CSS crunched with Crunch - http://crunchapp.net/ */\n" + tree.toCSS({ compress: true });
 					//$('#output').val(output);
 					Crunch.hideMessage(el.find('.messages'));
@@ -554,7 +559,7 @@ $(document).ready(function() {
 			fileSelect = el.data('file-css');
 		else
 			fileSelect = el.data('file-less');
-		
+
 		if(!fileSelect) {
 			Crunch.saveAsFile(el, crunch, closeWindow);
 		}
@@ -564,7 +569,7 @@ $(document).ready(function() {
 				Crunch.closeTab(el);
 		}
 	}
-	
+
 	Crunch.saveFile = function(el, crunch, ask, update) {
 		var fileSelect;
 		var writeData;
@@ -582,7 +587,7 @@ $(document).ready(function() {
 			fileSelect = el.data('file-less');
 			writeData = el.data('editor').getSession().getValue();
 		}
-			
+
 		try {
 			if(ask && fileSelect.exists) {
 				if(!confirm('Replace "' + fileSelect.name + '"?'))
@@ -595,7 +600,7 @@ $(document).ready(function() {
 				if(el.data('notless') && fileSelect.name.match(/\.less/i)) {
 					Crunch.setTabType(el,false);
 				}
-				
+
 			}
 			catch(err) {
 				alert("I failed at saving. My bad. Here's what happened: " + err.message);
@@ -613,7 +618,7 @@ $(document).ready(function() {
 			Crunch.openFile(fileSelect, true);
 		el.data('saved',true);
 		el.find('.save').hide();
-		
+
 		if(update) {
 			$('#filelist li').each(function() {
 				if($(this).attr('title') == fileSelect.parent.nativePath)
@@ -621,9 +626,9 @@ $(document).ready(function() {
 			});
 		}
 		Crunch.setActive(el.find('a.tab'));
-		
+
 		return true;
-		
+
 	}
 	Crunch.saveAsFile = function(el, crunch, closeAfterSave) {
 		var filename = el.find('.filename').html();
@@ -649,9 +654,9 @@ $(document).ready(function() {
 			catch (error) {
 				alert("I tried to Save As something, but then I must have done something wrong. Error is: " +  err.message);
 			}
-		
+
 		},100);
-		
+
 		function saveData(event) {
 			var newFile = event.target;
 			if(crunch) {
@@ -664,9 +669,9 @@ $(document).ready(function() {
 				el.find('.tab').attr('title',newFile.nativePath);
 				Crunch.lessDirectory = newFile.parent;
 			}
-							
+
 			Crunch.saveFile(el, crunch, false, true);
-			
+
 			if(closeAfterSave) {
 				//closeAfterSave.close();
 				Crunch.closeTab(el);
@@ -686,7 +691,7 @@ $(document).ready(function() {
 			winType = air.NativeWindowType.UTILITY;
 			utility = true;
 		}
-			
+
 		var options = new air.NativeWindowInitOptions();
 		var modalWin = null;
 		var bounds = new air.Rectangle(
@@ -700,23 +705,23 @@ $(document).ready(function() {
 		options.minimizable = !utility;
 		options.resizable = !utility;
 		if(utility) options.owner = window.nativeWindow;
-		
+
 		modalWin = air.HTMLLoader.createRootWindow(
 		   true, options, true, bounds
 		);
-			
+
 		modalWin.load(new air.URLRequest(
 			url
 		));
-		
+
 		modalWin.addEventListener(
 		  air.Event.HTML_DOM_INITIALIZE , 
 		  function (e) {
 			  e.target.window.parent = e.target.window.opener = this;
-			  
+
 		  }  
 		);
-		
+
 	}
 	Crunch.htmlEncode = function(value){
 	  return $('<div/>').text(value).html();
@@ -724,7 +729,7 @@ $(document).ready(function() {
 	Crunch.textEncode = function(value) {
 		return $('<div/>').html(value).text();
 	}
-	
+
 	Crunch.getTree = function(treePath) {
 		var target = Crunch.directory.resolvePath(treePath);
 		var files = target.getDirectoryListing();
@@ -745,14 +750,14 @@ $(document).ready(function() {
 					tree+=' class="jstree-leaf file css"';
 				else
 					tree+=' class="jstree-leaf file"';
-					
+
 				tree+=' title="' + files[i].nativePath + '"><a href="#">' + files[i].name + '</a></li>';
 			}
 		}
 		tree+='</ul>';
 		return tree;
 	}
-	
+
 	Crunch.openProject = function(dir) {
 		Crunch.directory = Crunch.cssDirectory = Crunch.lessDirectory = dir;
 		var tree = '<li id="root" class="jstree-open" title="' + Crunch.directory.nativePath + '"><a href="#">' + Crunch.directory.name + '</a>'
@@ -791,12 +796,12 @@ $(document).ready(function() {
 		catch (error) {
 			alert("Failed:" + error.message);
 		}
-		
+
 		function directorySelected(event) {
 			Crunch.openProject(event.target);
 		}
 	});
-	
+
 	$('#info').click(function() {
 		Crunch.openWindow('win/about.html',522,550, true);
 	});
