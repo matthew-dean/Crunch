@@ -1,12 +1,19 @@
 var appUpdater = new runtime.air.update.ApplicationUpdaterUI(); 
 appUpdater.configurationFile = new air.File("app:/updateConfig.xml"); 
 appUpdater.initialize();
-Crunch = {};
-Crunch.pendingClose = false;
-Crunch.scrollWidth = 100;
-$(document).ready(function() {
 
+(function($) {
+	
+var Crunch = function() {
 
+	var pendingClose = false;
+	var scrollWidth = 100;
+
+	//var lessParser = less.Parser;
+	//less.Parser = {};
+	//less.Parser.prototype = lessParser;
+	
+	
 	// Keyboard mappings
 	var meta = "ctrl";
 	if(navigator.platform.indexOf('Mac') > -1)
@@ -54,11 +61,11 @@ $(document).ready(function() {
         $.each(filelist, function(index, item) {
 			var file = new air.File(item.url);
 			if(file.isDirectory) {
-				Crunch.openProject(file);
+				openProject(file);
 				return false;			
 			}
 			else
-				Crunch.openFile(file);
+				openFile(file);
 		});
 		//air.trace(filelist[0].url); 
     }); 
@@ -76,8 +83,8 @@ $(document).ready(function() {
 		var tabsToClose = $("#tabs li[id]");
 		if(tabsToClose.length > 0) {
 			$(tabsToClose).first().each(function() {
-				Crunch.pendingClose = true;
-				Crunch.tryCloseTab($(this));
+				pendingClose = true;
+				tryCloseTab($(this));
 			});
 		}
 		else
@@ -86,60 +93,11 @@ $(document).ready(function() {
 
 	function invokeHandler(event) {
 		if (event.arguments.length > 0) {
-			Crunch.openFile(new air.File(event.arguments[0]));
+			openFile(new air.File(event.arguments[0]));
 		}
 	}
-	$("#container > table").colResizable({
-		minWidth: 215,
-		liveDrag:true,
-	    gripInnerHtml:'<div id="resize"></div>',
-		onResize: function() {
-			if($('#tabs li.active').length > 0) {
-				$('#tabs li.active').data('editor').resize();
-				Crunch.adjustTabOverflow();
-			}
-		}
-	});
-	$(window).resize(function() {
-		if($('#tabs li.active').length > 0) {
-			$('#tabs li.active').data('editor').resize();
-			Crunch.adjustTabOverflow();
-		}
-	});
-
-	$('#tabs > li > a').click(function() {
-		Crunch.setActive(this);
-	});
-	$("#arrow-left").click(function() {
-		var tabs = $("#tabs");
-		if(tabs.margin().left > -Crunch.scrollWidth)
-			tabs.animate({'margin-left': "0"}, {duration: 'fast', complete: function() {
-				Crunch.adjustTabOverflow();
-			}
-			});
-		else
-			tabs.animate({'margin-left': "+=" + Crunch.scrollWidth}, {duration: 'fast', complete: function() {
-				Crunch.adjustTabOverflow();
-			}
-			});
-	});
-	$("#arrow-right").click(function() {
-		var tabs = $("#tabs");
-		var width = $("#scroller").width();
-		if(((tabs.margin().left*-1) + width + Crunch.scrollWidth) > tabs[0].scrollWidth)
-			tabs.animate({'margin-left': (tabs[0].scrollWidth - width)*-1}, 
-				{duration: 'fast', complete: function() {
-				Crunch.adjustTabOverflow();
-			}
-			});
-		else
-			tabs.animate({'margin-left': "-=" + Crunch.scrollWidth}, 
-				{duration: 'fast', complete: function() {
-				Crunch.adjustTabOverflow();
-			}
-			});
-	});
-	Crunch.setActive = function(el) {
+	
+	function setActive(el) {
 		$('#tabs li').removeClass('active');
 		var parent = $(el).parent();
 		parent.addClass('active');
@@ -155,28 +113,28 @@ $(document).ready(function() {
 		if((parent.outerWidth() + parent.position().left) > width) {
 			tabs.animate({'margin-left': (tabs[0].scrollWidth - width)*-1}, 
 				{duration: 'fast', complete: function() {
-				Crunch.adjustTabOverflow();
+				adjustTabOverflow();
 			}
 			});
 		}
 		else if(parent.position().left < 0) {
 			tabs.animate({'margin-left': tabs.margin().left - parent.position().left + 25}, 
 				{duration: 'fast', complete: function() {
-				Crunch.adjustTabOverflow();
+				adjustTabOverflow();
 			}
 			});
 		}
 		parent.data('editor').focus();
 		parent.data('editor').resize();
 	}
-	Crunch.tryCloseTab = function(el) {
+	function tryCloseTab(el) {
 		if(!el.data('saved')) {
-			Crunch.openWindow('win/save.html?#' + el.attr('id'),350,225, true);
+			openWindow('win/save.html?#' + el.attr('id'),350,225, true);
 		}
 		else
-			Crunch.closeTab(el);
+			closeTab(el);
 	}
-	Crunch.closeTab = function(el) {
+	function closeTab(el) {
 		var i = $(el).index();
 		var wasActive = $(el).hasClass('active');
 		$(el).data('editor',null).remove();
@@ -191,24 +149,20 @@ $(document).ready(function() {
 		else {
 			if(wasActive) {
 				if(i == 1)
-					Crunch.setActive($('#tabs > li > a')[i]);
+					setActive($('#tabs > li > a')[i]);
 				else
-					Crunch.setActive($('#tabs > li > a')[i-1]);
+					setActive($('#tabs > li > a')[i-1]);
 			}
 			else
-				Crunch.setActive($('#tabs > li.active > a'));
+				setActive($('#tabs > li.active > a'));
 		}
-		if(Crunch.pendingClose)
+		if(pendingClose)
 			closeWindow();
-		Crunch.adjustTabOverflow();
+		adjustTabOverflow();
 		return false;
 	}
-	$('#tabs a.tab .close').click(function() {
-		var listItem = $(this).parent().parent();
-		Crunch.tryCloseTab(listItem);
-	});
 
-	Crunch.adjustTabOverflow = function() {
+	function adjustTabOverflow() {
 		var tabs = $('#tabs');
 		var width = $("#scroller").width();
 		if(tabs.margin().left < 0)
@@ -221,13 +175,13 @@ $(document).ready(function() {
 		else
 			$("#arrow-right").removeAttr("disabled");
 	}
-	Crunch.unSave = function(el) {
+	function unSave(el) {
 		if(el.data('saved')) {
 			el.data('saved',false);
 			el.find('.save').show();
 		}
 	}
-	Crunch.newTab = function(css, position) {
+	function newTab(css, position) {
 		$('#splash').hide();
 		$('#save, #save-as').removeAttr('disabled');
 		var el;
@@ -250,7 +204,7 @@ $(document).ready(function() {
 			var activeEl = $("#tabs li.active");
 			//  && arguments[0].data.text.length==1
 			if(activeEl.data('dirty')) {
-				Crunch.unSave(activeEl);
+				unSave(activeEl);
 				activeEl.data('dirty',false);
 			}
 		});
@@ -258,25 +212,25 @@ $(document).ready(function() {
 			 el.data('dirty',true);
 		});
 		if(css) {
-			Crunch.setTabType(el,true);
+			setTabType(el,true);
 			el.find('.filename').html('new.css');
 		}
 		el.data('editor',editor);
 		el.data('saved',true);
-		Crunch.setActive(el.find('a.tab'));
-		Crunch.adjustTabOverflow();
+		setActive(el.find('a.tab'));
+		adjustTabOverflow();
 		return el;
 	}
-	Crunch.setTabType = function(el, notless) {
+	function setTabType(el, notless) {
 		el.data('notless',notless);
 		if(notless)
 			el.find('a.tab').addClass('other');
 		else
 			el.find('a.tab').removeClass('other');
 	}
-	var canon = require("pilot/canon");
+	var commands = require("ace/commands/default_commands").commands;
 
-	canon.addCommand({
+	commands.push({
 		name: "find",
 		bindKey: {
 			win: "Ctrl-F",
@@ -286,22 +240,17 @@ $(document).ready(function() {
 		exec: function() {
 			$("#findbar").animate({ top: '0' }, 100 ).find('input').focus();
 		}
-	});
-
-	canon.addCommand({
+	}, {
 		name: "replace",
 		bindKey: {
 			win: "Ctrl-R",
 			mac: "Command-R",
-
 			sender: "editor"
 		},
 		exec: function() {
 			// Not implemented
 		}
-	});
-
-	canon.addCommand({
+	}, {
 		name: "replaceall",
 		bindKey: {
 			win: "Ctrl-Shift-R",
@@ -313,18 +262,8 @@ $(document).ready(function() {
 		}
 	});
 
-	$("#findbar .close").click(function() {
-		$("#findbar").animate({	top: '-33px' }, 100 );
-		$("#tabs li.active").data('editor').focus();
-	});
-	$("#find").submit(function() {
-		Crunch.findText($("#findbar input").val());
-		return false;
-	});
-	$("#findbar input").change(function() {
-		Crunch.findText($("#findbar input").val());
-	});
-	Crunch.findText = function(val) {
+	
+	function findText(val) {
 		$("#tabs li.active").data('editor')
 			.find(val,{
 			  wrap: true,
@@ -335,12 +274,7 @@ $(document).ready(function() {
 		return false;
 	}
 
-	$("#findbar .up").click(function() {
-		$("#tabs li.active").data('editor').findPrevious();
-	});
-	$("#findbar .down").click(function() {
-		$("#tabs li.active").data('editor').findNext();
-	});	
+	
 //
 //	canon.addCommand({
 //		name: "crunch",
@@ -357,10 +291,10 @@ $(document).ready(function() {
 
 	//newTab();
 
-	Crunch.directory = air.File.documentsDirectory;
-	Crunch.cssDirectory = air.File.documentsDirectory;
-	Crunch.lessDirectory = air.File.documentsDirectory;
-	Crunch.lastCrunch;
+	var directory = air.File.documentsDirectory;
+	var cssDirectory = air.File.documentsDirectory;
+	var lessDirectory = air.File.documentsDirectory;
+	var lastCrunch;
 
 
 	// Intercept AJAX requests because AIR doesn't use them	
@@ -368,7 +302,7 @@ $(document).ready(function() {
 		url: 'dir.html',
 		status: 200,
 		response: function(settings) {
-			this.responseText = Crunch.getTree(settings.data.path);
+			this.responseText = getTree(settings.data.path);
 		}
 	});
 
@@ -379,7 +313,7 @@ $(document).ready(function() {
 
 		if(request.url.match(/\.less/i)) {
 			request.url = request.url.replace(/app:\//ig,'');
-			var getFile = Crunch.directory.resolvePath(request.url);
+			var getFile = directory.resolvePath(request.url);
 			if(!getFile.exists) {
 				request.receive(404, "Not found.");
 			}
@@ -397,39 +331,21 @@ $(document).ready(function() {
 		var activeEl = $("#tabs li.active .messages");
 		var msg = e.message;
 		// Fix line numbers later
-//		showMessage(activeEl, e.message + " (Line " + e.line + ")<br>Filename: " + href
-//			.replace('app:/' + $('#root').attr('title'),''));
-		Crunch.showMessage(activeEl, e.message + "<br>Filename: " + href
+		showMessage(activeEl, e.message + " (Line " + e.line + ")<br>Filename: " + href
 			.replace('app:/' + $('#root').attr('title'),''));
+//		showMessage(activeEl, e.message + "<br>Filename: " + href
+//			.replace('app:/' + $('#root').attr('title'),''));
 	});
-	Crunch.showMessage = function(el,msg) {
+	function showMessage(el,msg) {
 		el.addClass('show').find('.description').html(msg);
 		el.closest('li').data('editor').resize();
 	}
-	Crunch.hideMessage = function(el) { 
+	function hideMessage(el) { 
 		el.removeClass('show').find('.description').html('');
 		el.closest('li').data('editor').resize();
 	}
-	$("#filelist").dblclick(function(e) {
 
-		var $target = $(event.target);
-		if( $target.is("a") ) $target = $target.parent();
-		if( $target.is("li") ) {
-			var title = $target.attr('title');
-			if(title.match(/\.(less|css)$/i)) {
-				var fileToOpen = new air.File(title);
-				Crunch.openFile(fileToOpen);
-			}
-		}
-	});
-	$('.new-less').click(function() {
-		Crunch.newTab();
-	});
-	$('.new-css').click(function() {
-		Crunch.newTab(true);
-	});
-
-	Crunch.openFile = function(file, silent) {
+	function openFile(file, silent) {
 		// For now, only open CSS and LESS files.
 		if(!file.nativePath.match(/\.(less|css)$/i))
 			return;
@@ -445,7 +361,7 @@ $(document).ready(function() {
 					$(this).data('editor').getSession().setValue(fileData);				
 				}
 				if(!silent)
-					Crunch.setActive($(this).find('a.tab'));
+					setActive($(this).find('a.tab'));
 				else
 					$(this).find('a.tab').pulse({
 						backgroundColor: ['rgba(141,71,28,1)','rgba(141,71,28,0.8)'],
@@ -462,19 +378,19 @@ $(document).ready(function() {
 
 			var el;
 			if(silent)
-				el = Crunch.newTab(false, $("#tabs li.active"));
+				el = newTab(false, $("#tabs li.active"));
 			else
-				el = Crunch.newTab(false);
+				el = newTab(false);
 			el.find('.filename').html(file.name);
 			el.data('editor').getSession().setValue(fileData);
 
 			el.data('saved',true);
 			el.find('.save').hide();
 			if(!file.name.match(/\.less/i)) {
-				Crunch.setTabType(el,true);
+				setTabType(el,true);
 			}
 			el.data('file-less',file);
-			Crunch.setActive(el.find('a.tab'));
+			setActive(el.find('a.tab'));
 			//setTimeout(function() {
 			//	$("li.active").data('editor').resize();
 			//},1000);
@@ -482,47 +398,9 @@ $(document).ready(function() {
 		}
 
 	}
-	$('.open-file').click(function() {
-		var fileToOpen = new air.File(Crunch.lessDirectory.nativePath);
-		var txtFilter = new air.FileFilter("LESS file", "*.less;*.css");
-		try {
-			fileToOpen.browseForOpen("Open", [txtFilter]);
-			fileToOpen.addEventListener(air.Event.SELECT, fileSelected);
-		}
-		catch (error) {
-			alert("FRAK. This happened: " + error.message);
-		}
+	
 
-		function fileSelected(event) {
-			Crunch.openFile(event.target);			
-		}
-	});
-	$('#save').click(function() {
-		var activeEl = $("#tabs li.active");
-		Crunch.trySave(activeEl, false);
-	});
-	$('#save-as').click(function() {
-		var activeEl = $("#tabs li.active");
-		Crunch.saveAsFile(activeEl, false);
-	});
-	$('#convert').bind('click', function(event) {
-		var activeEl = $("#tabs li.active");
-		Crunch.lastCrunch = Crunch.crunchFile(activeEl);
-		if(!Crunch.lastCrunch) return;
-
-		if(!(activeEl.data('saved'))) {
-			var answer = confirm('You have to save before crunching. Go ahead and save?');
-			if(answer) {
-				Crunch.trySave(activeEl, false);
-			}
-			else
-				return;
-		}
-		Crunch.trySave(activeEl, true);
-
-	});
-
-	Crunch.crunchFile = function(el) {
+	function crunchFile(el) {
 		var output;
 		try {
 			var parser = new(less.Parser)({
@@ -534,7 +412,7 @@ $(document).ready(function() {
 
 					output = "/* CSS crunched with Crunch - http://crunchapp.net/ */\n" + tree.toCSS({ compress: true });
 					//$('#output').val(output);
-					Crunch.hideMessage(el.find('.messages'));
+					hideMessage(el.find('.messages'));
 			});	
 		}
 		catch(err) {
@@ -542,12 +420,18 @@ $(document).ready(function() {
 			if(err.index) {
 				errMessage += ' Index: ' + err.index;
 			}
-			Crunch.showMessage(el.find('.messages'),errMessage); return false;
+			if(err.filename) {
+				errMessage += ' Filename: ' + err.filename;
+			}
+			if(err.line) {
+				errMessage += ' Line: ' + err.line;
+			}
+			showMessage(el.find('.messages'),errMessage); return false;
 		}
 
 		return output;
 	}
-	Crunch.trySave = function(el, crunch, closeWindow) {
+	function trySave(el, crunch, closeWindow) {
 		if(closeWindow) { 
 			closeWindow.alwaysInFront = false;
 			nativeWindow.activate();
@@ -561,22 +445,22 @@ $(document).ready(function() {
 			fileSelect = el.data('file-less');
 
 		if(!fileSelect) {
-			Crunch.saveAsFile(el, crunch, closeWindow);
+			saveAsFile(el, crunch, closeWindow);
 		}
 		else {
-			Crunch.saveFile(el, crunch, false);
+			saveFile(el, crunch, false);
 			if(closeWindow)
-				Crunch.closeTab(el);
+				closeTab(el);
 		}
 	}
 
-	Crunch.saveFile = function(el, crunch, ask, update) {
+	function saveFile(el, crunch, ask, update) {
 		var fileSelect;
 		var writeData;
 		if(crunch) {
 			fileSelect = el.data('file-css');
 			try {
-				writeData = Crunch.lastCrunch;
+				writeData = lastCrunch;
 			}
 			catch(err) {
 				alert("I failed at saving. My bad. Here's what happened: " + err.message);
@@ -598,7 +482,7 @@ $(document).ready(function() {
 			try {
 				stream.writeUTFBytes(writeData);
 				if(el.data('notless') && fileSelect.name.match(/\.less/i)) {
-					Crunch.setTabType(el,false);
+					setTabType(el,false);
 				}
 
 			}
@@ -615,7 +499,7 @@ $(document).ready(function() {
 			return false;
 		}
 		if(crunch)
-			Crunch.openFile(fileSelect, true);
+			openFile(fileSelect, true);
 		el.data('saved',true);
 		el.find('.save').hide();
 
@@ -625,23 +509,23 @@ $(document).ready(function() {
 					$('#filelist').jstree('refresh',this);
 			});
 		}
-		Crunch.setActive(el.find('a.tab'));
+		setActive(el.find('a.tab'));
 
 		return true;
 
 	}
-	Crunch.saveAsFile = function(el, crunch, closeAfterSave) {
+	function saveAsFile(el, crunch, closeAfterSave) {
 		var filename = el.find('.filename').html();
 		var fileSelect;
 		if(crunch) {
 			if(!el.data('file-css'))
-				fileSelect = Crunch.cssDirectory.resolvePath(filename.replace('.less','.css'));
+				fileSelect = cssDirectory.resolvePath(filename.replace('.less','.css'));
 			else
 				fileSelect = el.data('file-css');
 		}
 		else {
 			if(!el.data('file-less'))
-				fileSelect = Crunch.lessDirectory.resolvePath(filename);
+				fileSelect = lessDirectory.resolvePath(filename);
 
 			else
 				fileSelect = el.data('file-less');	
@@ -661,27 +545,25 @@ $(document).ready(function() {
 			var newFile = event.target;
 			if(crunch) {
 				el.data('file-css',newFile);
-				Crunch.cssDirectory = newFile.parent;
+				cssDirectory = newFile.parent;
 			}
 			else {
 				el.data('file-less',newFile);
 				el.find('.filename').html(newFile.name);
 				el.find('.tab').attr('title',newFile.nativePath);
-				Crunch.lessDirectory = newFile.parent;
+				lessDirectory = newFile.parent;
 			}
 
-			Crunch.saveFile(el, crunch, false, true);
+			saveFile(el, crunch, false, true);
 
 			if(closeAfterSave) {
 				//closeAfterSave.close();
-				Crunch.closeTab(el);
+				closeTab(el);
 			}
 		}
 	}
-	$('#openwindow').click(function() {
-		Crunch.openWindow('win/save.html',350,225,true);
-	});
-	Crunch.openWindow = function(url,width,height,utility) {
+	
+	function openWindow(url,width,height,utility) {
 		var winType;
 		if(!utility) {
 			winType = air.NativeWindowType.NORMAL;
@@ -723,15 +605,15 @@ $(document).ready(function() {
 		);
 
 	}
-	Crunch.htmlEncode = function(value){
+	function htmlEncode(value){
 	  return $('<div/>').text(value).html();
 	}
-	Crunch.textEncode = function(value) {
+	function textEncode(value) {
 		return $('<div/>').html(value).text();
 	}
 
-	Crunch.getTree = function(treePath) {
-		var target = Crunch.directory.resolvePath(treePath);
+	function getTree(treePath) {
+		var target = directory.resolvePath(treePath);
 		var files = target.getDirectoryListing();
 		var tree = '<ul>';
 		for(var i = 0; i < files.length; i++) {
@@ -758,10 +640,10 @@ $(document).ready(function() {
 		return tree;
 	}
 
-	Crunch.openProject = function(dir) {
-		Crunch.directory = Crunch.cssDirectory = Crunch.lessDirectory = dir;
-		var tree = '<li id="root" class="jstree-open" title="' + Crunch.directory.nativePath + '"><a href="#">' + Crunch.directory.name + '</a>'
-				+ Crunch.getTree(Crunch.directory.nativePath) + '</li>';
+	function openProject(dir) {
+		directory = cssDirectory = lessDirectory = dir;
+		var tree = '<li id="root" class="jstree-open" title="' + directory.nativePath + '"><a href="#">' + directory.name + '</a>'
+				+ getTree(directory.nativePath) + '</li>';
 		$("#filelist")
 			.jstree({
 				"core" : { "initially_open" : [ "root" ], "animation": 100 },
@@ -787,26 +669,177 @@ $(document).ready(function() {
 			$(this).toggleClass('click');
 		});	
 	}
-	$('#open-project').bind('click', function(event) {
-		var selectDir = new air.File(Crunch.directory.nativePath);
-		try	{
-			selectDir.browseForDirectory("Select Directory");
-			selectDir.addEventListener(air.Event.SELECT, directorySelected);
-		}
-		catch (error) {
-			alert("Failed:" + error.message);
-		}
+	
+	
+	function init() {
+		
+		$("#container > table").colResizable({
+			minWidth: 215,
+			liveDrag:true,
+			gripInnerHtml:'<div id="resize"></div>',
+			onResize: function() {
+				if($('#tabs li.active').length > 0) {
+					$('#tabs li.active').data('editor').resize();
+					adjustTabOverflow();
+				}
+			}
+		});
+		$(window).resize(function() {
+			if($('#tabs li.active').length > 0) {
+				$('#tabs li.active').data('editor').resize();
+				adjustTabOverflow();
+			}
+		});
+	
+		$('#tabs > li > a').click(function() {
+			setActive(this);
+		});
+		$("#arrow-left").click(function() {
+			var tabs = $("#tabs");
+			if(tabs.margin().left > -scrollWidth)
+				tabs.animate({'margin-left': "0"}, {duration: 'fast', complete: function() {
+					adjustTabOverflow();
+				}
+				});
+			else
+				tabs.animate({'margin-left': "+=" + scrollWidth}, {duration: 'fast', complete: function() {
+					adjustTabOverflow();
+				}
+				});
+		});
+		$("#arrow-right").click(function() {
+			var tabs = $("#tabs");
+			var width = $("#scroller").width();
+			if(((tabs.margin().left*-1) + width + scrollWidth) > tabs[0].scrollWidth)
+				tabs.animate({'margin-left': (tabs[0].scrollWidth - width)*-1}, 
+					{duration: 'fast', complete: function() {
+					adjustTabOverflow();
+				}
+				});
+			else
+				tabs.animate({'margin-left': "-=" + scrollWidth}, 
+					{duration: 'fast', complete: function() {
+					adjustTabOverflow();
+				}
+				});
+		});
+		$("#findbar .up").click(function() {
+			$("#tabs li.active").data('editor').findPrevious();
+		});
+		$("#findbar .down").click(function() {
+			$("#tabs li.active").data('editor').findNext();
+		});	
+		$('#tabs a.tab .close').click(function() {
+			var listItem = $(this).parent().parent();
+			tryCloseTab(listItem);
+		});
+		
+		$("#findbar .close").click(function() {
+			$("#findbar").animate({	top: '-33px' }, 100 );
+			$("#tabs li.active").data('editor').focus();
+		});
+		$("#find").submit(function() {
+			findText($("#findbar input").val());
+			return false;
+		});
+		$("#findbar input").change(function() {
+			findText($("#findbar input").val());
+		});
+		$("#filelist").dblclick(function(e) {
 
-		function directorySelected(event) {
-			Crunch.openProject(event.target);
-		}
+			var $target = $(event.target);
+			if( $target.is("a") ) $target = $target.parent();
+			if( $target.is("li") ) {
+				var title = $target.attr('title');
+				if(title.match(/\.(less|css)$/i)) {
+					var fileToOpen = new air.File(title);
+					openFile(fileToOpen);
+				}
+			}
+		});
+		$('.new-less').click(function() {
+			newTab();
+		});
+		$('.new-css').click(function() {
+			newTab(true);
+		});
+		
+		$('.open-file').click(function() {
+			var fileToOpen = new air.File(lessDirectory.nativePath);
+			var txtFilter = new air.FileFilter("LESS file", "*.less;*.css");
+			try {
+				fileToOpen.browseForOpen("Open", [txtFilter]);
+				fileToOpen.addEventListener(air.Event.SELECT, fileSelected);
+			}
+			catch (error) {
+				alert("FRAK. This happened: " + error.message);
+			}
+	
+			function fileSelected(event) {
+				openFile(event.target);			
+			}
+		});
+		$('#save').click(function() {
+			var activeEl = $("#tabs li.active");
+			trySave(activeEl, false);
+		});
+		$('#save-as').click(function() {
+			var activeEl = $("#tabs li.active");
+			saveAsFile(activeEl, false);
+		});
+		$('#convert').bind('click', function(event) {
+			var activeEl = $("#tabs li.active");
+			lastCrunch = crunchFile(activeEl);
+			if(!lastCrunch) return;
+	
+			if(!(activeEl.data('saved'))) {
+				var answer = confirm('You have to save before crunching. Go ahead and save?');
+				if(answer) {
+					trySave(activeEl, false);
+				}
+				else
+					return;
+			}
+			trySave(activeEl, true);
+	
+		});
+		$('#openwindow').click(function() {
+			openWindow('win/save.html',350,225,true);
+		});
+		$('#open-project').bind('click', function(event) {
+			var selectDir = new air.File(directory.nativePath);
+			try	{
+				selectDir.browseForDirectory("Select Directory");
+				selectDir.addEventListener(air.Event.SELECT, directorySelected);
+			}
+			catch (error) {
+				alert("Failed:" + error.message);
+			}
+	
+			function directorySelected(event) {
+				openProject(event.target);
+			}
+		});
+	
+		$('#info').click(function() {
+			openWindow('win/about.html',522,550, true);
+		});
+		$('#help').click(function() {
+			openWindow('win/help.html',750,490, false);
+		});
+	
+	}
+	return {
+		init: init,
+		closeTab: closeTab,
+		trySave: trySave
+	}
+}();
+
+	window.Crunch = Crunch;
+	
+	$(document).ready(function() {
+		Crunch.init();
 	});
+})(jQuery);
 
-	$('#info').click(function() {
-		Crunch.openWindow('win/about.html',522,550, true);
-	});
-	$('#help').click(function() {
-		Crunch.openWindow('win/help.html',750,490, false);
-	});	
-
-});
