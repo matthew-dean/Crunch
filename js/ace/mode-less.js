@@ -1,5 +1,5 @@
-define("ace/mode/less", ["require", "exports", "module", "pilot/oop", "ace/mode/text", "ace/tokenizer", "ace/mode/less_highlight_rules", "ace/mode/matching_brace_outdent"], function (a, b, c) {
-	var d = a("pilot/oop"),
+define("ace/mode/less", ["require", "exports", "module", "ace/lib/oop", "ace/mode/text", "ace/tokenizer", "ace/mode/less_highlight_rules", "ace/mode/matching_brace_outdent"], function (a, b, c) {
+	var d = a("ace/lib/oop"),
 		e = a("ace/mode/text").Mode,
 		f = a("ace/tokenizer").Tokenizer,
 		g = a("ace/mode/less_highlight_rules").LessHighlightRules,
@@ -21,9 +21,9 @@ define("ace/mode/less", ["require", "exports", "module", "pilot/oop", "ace/mode/
 			this.$outdent.autoOutdent(b, c)
 		}
 	}.call(i.prototype), b.Mode = i
-}), define("ace/mode/less_highlight_rules", ["require", "exports", "module", "pilot/oop", "pilot/lang", "ace/mode/text_highlight_rules"], function (a, b, c) {
-	var d = a("pilot/oop"),
-		e = a("pilot/lang"),
+}), define("ace/mode/less_highlight_rules", ["require", "exports", "module", "ace/lib/oop", "ace/lib/lang", "ace/mode/text_highlight_rules"], function (a, b, c) {
+	var d = a("ace/lib/oop"),
+		e = a("ace/lib/lang"),
 		f = a("ace/mode/text_highlight_rules").TextHighlightRules,
 		g = function () {
 			function i(a) {
