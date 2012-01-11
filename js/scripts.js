@@ -331,10 +331,13 @@ var Crunch = function() {
 		var activeEl = $("#tabs li.active .messages");
 		var msg = e.message;
 		// Fix line numbers later
-		showMessage(activeEl, e.message + " (Line " + e.line + ")<br>Filename: " + href
-			.replace('app:/' + $('#root').attr('title'),''));
+//		showMessage(activeEl, e.message + " (Line " + e.line + ")<br>Filename: " + href
+//			.replace('app:/' + $('#root').attr('title'),''));
 //		showMessage(activeEl, e.message + "<br>Filename: " + href
 //			.replace('app:/' + $('#root').attr('title'),''));
+		showMessage(activeEl, e.message + "<br>Filename: " + href
+			.replace('app://',''));
+
 	});
 	function showMessage(el,msg) {
 		el.addClass('show').find('.description').html(msg);
@@ -417,14 +420,14 @@ var Crunch = function() {
 		}
 		catch(err) {
 			var errMessage = err.message;
-			if(err.index) {
-				errMessage += ' Index: ' + err.index;
+			//if(err.index) {
+			//	errMessage += ' Index: ' + err.index;
+			//}
+			if(err.line) {
+				errMessage += ' (Line: ' + err.line + ')';
 			}
 			if(err.filename) {
-				errMessage += ' Filename: ' + err.filename;
-			}
-			if(err.line) {
-				errMessage += ' Line: ' + err.line;
+				errMessage += '<br>Filename: ' + err.filename;
 			}
 			showMessage(el.find('.messages'),errMessage); return false;
 		}

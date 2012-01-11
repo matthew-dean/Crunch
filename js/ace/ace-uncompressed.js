@@ -1926,10 +1926,12 @@ exports.addMouseWheelListener = function(el, callback) {
             //if (Math.abs(e.wheelDeltaY) > max)
             //    max = Math.abs(e.wheelDeltaY);
 
+			// MODIFIED FOR CRUNCH
             //if (max > 5000)
             //    var factor = 400;
             //else
-                var factor = 8;
+			// var factor = 8;
+                var factor = 16;
 
             if (e.wheelDeltaX !== undefined) {
                 e.wheelX = -e.wheelDeltaX / factor;
