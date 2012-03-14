@@ -40,7 +40,7 @@
  * @param module a name for the payload
  * @param payload a function to call with (require, exports, module) params
  */
- 
+
 (function() {
 
 var ACE_NAMESPACE = "ace";
@@ -48,9 +48,6 @@ var ACE_NAMESPACE = "ace";
 var global = (function() {
     return this;
 })();
-
-if (typeof requirejs !== "undefined")
-    return;
 
 var _define = function(module, deps, payload) {
     if (typeof module !== 'string') {
@@ -68,7 +65,7 @@ var _define = function(module, deps, payload) {
 
     if (!_define.modules)
         _define.modules = {};
-        
+
     _define.modules[module] = payload;
 };
 
@@ -92,11 +89,11 @@ var _require = function(parentId, module, callback) {
         var payload = lookup(parentId, module);
         if (!payload && _require.original)
             return _require.original.apply(window, arguments);
-        
+
         if (callback) {
             callback();
         }
-    
+
         return payload;
     }
     else {
@@ -115,13 +112,13 @@ var normalizeModule = function(parentId, moduleName) {
     if (moduleName.charAt(0) == ".") {
         var base = parentId.split("/").slice(0, -1).join("/");
         moduleName = base + "/" + moduleName;
-        
+
         while(moduleName.indexOf(".") !== -1 && previous != moduleName) {
             var previous = moduleName;
             moduleName = moduleName.replace(/\/\.\//, "/").replace(/[^\/]+\/\.\.\//, "");
         }
     }
-    
+
     return moduleName;
 };
 
@@ -141,19 +138,19 @@ var lookup = function(parentId, moduleName) {
     if (typeof module === 'function') {
         var exports = {};
         var mod = {
-            id: moduleName, 
+            id: moduleName,
             uri: '',
             exports: exports,
             packaged: true
         };
-        
+
         var req = function(module, callback) {
             return _require(moduleName, module, callback);
         };
-        
+
         var returnValue = module(req, exports, mod);
         exports = returnValue || mod.exports;
-            
+
         // cache the resulting module object for next time
         _define.modules[moduleName] = exports;
         return exports;
@@ -163,26 +160,45 @@ var lookup = function(parentId, moduleName) {
 };
 
 function exportAce(ns) {
+
+    if (typeof requirejs !== "undefined") {
+
+        var define = global.define;
+        global.define = function(id, deps, callback) {
+            if (typeof callback !== "function")
+                return define.apply(this, arguments);
+
+            return ace.define(id, deps, function(require, exports, module) {
+                if (deps[2] == "module")
+                    module.packaged = true;
+                return callback.apply(this, arguments);
+            });
+        };
+        global.define.packaged = true;
+
+        return;
+    }
+
     var require = function(module, callback) {
         return _require("", module, callback);
     };
     require.packaged = true;
-    
+
     var root = global;
     if (ns) {
         if (!global[ns])
             global[ns] = {};
         root = global[ns];
     }
-        
+
     if (root.define)
         _define.original = root.define;
-    
+
     root.define = _define;
 
     if (root.require)
         _require.original = root.require;
-    
+
     root.require = require;
 }
 
@@ -225,7 +241,7 @@ exportAce(ACE_NAMESPACE);
  *
  * ***** END LICENSE BLOCK ***** */
 
-ace.define('ace/ace', ['require', 'exports', 'module' , 'ace/lib/fixoldbrowsers', 'ace/lib/dom', 'ace/lib/event', 'ace/editor', 'ace/edit_session', 'ace/undomanager', 'ace/virtual_renderer', 'ace/theme/textmate'], function(require, exports, module) {
+ace.define('ace/ace', ['require', 'exports', 'module' , 'ace/lib/fixoldbrowsers', 'ace/lib/dom', 'ace/lib/event', 'ace/editor', 'ace/edit_session', 'ace/undomanager', 'ace/virtual_renderer', 'ace/worker/worker_client', 'ace/theme/textmate'], function(require, exports, module) {
 "use strict";
 
 require("./lib/fixoldbrowsers");
@@ -237,6 +253,8 @@ var Editor = require("./editor").Editor;
 var EditSession = require("./edit_session").EditSession;
 var UndoManager = require("./undomanager").UndoManager;
 var Renderer = require("./virtual_renderer").VirtualRenderer;
+
+require("./worker/worker_client");
 
 exports.edit = function(el) {
     if (typeof(el) == "string") {
@@ -326,7 +344,7 @@ ace.define('ace/lib/regexp', ['require', 'exports', 'module' ], function(require
     RegExp.prototype.exec = function (str) {
         var match = real.exec.apply(this, arguments),
             name, r2;
-        if (match) {
+        if ( typeof(str) == 'string' && match) {
             // Fix browsers whose `exec` methods don't consistently return `undefined` for
             // nonparticipating capturing groups
             if (!compliantExecNpcg && match.length > 1 && indexOf(match, "") > -1) {
@@ -391,7 +409,8 @@ ace.define('ace/lib/regexp', ['require', 'exports', 'module' ], function(require
         return -1;
     };
 
-});// vim: ts=4 sts=4 sw=4 expandtab
+});
+// vim: ts=4 sts=4 sw=4 expandtab
 // -- kriskowal Kris Kowal Copyright (C) 2009-2011 MIT License
 // -- tlrobinson Tom Robinson Copyright (C) 2009-2010 MIT License (Narwhal Project)
 // -- dantman Daniel Friesen Copyright (C) 2010 XXX TODO License or CLA
@@ -1917,20 +1936,9 @@ else {
 }
 
 exports.addMouseWheelListener = function(el, callback) {
-    var max = 0;
+    var factor = 8;
     var listener = function(e) {
         if (e.wheelDelta !== undefined) {
-
-            // some versions of Safari (e.g. 5.0.5) report insanely high
-            // scroll values. These browsers require a higher factor
-            if (Math.abs(e.wheelDeltaY) > max)
-                max = Math.abs(e.wheelDeltaY);
-
-            if (max > 5000)
-                var factor = 400;
-            else
-                var factor = 8;
-
             if (e.wheelDeltaX !== undefined) {
                 e.wheelX = -e.wheelDeltaX / factor;
                 e.wheelY = -e.wheelDeltaY / factor;
@@ -2029,7 +2037,7 @@ function normalizeCommandKeys(callback, e, keyCode) {
 
 exports.addCommandKeyListener = function(el, callback) {
     var addListener = exports.addListener;
-    if (useragent.isOldGecko) {
+    if (useragent.isOldGecko || useragent.isOpera) {
         // Old versions of Gecko aka. Firefox < 4.0 didn't repeat the keydown
         // event if the user pressed the key for a longer time. Instead, the
         // keydown event was fired once and later on only the keypress event.
@@ -2050,18 +2058,6 @@ exports.addCommandKeyListener = function(el, callback) {
             lastDown = e.keyIdentifier || e.keyCode;
             return normalizeCommandKeys(callback, e, e.keyCode);
         });
-
-        // repeated keys are fired as keypress and not keydown events
-        if (useragent.isMac && useragent.isOpera) {
-            addListener(el, "keypress", function(e) {
-                var keyId = e.keyIdentifier || e.keyCode;
-                if (lastDown !== keyId) {
-                    return normalizeCommandKeys(callback, e, lastDown);
-                } else {
-                    lastDown = null;
-                }
-            });
-        }
     }
 };
 
@@ -2558,7 +2554,10 @@ var Editor = function(renderer, session) {
 
         this.onChangeMode();
 
+        this.$blockScrolling += 1;
         this.onCursorChange();
+        this.$blockScrolling -= 1;
+
         this.onScrollTopChange();
         this.onScrollLeftChange();
         this.onSelectionChange();
@@ -2605,6 +2604,7 @@ var Editor = function(renderer, session) {
 
     this.setFontSize = function(size) {
         this.container.style.fontSize = size;
+        this.renderer.updateFontSize();
     };
 
     this.$highlightBrackets = function() {
@@ -3589,8 +3589,7 @@ var Editor = function(renderer, session) {
         var range = this.$search.find(this.session);
         if (range) {
             this.session.unfold(range);
-            this.gotoLine(range.end.row+1, range.end.column);
-            this.selection.setSelectionRange(range);
+            this.selection.setSelectionRange(range); // this scrolls selection into view
         }
     };
 
@@ -5334,6 +5333,11 @@ exports.commands = [{
     bindKey: bindKey("Ctrl-Shift-E", "Command-Shift-E"),
     exec: function(editor) { editor.commands.replay(editor); },
     readOnly: true
+}, {
+    name: "jumptomatching",
+    bindKey: bindKey("Ctrl-Shift-P", "Ctrl-Shift-P"),
+    exec: function(editor) { editor.jumpToMatching(); },
+    readOnly: true
 }, 
 
 // commands disabled in readOnly mode
@@ -5452,10 +5456,6 @@ exports.commands = [{
     name: "tolowercase",
     bindKey: bindKey("Ctrl-Shift-U", "Ctrl-Shift-U"),
     exec: function(editor) { editor.toLowerCase(); }
-}, {
-    name: "jumptomatching",
-    bindKey: bindKey("Ctrl-Shift-P", "Ctrl-Shift-P"),
-    exec: function(editor) { editor.jumpToMatching(); }
 }];
 
 });
@@ -10106,7 +10106,7 @@ function Folding() {
 
     this.foldAll = function(startRow, endRow) {
         var foldWidgets = this.foldWidgets;
-        endRow = endRow || foldWidgets.length;
+        endRow = endRow || this.getLength();
         for (var row = startRow || 0; row < endRow; row++) {
             if (foldWidgets[row] == null)
                 foldWidgets[row] = this.getFoldWidget(row);
@@ -11670,7 +11670,9 @@ var VirtualRenderer = function(container, theme) {
     this.scrollLeft = 0;
     
     event.addListener(this.scroller, "scroll", function() {
-        _self.session.setScrollLeft(_self.scroller.scrollLeft);
+        var scrollLeft = _self.scroller.scrollLeft;
+        _self.scrollLeft = scrollLeft;
+        _self.session.setScrollLeft(scrollLeft);
     });
 
     this.cursorPos = {
@@ -11678,7 +11680,7 @@ var VirtualRenderer = function(container, theme) {
         column : 0
     };
 
-    this.$textLayer.addEventListener("changeCharaterSize", function() {
+    this.$textLayer.addEventListener("changeCharacterSize", function() {
         _self.characterWidth = textLayer.getCharacterWidth();
         _self.lineHeight = textLayer.getLineHeight();
         _self.$updatePrintMargin();
@@ -11731,6 +11733,7 @@ var VirtualRenderer = function(container, theme) {
     this.CHANGE_MARKER_BACK = 128;
     this.CHANGE_MARKER_FRONT = 256;
     this.CHANGE_FULL = 512;
+    this.CHANGE_H_SCROLL = 1024;
 
     oop.implement(this, EventEmitter);
 
@@ -11968,7 +11971,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     this.$renderChanges = function(changes) {
-        if (!changes || !this.session)
+        if (!changes || !this.session || !this.container.offsetWidth)
             return;
 
         // text, scrolling and resize changes can cause the view port size to change
@@ -11980,20 +11983,33 @@ var VirtualRenderer = function(container, theme) {
         )
             this.$computeLayerConfig();
 
+        // horizontal scrolling
+        if (changes & this.CHANGE_H_SCROLL) {
+            this.scroller.scrollLeft = this.scrollLeft;
+            
+            // read the value after writing it since the value might get clipped
+            var scrollLeft = this.scroller.scrollLeft;
+            this.scrollLeft = scrollLeft;
+            this.session.setScrollLeft(scrollLeft);
+        }
+        
         // full
         if (changes & this.CHANGE_FULL) {
+            this.$textLayer.checkForSizeChanges();
+            // update scrollbar first to not lose scroll position when gutter calls resize
+            this.$updateScrollBar();
             this.$textLayer.update(this.layerConfig);
             if (this.showGutter)
                 this.$gutterLayer.update(this.layerConfig);
             this.$markerBack.update(this.layerConfig);
             this.$markerFront.update(this.layerConfig);
             this.$cursorLayer.update(this.layerConfig);
-            this.$updateScrollBar();
             return;
         }
 
         // scrolling
         if (changes & this.CHANGE_SCROLL) {
+            this.$updateScrollBar();
             if (changes & this.CHANGE_TEXT || changes & this.CHANGE_LINES)
                 this.$textLayer.update(this.layerConfig);
             else
@@ -12004,7 +12020,6 @@ var VirtualRenderer = function(container, theme) {
             this.$markerBack.update(this.layerConfig);
             this.$markerFront.update(this.layerConfig);
             this.$cursorLayer.update(this.layerConfig);
-            this.$updateScrollBar();
             return;
         }
 
@@ -12014,10 +12029,11 @@ var VirtualRenderer = function(container, theme) {
                 this.$gutterLayer.update(this.layerConfig);
         }
         else if (changes & this.CHANGE_LINES) {
-            this.$updateLines();
-            this.$updateScrollBar();
-            if (this.showGutter)
-                this.$gutterLayer.update(this.layerConfig);
+            if (this.$updateLines()) {
+                this.$updateScrollBar();
+                if (this.showGutter)
+                    this.$gutterLayer.update(this.layerConfig);
+            }
         } else if (changes & this.CHANGE_GUTTER) {
             if (this.showGutter)
                 this.$gutterLayer.update(this.layerConfig);
@@ -12049,9 +12065,13 @@ var VirtualRenderer = function(container, theme) {
         var horizScroll = this.$horizScrollAlwaysVisible || this.$size.scrollerWidth - longestLine < 0;
         var horizScrollChanged = this.$horizScroll !== horizScroll;
         this.$horizScroll = horizScroll;
-        if (horizScrollChanged)
+        if (horizScrollChanged) {
             this.scroller.style.overflowX = horizScroll ? "scroll" : "hidden";
-
+            // when we hide scrollbar scroll event isn't emited
+            // leaving session with wrong scrollLeft value
+            if (!horizScroll)
+                this.session.setScrollLeft(0);
+        }
         var maxHeight = this.session.getScreenLength() * this.lineHeight;
         this.session.setScrollTop(Math.max(0, Math.min(this.scrollTop, maxHeight - this.$size.scrollerHeight)));
 
@@ -12102,12 +12122,6 @@ var VirtualRenderer = function(container, theme) {
         this.content.style.width = longestLine + 2 * this.$padding + "px";
         this.content.style.height = minHeight + "px";
 
-        // scroller.scrollWidth was smaller than scrollLeft we needed
-        if (this.$desiredScrollLeft) {
-            this.scrollToX(this.$desiredScrollLeft);
-            this.$desiredScrollLeft = 0;
-        }
-
         // Horizontal scrollbar visibility may have changed, which changes
         // the client height of the scroller
         if (horizScrollChanged)
@@ -12138,6 +12152,7 @@ var VirtualRenderer = function(container, theme) {
 
         // else update only the changed rows
         this.$textLayer.updateLines(layerConfig, firstRow, lastRow);
+        return true;
     };
 
     this.$getLongestLine = function() {
@@ -12213,14 +12228,11 @@ var VirtualRenderer = function(container, theme) {
         if (scrollLeft > left) {
             if (left < this.$padding + 2 * this.layerConfig.characterWidth)
                 left = 0;
-            this.scrollToX(left);
+            this.session.setScrollLeft(left);
         }
 
         if (scrollLeft + this.$size.scrollerWidth < left + this.characterWidth) {
-            if (left > this.layerConfig.width + 2 * this.$padding)
-                this.$desiredScrollLeft = left;
-            else
-                this.scrollToX(Math.round(left + this.characterWidth - this.$size.scrollerWidth));
+            this.session.setScrollLeft(Math.round(left + this.characterWidth - this.$size.scrollerWidth));
         }
     };
 
@@ -12229,7 +12241,7 @@ var VirtualRenderer = function(container, theme) {
     };
 
     this.getScrollLeft = function() {
-        return this.session.getScrollTop();
+        return this.session.getScrollLeft();
     };
 
     this.getScrollTopRow = function() {
@@ -12245,15 +12257,11 @@ var VirtualRenderer = function(container, theme) {
     };
 
     this.scrollToLine = function(line, center) {
-        var lineHeight = { lineHeight: this.lineHeight };
-        var offset = 0;
-        for (var l = 1; l < line; l++) {
-            offset += this.session.getRowHeight(lineHeight, l-1);
-        }
-
-        if (center) {
+        var pos = this.$cursorLayer.getPixelPosition({row: line, column: 0});
+        var offset = pos.top;
+        if (center)
             offset -= this.$size.scrollerHeight / 2;
-        }
+
         this.session.setScrollTop(offset);
     };
 
@@ -12270,8 +12278,9 @@ var VirtualRenderer = function(container, theme) {
         if (scrollLeft <= this.$padding)
             scrollLeft = 0;
 
-        this.scroller.scrollLeft = scrollLeft;
-        scrollLeft = this.scroller.scrollLeft;
+        if (this.scrollLeft !== scrollLeft)
+            this.scrollLeft = scrollLeft;
+        this.$loop.schedule(this.CHANGE_H_SCROLL);
     };
 
     this.scrollBy = function(deltaX, deltaY) {
@@ -12291,12 +12300,10 @@ var VirtualRenderer = function(container, theme) {
         var canvasPos = this.scroller.getBoundingClientRect();
 
         var col = Math.round(
-            (pageX + this.scrollLeft - canvasPos.left - this.$padding - dom.getPageScrollLeft())
-            / this.characterWidth
+            (pageX + this.scrollLeft - canvasPos.left - this.$padding - dom.getPageScrollLeft()) / this.characterWidth
         );
         var row = Math.floor(
-            (pageY + this.scrollTop - canvasPos.top - dom.getPageScrollTop())
-            / this.lineHeight
+            (pageY + this.scrollTop - canvasPos.top - dom.getPageScrollTop()) / this.lineHeight
         );
 
         return this.session.screenToDocumentPosition(row, Math.max(col, 0));
@@ -12914,7 +12921,7 @@ var Text = function(parentEl) {
         var size = this.$measureSizes();
         if (size && (this.$characterSize.width !== size.width || this.$characterSize.height !== size.height)) {
             this.$characterSize = size;
-            this._emit("changeCharaterSize", {data: size});
+            this._emit("changeCharacterSize", {data: size});
         }
     };
 
@@ -12962,6 +12969,11 @@ var Text = function(parentEl) {
             }
 
         }
+        
+        // Size and width can be null if the editor is not visible or
+        // detached from the document
+        if (!this.element.offsetWidth)
+            return null;
 
         var style = this.$measureNode.style;
         var computedStyle = dom.computedStyle(this.element);
@@ -13492,7 +13504,7 @@ var Cursor = function(parentEl) {
         }, 1000);
     };
 
-    this.getPixelPosition = function(onScreen) {
+    this.getPixelPosition = function(position, onScreen) {
         if (!this.config || !this.session) {
             return {
                 left : 0,
@@ -13500,7 +13512,8 @@ var Cursor = function(parentEl) {
             };
         }
 
-        var position = this.session.selection.getCursor();
+        if (!position)
+            position = this.session.selection.getCursor();
         var pos = this.session.documentToScreenPosition(position);
         var cursorLeft = Math.round(this.$padding +
                                     pos.column * this.config.characterWidth);
@@ -13516,7 +13529,7 @@ var Cursor = function(parentEl) {
     this.update = function(config) {
         this.config = config;
 
-        this.pixelPos = this.getPixelPosition(true);
+        this.pixelPos = this.getPixelPosition(null, true);
 
         this.cursor.style.left = this.pixelPos.left + "px";
         this.cursor.style.top =  this.pixelPos.top + "px";
@@ -13717,7 +13730,7 @@ ace.define("text!ace/css/editor.css", [], "@import url(//fonts.googleapis.com/cs
   ".ace_editor {\n" +
   "    position: absolute;\n" +
   "    overflow: hidden;\n" +
-  "    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Droid Sans Mono', 'Courier New', monospace;\n" +
+  "    font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Droid Sans Mono', 'Consolas', monospace;\n" +
   "    font-size: 12px;\n" +
   "}\n" +
   "\n" +
@@ -13735,23 +13748,11 @@ ace.define("text!ace/css/editor.css", [], "@import url(//fonts.googleapis.com/cs
   "    cursor: text;\n" +
   "}\n" +
   "\n" +
-  "/* setting pointer-events: auto; on node under the mouse, which changes during scroll,\n" +
-  "  will break mouse wheel scrolling in Safari */\n" +
-  ".ace_content * {\n" +
-  "     pointer-events: none;\n" +
-  "}\n" +
-  "\n" +
   ".ace_composition {\n" +
   "    position: absolute;\n" +
   "    background: #555;\n" +
   "    color: #DDD;\n" +
   "    z-index: 4;\n" +
-  "}\n" +
-  "\n" +
-  ".ace_gutter .ace_layer {\n" +
-  "    position: relative;\n" +
-  "    min-width: 54px;\n" +
-  "    text-align: right;\n" +
   "}\n" +
   "\n" +
   ".ace_gutter {\n" +
@@ -13838,6 +13839,16 @@ ace.define("text!ace/css/editor.css", [], "@import url(//fonts.googleapis.com/cs
   "    box-sizing: border-box;\n" +
   "    -moz-box-sizing: border-box;\n" +
   "    -webkit-box-sizing: border-box;\n" +
+  "    /* setting pointer-events: auto; on node under the mouse, which changes\n" +
+  "        during scroll, will break mouse wheel scrolling in Safari */\n" +
+  "    pointer-events: none;\n" +
+  "}\n" +
+  "\n" +
+  ".ace_gutter .ace_layer {\n" +
+  "    position: relative;\n" +
+  "    min-width: 40px;\n" +
+  "    text-align: right;\n" +
+  "    pointer-events: auto;\n" +
   "}\n" +
   "\n" +
   ".ace_text-layer {\n" +
@@ -13935,7 +13946,7 @@ ace.define("text!ace/css/editor.css", [], "@import url(//fonts.googleapis.com/cs
   "    cursor: move;\n" +
   "}\n" +
   "\n" +
-  ".ace_folding-enabled .ace_gutter-cell {\n" +
+  ".ace_folding-enabled > .ace_gutter-cell {\n" +
   "    padding-right: 13px;\n" +
   "}\n" +
   "\n" +
@@ -14031,6 +14042,195 @@ ace.define("text!ace/css/editor.css", [], "@import url(//fonts.googleapis.com/cs
  *
  * ***** END LICENSE BLOCK ***** */
 
+ace.define('ace/worker/worker_client', ['require', 'exports', 'module' , 'ace/lib/oop', 'ace/lib/event_emitter'], function(require, exports, module) {
+"use strict";
+
+var oop = require("../lib/oop");
+var EventEmitter = require("../lib/event_emitter").EventEmitter;
+
+var WorkerClient = function(topLevelNamespaces, packagedJs, mod, classname) {
+
+    this.changeListener = this.changeListener.bind(this);
+
+    if (module.packaged) {
+        var base = this.$guessBasePath();
+        this.$worker = new Worker(base + packagedJs);
+    }
+    else {
+        var workerUrl = this.$normalizePath(require.nameToUrl("ace/worker/worker", null, "_"));
+        this.$worker = new Worker(workerUrl);
+
+        var tlns = {};
+        for (var i=0; i<topLevelNamespaces.length; i++) {
+            var ns = topLevelNamespaces[i];
+            var path = this.$normalizePath(require.nameToUrl(ns, null, "_").replace(/.js$/, ""));
+
+            tlns[ns] = path;
+        }
+    }
+
+    this.$worker.postMessage({
+        init : true,
+        tlns: tlns,
+        module: mod,
+        classname: classname
+    });
+
+    this.callbackId = 1;
+    this.callbacks = {};
+
+    var _self = this;
+    this.$worker.onerror = function(e) {
+        window.console && console.log && console.log(e);
+        throw e;
+    };
+    this.$worker.onmessage = function(e) {
+        var msg = e.data;
+        switch(msg.type) {
+            case "log":
+                window.console && console.log && console.log(msg.data);
+                break;
+
+            case "event":
+                _self._emit(msg.name, {data: msg.data});
+                break;
+
+            case "call":
+                var callback = _self.callbacks[msg.id];
+                if (callback) {
+                    callback(msg.data);
+                    delete _self.callbacks[msg.id];
+                }
+                break;
+        }
+    };
+};
+
+(function(){
+
+    oop.implement(this, EventEmitter);
+
+    this.$normalizePath = function(path) {
+        path = path.replace(/^[a-z]+:\/\/[^\/]+/, ""); // Remove domain name and rebuild it
+        path = location.protocol + "//" + location.host
+            // paths starting with a slash are relative to the root (host)
+            + (path.charAt(0) == "/" ? "" : location.pathname.replace(/\/[^\/]*$/, ""))
+            + "/" + path.replace(/^[\/]+/, "");
+        return path;
+    };
+
+    this.$guessBasePath = function() {
+        if (require.aceBaseUrl)
+            return require.aceBaseUrl;
+
+        var scripts = document.getElementsByTagName("script");
+        for (var i=0; i<scripts.length; i++) {
+            var script = scripts[i];
+
+            var base = script.getAttribute("data-ace-base");
+            if (base)
+                return base.replace(/\/*$/, "/");
+
+            var src = script.src || script.getAttribute("src");
+            if (!src) {
+                continue;
+            }
+            var m = src.match(/^(?:(.*\/)ace\.js|(.*\/)ace(-uncompressed)?(-noconflict)?\.js)(?:\?|$)/);
+            if (m)
+                return m[1] || m[2];
+        }
+        return "";
+    };
+
+    this.terminate = function() {
+        this._emit("terminate", {});
+        this.$worker.terminate();
+        this.$worker = null;
+        this.$doc.removeEventListener("change", this.changeListener);
+        this.$doc = null;
+    };
+
+    this.send = function(cmd, args) {
+        this.$worker.postMessage({command: cmd, args: args});
+    };
+
+    this.call = function(cmd, args, callback) {
+        if (callback) {
+            var id = this.callbackId++;
+            this.callbacks[id] = callback;
+            args.push(id);
+        }
+        this.send(cmd, args);
+    };
+
+    this.emit = function(event, data) {
+        try {
+            // firefox refuses to clone objects which have function properties
+            // TODO: cleanup event
+            this.$worker.postMessage({event: event, data: {data: data.data}});
+        }
+        catch(ex) {}
+    };
+
+    this.attachToDocument = function(doc) {
+        if(this.$doc)
+            this.terminate();
+
+        this.$doc = doc;
+        this.call("setValue", [doc.getValue()]);
+        doc.on("change", this.changeListener);
+    };
+
+    this.changeListener = function(e) {
+        e.range = {
+            start: e.data.range.start,
+            end: e.data.range.end
+        };
+        this.emit("change", e);
+    };
+
+}).call(WorkerClient.prototype);
+
+exports.WorkerClient = WorkerClient;
+
+});
+/* ***** BEGIN LICENSE BLOCK *****
+ * Version: MPL 1.1/GPL 2.0/LGPL 2.1
+ *
+ * The contents of this file are subject to the Mozilla Public License Version
+ * 1.1 (the "License"); you may not use this file except in compliance with
+ * the License. You may obtain a copy of the License at
+ * http://www.mozilla.org/MPL/
+ *
+ * Software distributed under the License is distributed on an "AS IS" basis,
+ * WITHOUT WARRANTY OF ANY KIND, either express or implied. See the License
+ * for the specific language governing rights and limitations under the
+ * License.
+ *
+ * The Original Code is Ajax.org Code Editor (ACE).
+ *
+ * The Initial Developer of the Original Code is
+ * Ajax.org B.V.
+ * Portions created by the Initial Developer are Copyright (C) 2010
+ * the Initial Developer. All Rights Reserved.
+ *
+ * Contributor(s):
+ *      Fabian Jakobs <fabian AT ajax DOT org>
+ *
+ * Alternatively, the contents of this file may be used under the terms of
+ * either the GNU General Public License Version 2 or later (the "GPL"), or
+ * the GNU Lesser General Public License Version 2.1 or later (the "LGPL"),
+ * in which case the provisions of the GPL or the LGPL are applicable instead
+ * of those above. If you wish to allow use of your version of this file only
+ * under the terms of either the GPL or the LGPL, and not to allow others to
+ * use your version of this file under the terms of the MPL, indicate your
+ * decision by deleting the provisions above and replace them with the notice
+ * and other provisions required by the GPL or the LGPL. If you do not delete
+ * the provisions above, a recipient may use your version of this file under
+ * the terms of any one of the MPL, the GPL or the LGPL.
+ *
+ * ***** END LICENSE BLOCK ***** */
+
 ace.define('ace/theme/textmate', ['require', 'exports', 'module' , 'ace/lib/dom'], function(require, exports, module) {
 "use strict";
 
@@ -14055,7 +14255,7 @@ exports.cssText = ".ace-tm .ace_editor {\
 }\
 \
 .ace-tm .ace_fold {\
-    background-color: #0000A2;\
+    background-color: #6B72E6;\
 }\
 \
 .ace-tm .ace_text-layer {\

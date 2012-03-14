@@ -238,7 +238,7 @@ var Crunch = function() {
 			sender: "editor"
 		},
 		exec: function() {
-			$("#findbar").animate({ top: '0' }, 100 ).find('input').focus();
+			$("#findbar").animate({ top: '0' }, 100 ).find('input').focus().select();
 		}
 	}, {
 		name: "replace",
