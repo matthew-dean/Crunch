@@ -19,7 +19,7 @@
  * the Initial Developer. All Rights Reserved.
  *
  * Contributor(s):
- *      Michael Schwartz <mr.pants AT gmail DOT com>
+ *      Fabian Jakobs <fabian AT ajax DOT org>
  *
  * Alternatively, the contents of this file may be used under the terms of
  * either the GNU General Public License Version 2 or later (the "GPL"), or
@@ -68,14 +68,14 @@ exports.cssText = "\
 }\
 \
 .ace-vibrant-ink .ace_cursor {\
-  border-left: 2px solid #FFFFFF;\
+  border-left: 1px solid #FFFFFF;\
 }\
 \
 .ace-vibrant-ink .ace_cursor.ace_overwrite {\
   border-left: 0px;\
   border-bottom: 1px solid #FFFFFF;\
 }\
- \
+\
 .ace-vibrant-ink .ace_marker-layer .ace_selection {\
   background: #6699CC;\
 }\
@@ -96,16 +96,24 @@ exports.cssText = "\
 .ace-vibrant-ink .ace_marker-layer .ace_selected_word {\
   border: 1px solid #6699CC;\
 }\
-       \
+\
 .ace-vibrant-ink .ace_invisible {\
   color: #404040;\
 }\
 \
-.ace-vibrant-ink .ace_keyword {\
+.ace-vibrant-ink .ace_keyword, .ace-vibrant-ink .ace_meta {\
   color:#FF6600;\
 }\
 \
-.ace-vibrant-ink .ace_constant {\
+.ace-vibrant-ink .ace_constant, .ace-vibrant-ink .ace_constant.ace_other {\
+  color:#339999;\
+}\
+\
+.ace-vibrant-ink .ace_constant.ace_character,  {\
+  color:#339999;\
+}\
+\
+.ace-vibrant-ink .ace_constant.ace_character.ace_escape,  {\
   color:#339999;\
 }\
 \
@@ -130,6 +138,14 @@ background-color:#000000;\
 \
 .ace-vibrant-ink .ace_support.ace_function {\
   color:#FFCC00;\
+}\
+\
+.ace-vibrant-ink .ace_variable {\
+  color:#FFCC00;\
+}\
+\
+.ace-vibrant-ink .ace_variable.ace_parameter {\
+  font-style:italic;\
 }\
 \
 .ace-vibrant-ink .ace_string {\
@@ -157,6 +173,6 @@ color:#99CC99;\
     text-decoration:underline;\
 }";
 
-var dom = require("../lib/dom");
-dom.importCssString(exports.cssText, exports.cssClass);
+    var dom = require("../lib/dom");
+    dom.importCssString(exports.cssText, exports.cssClass);
 });

@@ -68,14 +68,14 @@ exports.cssText = "\
 }\
 \
 .ace-clouds .ace_cursor {\
-  border-left: 2px solid #000000;\
+  border-left: 1px solid #000000;\
 }\
 \
 .ace-clouds .ace_cursor.ace_overwrite {\
   border-left: 0px;\
   border-bottom: 1px solid #000000;\
 }\
- \
+\
 .ace-clouds .ace_marker-layer .ace_selection {\
   background: #BDD5FC;\
 }\
@@ -96,12 +96,12 @@ exports.cssText = "\
 .ace-clouds .ace_marker-layer .ace_selected_word {\
   border: 1px solid #BDD5FC;\
 }\
-       \
+\
 .ace-clouds .ace_invisible {\
   color: #BFBFBF;\
 }\
 \
-.ace-clouds .ace_keyword {\
+.ace-clouds .ace_keyword, .ace-clouds .ace_meta {\
   color:#AF956F;\
 }\
 \
@@ -130,6 +130,10 @@ exports.cssText = "\
   color:#C52727;\
 }\
 \
+.ace-clouds .ace_storage {\
+  color:#C52727;\
+}\
+\
 .ace-clouds .ace_string {\
   color:#5D90CD;\
 }\
@@ -146,7 +150,6 @@ exports.cssText = "\
     text-decoration:underline;\
 }";
 
-var dom = require("../lib/dom");
-dom.importCssString(exports.cssText, exports.cssClass);
-
+    var dom = require("../lib/dom");
+    dom.importCssString(exports.cssText, exports.cssClass);
 });

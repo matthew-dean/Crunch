@@ -1,0 +1,42 @@
+#leftbar-top {
+	background: url("../img/skin2/leftbar-top.png") no-repeat 0 0;	
+	position: absolute;
+	top: 0px;
+	left: 0;
+	width: 70px;
+	height: 61px;
+	z-index: 2;
+}
+#leftbar {
+	z-index: 2;
+	position: absolute;
+	left: 0;
+	top: 61px;
+	width: 70px;
+	bottom: 0;
+	background: url("../img/skin2/leftbar-repeat.png") repeat-y 0 0;
+}
+#wrapper {
+	position: absolute;
+	top: 0;
+	left: 55px;
+	z-index: 1;
+	right: 0;
+	bottom: 0;
+	overflow: hidden;
+}
+ul, li { margin: 0; padding: 0; list-style-type: none;}
+.subtabs {
+	background: #e7e2de;
+	border-bottom: 1px solid #cfcbc7;
+	-webkit-box-shadow: 0 1px 0 #fff;
+	height: 100%;
+}
+.subtabs-outer {
+	height: 23px;
+	position: absolute;
+	top: 27px;
+	left: 0;
+	right: 0;
+	border-left: 1px solid #bb9f8a;	
+}

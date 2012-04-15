@@ -4,6 +4,7 @@
 	<meta charset="utf-8">
 	<title>Crunch</title>
 	<link rel="stylesheet" type="text/css" href="/css/main.css">
+	<link rel="stylesheet" type="text/css" href="/css/skin2.css">
 	<script>
 	function preventDefault(event){ 
             event.preventDefault(); 
@@ -11,26 +12,32 @@
 	</script>
 </head>
 <body onDragEnter="preventDefault(event)" onDragOver="preventDefault(event)">
-
+<div id="leftbar-top"></div>
+<div id="leftbar">
+	<ul id="actions">
+		<li id="tab-project"></li>
+		<li id="tab-prefs"></li>
+	</ul>
+	
+	<div id="extras">
+		<button id="info" class="icon"><span>About</span></button>
+		<button id="help" class="icon"><span>Help</span></button>
+	</div>
+</div>
+	
 <div id="wrapper">
-
+	
 	<div id="toolbar">
-		<button id="new-file" class="new-less icon"><span>New File</span></button>
-		<span class="sep"></span>
-		<button id="open-file" class="open-file icon"><span>Open File...</span></button>
-		<span class="sep"></span>
+		<span class="windowMenu" style="display: none;">
+			<a id="fileMenu">File</a>
+			<a id="editMenu">Edit</a>
+			<span class="sep"></span>
+		</span>
 		<button id="save" disabled="disabled" class="icon"><span>Save</span></button>
-		<span class="sep"></span>
-		<button id="save-as" disabled="disabled" class="icon"><span>Save As...</span></button>
-		<span class="sep"></span>
-		<button id="convert" disabled="disabled"><span>Crunch!</span></button>
+		<button id="open-file" class="open-file icon"><span>Open File...</span></button>
+		<button id="convert" disabled="disabled"><span>Crunch It!</span></button>
 		
-		<div style="float: right;">
-			<span class="sep"></span>
-			<button id="info" class="icon"><span>About</span></button>
-			<span class="sep"></span>
-			<button id="help" class="icon"><span>Help</span></button>
-		</div>
+
 	</div>
 	<div id="container"><table border="0" cellspacing="0" cellpadding="0" ><tr>
 		
@@ -79,13 +86,17 @@
 				</div>
 				
 			</div>
-			
+			<div class="subtabs-outer"><div class="subtabs"></div></div>
 			<div id="scroller">
 				<ul id="tabs">
-					<li>
+					<li class="t">
 						<a class="tab" href="#"><span class="filename">new.less</span><span class="save" style="display: none;">*</span><span class="close"><img src="img/skin/closeicon.png"></span></a>
+						<div class="subtabs-outer"><div class="subtabs"></div></div>
 						<div class="messages"><h3>Compiler Errors</h3><div class="description"></div></div>
 						<div class="editor"></div>
+					</li>
+					<li class="n">
+						<a class="new new-less" id="new-file">&nbsp;</a>
 					</li>
 				</ul>
 			</div>

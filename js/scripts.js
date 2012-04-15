@@ -48,14 +48,6 @@ var Crunch = function() {
 		$('#tabs li textarea').live('keydown', jwerty.event(meta + '+' + keys, false));
 	}
 
-	// Let's get rid of those pesky Mac menus. We can add stuff in later.
-	if (air.NativeApplication.supportsMenu) {
-		var appMenu = air.NativeApplication.nativeApplication.menu;
-		while (appMenu.items.length > 1) {
-			appMenu.removeItemAt(appMenu.items.length - 1);
-		}
-	}
-
 	window.htmlLoader.addEventListener("nativeDragDrop",function(event){ 
         var filelist = event.clipboard.getData(air.ClipboardFormats.FILE_LIST_FORMAT); 
         $.each(filelist, function(index, item) {
@@ -80,7 +72,7 @@ var Crunch = function() {
 		closeWindow();
 	}
 	function closeWindow() {
-		var tabsToClose = $("#tabs li[id]");
+		var tabsToClose = $("#tabs li.t[id]");
 		if(tabsToClose.length > 0) {
 			$(tabsToClose).first().each(function() {
 				pendingClose = true;
@@ -135,10 +127,10 @@ var Crunch = function() {
 			closeTab(el);
 	}
 	function closeTab(el) {
-		var i = $(el).index();
+		var i = $(el).index('#tabs > li.t');
 		var wasActive = $(el).hasClass('active');
 		$(el).data('editor',null).remove();
-		if($('#tabs').children().length == 1) {
+		if($('#tabs').children().length == 2) {
 			$('#splash').show();
 			$('#save, #save-as, #convert').attr('disabled','disabled');
 			if($("#findbar").css("top") == 0)
@@ -149,12 +141,12 @@ var Crunch = function() {
 		else {
 			if(wasActive) {
 				if(i == 1)
-					setActive($('#tabs > li > a')[i]);
+					setActive($('#tabs > li.t > a')[i]);
 				else
-					setActive($('#tabs > li > a')[i-1]);
+					setActive($('#tabs > li.t > a')[i-1]);
 			}
 			else
-				setActive($('#tabs > li.active > a'));
+				setActive($('#tabs > li.t.active > a'));
 		}
 		if(pendingClose)
 			closeWindow();
@@ -185,10 +177,11 @@ var Crunch = function() {
 		$('#splash').hide();
 		$('#save, #save-as').removeAttr('disabled');
 		var el;
+		var $firstTab = $('#tabs li:first-child');
 		if(position && position.length == 1)
-			el = $('#tabs li:first-child').clone(true, true).show().insertAfter(position);
+			el = $firstTab.clone(true, true).show().insertAfter(position);
 		else
-			el = $('#tabs li:first-child').clone(true, true).show().appendTo('#tabs');			
+			el = $firstTab.clone(true, true).show().insertBefore($('#tabs li.n'));			
 
 		t++;
 		el.attr('id', 'panel-' + t);
@@ -354,7 +347,7 @@ var Crunch = function() {
 			return;
 		// Wait a tick, what if it's already open?
 		var found = false;
-		$("#tabs li").each(function() {
+		$("#tabs li.t").each(function() {
 			if($(this).data('file-less') && ($(this).data('file-less').nativePath == file.nativePath)) {
 				if($(this).data('saved') && $(this).data('file-less').modificationDate != file.modificationDate) {
 					var stream = new air.FileStream();
@@ -381,7 +374,7 @@ var Crunch = function() {
 
 			var el;
 			if(silent)
-				el = newTab(false, $("#tabs li.active"));
+				el = newTab(false, $("#tabs li.t.active"));
 			else
 				el = newTab(false);
 			el.find('.filename').html(file.name);
@@ -675,26 +668,26 @@ var Crunch = function() {
 	
 	
 	function init() {
-		
+		CreateMenus();
 		$("#container > table").colResizable({
 			minWidth: 215,
 			liveDrag:true,
 			gripInnerHtml:'<div id="resize"></div>',
 			onResize: function() {
-				if($('#tabs li.active').length > 0) {
-					$('#tabs li.active').data('editor').resize();
+				if($('#tabs li.t.active').length > 0) {
+					$('#tabs li.t.active').data('editor').resize();
 					adjustTabOverflow();
 				}
 			}
 		});
 		$(window).resize(function() {
-			if($('#tabs li.active').length > 0) {
-				$('#tabs li.active').data('editor').resize();
+			if($('#tabs li.t.active').length > 0) {
+				$('#tabs li.t.active').data('editor').resize();
 				adjustTabOverflow();
 			}
 		});
 	
-		$('#tabs > li > a').click(function() {
+		$('#tabs > li.t > a').click(function() {
 			setActive(this);
 		});
 		$("#arrow-left").click(function() {
@@ -727,10 +720,10 @@ var Crunch = function() {
 				});
 		});
 		$("#findbar .up").click(function() {
-			$("#tabs li.active").data('editor').findPrevious();
+			$("#tabs li.t.active").data('editor').findPrevious();
 		});
 		$("#findbar .down").click(function() {
-			$("#tabs li.active").data('editor').findNext();
+			$("#tabs li.t.active").data('editor').findNext();
 		});	
 		$('#tabs a.tab .close').click(function() {
 			var listItem = $(this).parent().parent();
@@ -739,7 +732,7 @@ var Crunch = function() {
 		
 		$("#findbar .close").click(function() {
 			$("#findbar").animate({	top: '-33px' }, 100 );
-			$("#tabs li.active").data('editor').focus();
+			$("#tabs li.t.active").data('editor').focus();
 		});
 		$("#find").submit(function() {
 			findText($("#findbar input").val());
@@ -832,6 +825,130 @@ var Crunch = function() {
 		});
 	
 	}
+	var application = air.NativeApplication.nativeApplication; 
+	 
+	function CreateMenus(){ 
+	    var fileMenu; 
+	    var editMenu; 
+	    var recentDocuments = new Array(new air.File("app-storage:/GreatGatsby.pdf"),  
+             new air.File("app-storage:/WarAndPeace.pdf"),  
+             new air.File("app-storage:/Iliad.pdf")); 
+             
+	    if (air.NativeWindow.supportsMenu &&  
+	         nativeWindow.systemChrome != air.NativeWindowSystemChrome.NONE) { 
+	        $('.windowMenu').show();
+	        fileMenu = createFileMenu();
+	        editMenu = createEditMenu(); 
+	        $('#fileMenu').click(function(e) {
+	        	fileMenu.display(window.nativeWindow.stage, $(this).position().left+55, $(this).position().top + 27);  
+	        });
+	        $('#editMenu').click(function(e) {
+	        	editMenu.display(window.nativeWindow.stage, $(this).position().left+55, $(this).position().top + 27);  
+	        });
+	    } 
+	     
+	    if (air.NativeApplication.supportsMenu) { 
+    		// Let's get rid of those pesky Mac menus. We can add stuff in later.
+
+	    	var appMenu = application.menu;
+			while (appMenu.items.length > 1) {
+				appMenu.removeItemAt(appMenu.items.length - 1);
+			}
+			// Now we're adding stuff
+	    	application.menu.addEventListener(air.Event.SELECT, selectCommandMenu); 
+	        fileMenu = application.menu.addItem(new air.NativeMenuItem("File")); 
+	        fileMenu.submenu = createFileMenu(); 
+	        editMenu = application.menu.addItem(new air.NativeMenuItem("Edit")); 
+	        editMenu.submenu = createEditMenu(); 
+	        
+	    } 
+	} 
+	         
+	function createFileMenu() { 
+	    var fileMenu = new air.NativeMenu(); 
+	    fileMenu.addEventListener(air.Event.SELECT,selectCommandMenu); 
+	     
+	    var newCommand = fileMenu.addItem(new air.NativeMenuItem("New")); 
+	    newCommand.addEventListener(air.Event.SELECT, selectCommand); 
+	    var saveCommand = fileMenu.addItem(new air.NativeMenuItem("Save")); 
+	    saveCommand.addEventListener(air.Event.SELECT, selectCommand); 
+	    var openFile = fileMenu.addItem(new air.NativeMenuItem("Recent Files"));  
+	    openFile.submenu = new air.NativeMenu(); 
+	    openFile.submenu.addEventListener(air.Event.DISPLAYING, updateRecentDocumentMenu); 
+	    openFile.submenu.addEventListener(air.Event.SELECT, selectCommandMenu); 
+	    var openProj = fileMenu.addItem(new air.NativeMenuItem("Recent Projects"));  
+	    openProj.submenu = new air.NativeMenu(); 
+	    openProj.submenu.addEventListener(air.Event.DISPLAYING, updateRecentDocumentMenu); 
+	    openProj.submenu.addEventListener(air.Event.SELECT, selectCommandMenu); 
+	     
+	    return fileMenu; 
+	} 
+	 
+	function createEditMenu() { 
+	    var editMenu = new air.NativeMenu(); 
+	    editMenu.addEventListener(air.Event.SELECT,selectCommandMenu); 
+	     
+	    var copyCommand = editMenu.addItem(new air.NativeMenuItem("Copy")); 
+	    copyCommand.addEventListener(air.Event.SELECT,selectCommand); 
+	    copyCommand.keyEquivalent = "c"; 
+	    var pasteCommand = editMenu.addItem(new air.NativeMenuItem("Paste")); 
+	    pasteCommand.addEventListener(air.Event.SELECT, selectCommand); 
+	    pasteCommand.keyEquivalent = "v"; 
+	    editMenu.addItem(new air.NativeMenuItem("", true)); 
+	    var preferencesCommand = editMenu.addItem(new air.NativeMenuItem("Preferences")); 
+	    preferencesCommand.addEventListener(air.Event.SELECT,selectCommand); 
+	     
+	    return editMenu; 
+	} 
+	 
+	function updateRecentDocumentMenu(event) { 
+	    air.trace("Updating recent document menu."); 
+	    var docMenu = air.NativeMenu(event.target); 
+	     
+	    for (var i = docMenu.numItems - 1; i >= 0; i--) { 
+	        docMenu.removeItemAt(i); 
+	    } 
+	     
+	    for (var file in recentDocuments) { 
+	        var menuItem =  
+	            docMenu.addItem(new air.NativeMenuItem(recentDocuments[file].name)); 
+	        menuItem.data = recentDocuments[file]; 
+	        menuItem.addEventListener(air.Event.SELECT, selectRecentDocument); 
+	    } 
+	} 
+	 
+	function selectRecentDocument(event) { 
+	    air.trace("Selected recent document: " + event.target.data.name); 
+	} 
+	 
+	function selectCommand(event) { 
+	    air.trace("Selected command: " + event.target.label); 
+	} 
+	 
+	function selectCommandMenu(event) { 
+	    if (event.currentTarget.parent != null) { 
+	        var menuItem = findItemForMenu(event.currentTarget); 
+	        if(menuItem != null){ 
+	            air.trace("Select event for \"" + event.target.label +  
+	            "\" command handled by menu: " + menuItem.label); 
+	        } 
+	    } else { 
+	        air.trace("Select event for \"" + event.target.label +  
+	                "\" command handled by root menu."); 
+	    } 
+	} 
+	 
+	function findItemForMenu(menu){ 
+	    for (var item in menu.parent.items) { 
+	        if (item != null) { 
+	            if (item.submenu == menu) { 
+	                return item; 
+	            } 
+	        } 
+	    } 
+	    return null; 
+	} 
+
 	return {
 		init: init,
 		closeTab: closeTab,
@@ -845,4 +962,5 @@ var Crunch = function() {
 		Crunch.init();
 	});
 })(jQuery);
+
 

@@ -2,6 +2,7 @@
 @import url(ubuntu.css);
 /* @import url(scrollbar.css); */
 form { display: inline; }
+html { height: 100%; }
 body {
 	background-color: #EEE;
 	font-family: Quicksand, sans-serif;
@@ -9,11 +10,14 @@ body {
 	font-size: 13px;
 	min-width: 600px;
 	min-height: 200px;
-	text-rendering: optimizeLegibility;
+	text-rendering: optimizeLegibility; 
 	margin: 0; padding: 0;
 	letter-spacing: -0.05em;
 	overflow: hidden;
-	
+	border: 1px solid #686868;
+	position: relative;
+	height: 100%;
+	-webkit-box-sizing: border-box;
 }
 h1 {
 	color: #6a5a4c;
@@ -40,17 +44,8 @@ h3 {
 	background: white;
 }
 #toolbar {
-	/*background-image: -webkit-linear-gradient(top, rgb(203,199,192) 0%, rgb(177,174,167) 100%);
-	background-image: linear-gradient(top, rgb(203,199,192) 0%, rgb(177,174,167) 100%); */
-	background-image: -webkit-gradient(
-		linear,
-		left top,
-		left bottom,
-		color-stop(0, rgb(203,199,192)),
-		color-stop(1, rgb(177,174,167))
-	);
-	background-repeat: repeat, no-repeat;
-	height: 80px;
+	background: url(../img/skin2/filebar-repeat.png) repeat-x top;
+	height: 27px;
 	padding-left: 10px;
 }
 body.modal {
@@ -152,37 +147,37 @@ body.modal {
 }
 #project {
 	position: absolute;
-	top: 36px;
+	top: 28px;
 	left: 0;
 	bottom: 0;
 	right: 0;
 	overflow: auto;
 	padding: 8px;
-	background: #f2f0ed url(../img/crunch-texture.png);
+	background: #f2f0ed;
 /*			resize: horizontal; */
 }
 #project-header {
-	background: url(../img/skin/project-head.png) repeat-x top;
-	height: 30px;
+	background: url(../img/skin2/sidebar-header-repeat.png) repeat-x top;
+	height: 22px;
 	position: absolute;
 	left: 0;
 	top: 0;
 	right: 0;
 	color: #584130;
 	font-size: 13px;
-	padding: 3px 0;
+	padding: 3px 0 3px 10px;
+	font-weight: bold;
 
 }
 #project-header span {
 	text-shadow: 0 1px 0 rgba(255,255,255,0.43);
 	font-weight: 700;
 	display: inline-block;
-	height: 30px;
-	line-height: 30px;
+	height: 22px;
+	line-height: 22px;
 	vertical-align: middle;
-	-webkit-box-shadow: inset 1px 0 0 #a39284;
 	padding-left: 9px;
-	border-left: 1px solid #ded3ca;
+	color: #584130;
 }
 
 .jstree {
@@ -193,8 +188,8 @@ body.modal {
 	display: box;
 	-webkit-box-orient: horizontal;
 	box-orient: horizontal; */
-	position: fixed; 
-	top: 80px;
+	position: absolute; 
+	top: 27px;
 	left: 0;
 	right: 0;
 	bottom: 0;
@@ -214,8 +209,14 @@ body.modal {
 	position: relative;
 	max-width: 100%;
 	height: 100%;
-	overflow: hidden;
 }
+#scroller {
+	overflow: hidden;
+	overflow-y: visible;
+	margin-top: -7px;
+}
+.CRC, .CRG, #resize { z-index: 100; }
+
 
 #editor-window {
 /*	position: absolute;
@@ -223,17 +224,22 @@ body.modal {
 	left: 215px;
 	bottom: 0;
 	right: 0;  */
-	background: url(../img/crunch-texture.png), rgb(249,248,245) url(../img/skin/tab-bg.png) repeat-x top;
-	overflow: hidden;
+	background: rgb(249,248,245) url(../img/skin2/tab-bg.png) repeat-x 0 0px;
+	/*overflow: hidden; */
+	overflow: visible;
 	min-width: 450px;
 /*			-webkit-box-flex: 1;
 	box-flex: 1; */
 }
+/* #editor-window .inner {
+	z-index: 5;
+} */
+#panel-left .inner { z-index: 10; } 
 .tabarrow {
 	background-color: rgba(141,71,28,0.8);
-	position: absolute; top: 1px;
-	height: 13px;
-	padding: 10px 6px;
+	position: absolute; top: 4px;
+	height: 12px;
+	padding: 5px 6px;
 	width: 8px;
 	-webkit-box-sizing: content-box;
 	box-sizing: content-box; 
@@ -251,7 +257,7 @@ body.modal {
 	opacity: 0.3;
 }
 #arrow-left {
-	-webkit-box-shadow: 1px 0 3px rgba(0,0,0,0.2), inset 0 1px 0 rgba(0,0,0,0.5);
+/*	-webkit-box-shadow: 1px 0 3px rgba(0,0,0,0.2), inset 0 1px 0 rgba(0,0,0,0.5); */
 	border-right: 1px solid rgba(215,146,104,0.8);
 	border-bottom: 1px solid #946f58;
 	border-left: 1px solid #946f58;
@@ -260,7 +266,7 @@ body.modal {
 }
 
 #arrow-right {
-	-webkit-box-shadow: -1px 0 3px rgba(0,0,0,0.2), inset 0 1px 0 rgba(0,0,0,0.5);
+/*	-webkit-box-shadow: -1px 0 3px rgba(0,0,0,0.2), inset 0 1px 0 rgba(0,0,0,0.5); */
 	border-left: 1px solid rgba(215,146,104,0.8);
 	border-bottom: 1px solid #946f58;
 	right: 0;
@@ -271,7 +277,7 @@ body.modal {
 #findbar-outer {
 	position: absolute;
 	right: 21px;
-	top: 35px;
+	top: 50px;
 	width: 260px;
 	height: 33px;
 	overflow: hidden;
@@ -308,6 +314,7 @@ body.modal {
 	height: 24px;
 	width: 178px;
 	z-index: 2;
+	font-size: 12px;
 }
 #findbar button {
 	background: rgba(227,227,227,0.1) url(../img/skin/updown.png);
@@ -322,7 +329,7 @@ body.modal {
 #findbar button:active { background-color: rgba(150,150,150,0.1); }
 #findbar .close {
 	right: 7px;
-	top: 9px;
+	top: 14px;
 }
 #findbar .up {
 	right: 53px;
@@ -341,12 +348,13 @@ body.modal {
 }
 .editor, #editor-bg, #splash { 
 	position: absolute;
-	top: 35px;
+	top: 49px;
 	left: 0;
-	bottom: 0;
+	bottom: -4px;
 	right: 0;
 	border-top: 1px solid #ffffff;
 }
+.editor { left: 1px; top: 51px; }
 #splash {
 	padding: 33px 33px 10px 89px;
 	overflow: auto;
@@ -384,8 +392,8 @@ body.modal {
 	);
 	background-size: 54px 100%;
 	background-repeat: repeat-y; */
-	background: url(../img/crunch-texture.png), rgb(249,248,245) url(../img/skin/editor-bg.png) repeat-y left;
-	background-position: 0 0, -7px 0;
+	background: #f9f8f5 url(../img/skin2/editor-left-repeat.png) repeat-y left;
+	background-position: 0px 0;
 }
 .messages.show + .editor { bottom: 82px; }
 
@@ -420,47 +428,55 @@ body.modal {
 	white-space:nowrap;  
 	display: block; 
 	overflow: hidden;
+	line-height: 27px;
 /*	display: table; */
 }
 #tabs .messages { white-space: normal; }
-#tabs li { display: inline-block; /*display: table-cell; max-width: 150px; */ padding: 0 2px; }
+#tabs li { display: inline-block; /*display: table-cell; max-width: 150px; */ padding: 0 1px 0 0; }
 #tabs li > div, #tabs li > div .ace_cursor { visibility: hidden !important; }
 #tabs li.active > div, #tabs li.active > div .ace_cursor { visibility: visible !important; }
 
-a.tab {
+a.tab, a.new {
 	display: block;
-	background: rgba(192,155,132,0.8);
+	background-color: rgba(192,155,132,0.8);
 	position: relative;
-	padding: 7px 28px 7px 10px;
+	top: 2px;
+	padding: 5px 28px 5px 10px;
 	font-size: 13px;
-	height: 12px;
+	height: 13px;
 	line-height: 12px;
 	text-decoration: none;
 	color: #22212b;
-	border-radius: 0 0 5px 5px;
-	border-top: 1px solid #d2d0cc;
-	-webkit-box-shadow: inset 0 1px 0 rgba(0,0,0,0.5);
+}
+a.new {
+	background-image: url(../img/skin2/plus-button.png);
+	background-repeat: no-repeat;
+	background-position: center;
+	padding: 5px 10px;
+	left: -2px;
 }
 a.tab.other { 
 	background: rgba(141,71,28,0.8);
 	color: white;
 }
 .close { 
-	position: absolute; right: 6px; top: 7px; 
+	position: absolute; right: 6px; top: 50%;
+	margin-top: -6px; 
 	width: 14px; height: 14px;
 	border-radius: 7px;
-	background: rgba(0,0,0,0.25);
+	background: rgba(0,0,0,0.15);
 	-webkit-box-shadow: 0 1px 0 rgba(255,255,255,0.5);
 }
-.close:hover { background: rgba(255,255,255,0.25); }
-a.tab:hover { background: rgba(192,155,132,1); }
+.close:hover { background: rgba(150,150,150,0.25); }
+a.tab:hover, a.new:hover { background-color: rgba(192,155,132,1); }
 a.tab.other:hover { background: rgba(141,71,28,1); }
 #tabs li.active a.tab { 
-	background: #b1aea7 !important; 
-	border-bottom: 1px solid #b8b6af;
-	-webkit-box-shadow: 0 1px 1px rgba(0,0,0,0.5);
+	background: #e7e2de !important; 
+	-webkit-box-shadow: 0 1px 1px rgba(255,255,255,0.5);
 	position: relative;
-	top: -1px;
+	top: 0;
+	border-radius: 5px 5px 0 0;
+	padding: 7px 28px 7px 10px;
 }
 li.active a.tab.other { color: rgba(141,71,28,1) !important; }
 
@@ -578,9 +594,9 @@ button.primary span, div.drop span {
 }
 
 #refresh {
-	background: url(../img/skin/refresh.png) no-repeat center center;
-	width: 30px;
-	height: 30px;
+	background: url(../img/skin2/refresh.png) no-repeat center center;
+	width: 22px;
+	height: 22px;
 	-webkit-transition: -webkit-transform 0.3s ease;	
 }
 #refresh.click {
@@ -590,58 +606,66 @@ button.primary span, div.drop span {
 #refresh[disabled] { opacity: 0.35; }
 
 #toolbar button, div.img {
-	background-image: url(../img/skin/app-icons.png);
-	height: 82px;
+	height: 27px;
 	vertical-align: middle;
 	position: relative;
 	-webkit-transition: top 0.3s ease;
-	padding-top: 40px;
 	font-size: 12px;
 	color: rgb(141,71,28);
 	text-shadow: 0 1px 0 rgba(255,255,255,0.43);
 	background-repeat: no-repeat;
+	padding: 0 10px;
 }
 
-#toolbar .icon:hover {
-	top: -10px;
-}
 #toolbar button[disabled] {
 	opacity: 0.35;
-	background-position: inherit;
 }
-#toolbar button span { opacity: 0; position: relative; -webkit-transition: top 0.3s ease, opacity 0.1s ease;  }
-#toolbar .icon:hover span { opacity: 1; top: 15px;}
+#toolbar button span { opacity: 0; }
+#toolbar a {
+	padding: 0 5px;
+	display: inline-block;
+	height: 27px;
+	vertical-align: middle;
+	line-height: 27px;
+}
+#toolbar a:hover {
+	background-color: rgba(255,255,255,0.25);
+}
+/*#toolbar a:active {
+	background-color: #b85a20;
+	color: white;
+} */
 
-#new-file, #toolbar #new-file[disabled] { width: 66px; background-position: 0 0; }
-#open-file, #toolbar #open-file[disabled] { width: 76px; background-position: -68px 0;}
-#save, #toolbar #save[disabled]{ width: 65px; background-position: -146px 0;}
-#save-as, #toolbar #save-as[disabled] { width: 68px; background-position: -213px 0;}
 #info { width: 58px; background-position: -379px 0;}
 #help { width: 61px; background-position: -441px 0;}
 #toolbar #convert {
-	background: url(../img/skin/crunch-btn.png);
-	width: 135px;
-	height: 75px;
+	background: url(../img/skin2/crunchit_t_text.png) no-repeat;
+	width: 117px;
+	height: 26px;
 	background-position: center;
-	margin-left: 80px;
-	margin-top: 5px;
+	position: absolute;
+	right: 20px;
+	top: 0;
 }
 #wrapper #toolbar #convert[disabled] { background-position: top; }
 #toolbar #convert:hover { background-position: bottom; }
 
-#new-file:hover { background-position: 0 100%; }
-#open-file:hover { background-position: -68px 100%;}
-#save:hover { background-position: -146px 100%;}
-#save-as:hover { background-position: -213px 100%;}
+/* #new-file:hover { background-position: 0 100%; } */
+#open-file { background-image: url(../img/skin2/toolbar-icons.png); width: 31px; background-position: -23px 5px;}
+#save { background-image: url(../img/skin2/toolbar-icons.png); width: 24px; background-position: 4px 5px;}
+#open-file:hover, #save:hover {
+	background-color: rgba(255,255,255,0.25);
+}
 #info:hover { background-position: -379px 100%;}
 #help:hover { background-position: -441px 100%;}
 
 .sep {
 	display: inline-block;
-	height: 82px;
+	height: 27px;
 	width: 2px;
-	background: url(../img/skin/sep.png) no-repeat;
+	background: url(../img/skin/sep.png) no-repeat center;
 	vertical-align: middle;
+	margin: 0 5px;
 }
 
 
@@ -658,6 +682,7 @@ button.primary span, div.drop span {
 	background-color: transparent;
 	color: #584130;
 	text-shadow: 0 1px 0 rgba(255,255,255,0.43);
+	width: 46px;
 }
 #tabs .ace_variable { color: #6f8b44; }
 #tabs .ace_variable.ace_language { color: #b7602a; }

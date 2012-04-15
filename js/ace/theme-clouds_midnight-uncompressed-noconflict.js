@@ -68,14 +68,14 @@ exports.cssText = "\
 }\
 \
 .ace-clouds-midnight .ace_cursor {\
-  border-left: 2px solid #7DA5DC;\
+  border-left: 1px solid #7DA5DC;\
 }\
 \
 .ace-clouds-midnight .ace_cursor.ace_overwrite {\
   border-left: 0px;\
   border-bottom: 1px solid #7DA5DC;\
 }\
- \
+\
 .ace-clouds-midnight .ace_marker-layer .ace_selection {\
   background: #000000;\
 }\
@@ -96,12 +96,12 @@ exports.cssText = "\
 .ace-clouds-midnight .ace_marker-layer .ace_selected_word {\
   border: 1px solid #000000;\
 }\
-       \
+\
 .ace-clouds-midnight .ace_invisible {\
   color: #BFBFBF;\
 }\
 \
-.ace-clouds-midnight .ace_keyword {\
+.ace-clouds-midnight .ace_keyword, .ace-clouds-midnight .ace_meta {\
   color:#927C5D;\
 }\
 \
@@ -131,6 +131,10 @@ background-color:#E92E2E;\
   color:#E92E2E;\
 }\
 \
+.ace-clouds-midnight .ace_storage {\
+  color:#E92E2E;\
+}\
+\
 .ace-clouds-midnight .ace_string {\
   color:#5D90CD;\
 }\
@@ -147,7 +151,6 @@ background-color:#E92E2E;\
     text-decoration:underline;\
 }";
 
-var dom = require("../lib/dom");
-dom.importCssString(exports.cssText, exports.cssClass);
-
+    var dom = require("../lib/dom");
+    dom.importCssString(exports.cssText, exports.cssClass);
 });

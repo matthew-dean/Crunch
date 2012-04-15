@@ -181,6 +181,8 @@ if (window.runtime)
     air.CompressionAlgorithm = window.runtime.flash.utils.CompressionAlgorithm;
     air.Endian = window.runtime.flash.utils.Endian;
     air.Timer = window.runtime.flash.utils.Timer;
+    air.IDataInput = window.runtime.flash.utils.IDataInput;
+    air.IDataOutput = window.runtime.flash.utils.IDataOutput;
 
     air.HTMLLoader = window.runtime.flash.html.HTMLLoader;
     air.HTMLPDFCapability = window.runtime.flash.html.HTMLPDFCapability;    
