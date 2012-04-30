@@ -1038,8 +1038,8 @@ appUpdater.initialize();
 				application.menu.addEventListener(air.Event.SELECT, selectCommandMenu);
 				fileMenu = application.menu.addItem(new air.NativeMenuItem("File"));
 				fileMenu.submenu = createFileMenu();
-				editMenu = application.menu.addItem(new air.NativeMenuItem("Edit"));
-				editMenu.submenu = createEditMenu();
+			//	editMenu = application.menu.addItem(new air.NativeMenuItem("Edit"));
+			//	editMenu.submenu = createEditMenu();
 
 			}
 		}
