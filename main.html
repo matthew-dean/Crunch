@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<title>Crunch</title>
-	<link rel="stylesheet" type="text/css" href="/css/main.css">
+	
 	<link rel="stylesheet" type="text/css" href="/css/skin2.css">
 	<script>
 	function preventDefault(event){ 
@@ -12,16 +12,18 @@
 	</script>
 </head>
 <body onDragEnter="preventDefault(event)" onDragOver="preventDefault(event)">
+<b class="font1" style="position:absolute; visibility:hidden">download please</b>
+<b class="font2" style="position:absolute; visibility:hidden">download please</b>
 <div id="leftbar-top"></div>
 <div id="leftbar">
 	<ul id="actions">
-		<li id="tab-project"></li>
+		<li id="tab-project" class="active"></li>
 		<li id="tab-prefs"></li>
 	</ul>
 	
 	<div id="extras">
-		<button id="info" class="icon"><span>About</span></button>
-		<button id="help" class="icon"><span>Help</span></button>
+		<button id="info" class="icon"><span></span></button>
+		<button id="help" class="icon"><span></span></button>
 	</div>
 </div>
 	
@@ -30,7 +32,7 @@
 	<div id="toolbar">
 		<span class="windowMenu" style="display: none;">
 			<a id="fileMenu">File</a>
-			<a id="editMenu">Edit</a>
+			<a id="editMenu" style="display: none;">Edit</a>
 			<span class="sep"></span>
 		</span>
 		<button id="save" disabled="disabled" class="icon"><span>Save</span></button>
@@ -42,19 +44,27 @@
 	<div id="container"><table border="0" cellspacing="0" cellpadding="0" ><tr>
 		
 		<td id="panel-left"><div class="inner">
-			<div id="project-header">
-				<button id="refresh" disabled="disabled"></button><span>Website Files</span>
+			<div id="panel-files" class="active panel">
+				<div id="project-header" class="panel-header">
+					<button id="refresh" disabled="disabled"></button><span>Website Files</span>
+				</div>
+				<div id="project" class="jstree panel-body">
+					<button id="open-project" class="primary big" style="color: #6a5a4c;">
+						<span class="icon"><img src="img/skin/open.png"></span>
+						<span class="text">Open Website...</span>
+					</button>
+					<div class="drop">
+						<span class="icon"><img src="img/skin/drop-project.png"></span>
+						<span class="text">Or, Drag In A Folder</span>
+					</div>				
+					<div id="filelist"></div>
+				</div>
 			</div>
-			<div id="project" class="jstree">
-				<button id="open-project" class="primary big" style="color: #6a5a4c;">
-					<span class="icon"><img src="img/skin/open.png"></span>
-					<span class="text">Open Website...</span>
-				</button>
-				<div class="drop">
-					<span class="icon"><img src="img/skin/drop-project.png"></span>
-					<span class="text">Or, Drag In A Folder</span>
-				</div>				
-				<div id="filelist"></div>
+			<div id="panel-prefs" class="panel">
+				<div class="panel-header"><span>Preferences</span></div>
+				<div class="panel-body">
+					<input type="checkbox" id="chk-minify"> Minify Crunched CSS
+				</div>
 			</div>
 		</div></td>
 	
@@ -92,7 +102,7 @@
 					<li class="t">
 						<a class="tab" href="#"><span class="filename">new.less</span><span class="save" style="display: none;">*</span><span class="close"><img src="img/skin/closeicon.png"></span></a>
 						<div class="subtabs-outer"><div class="subtabs"></div></div>
-						<div class="messages"><h3>Compiler Errors</h3><div class="description"></div></div>
+						<div class="messages"><h3>Compiler Errors</h3><div class="description"></div><span class="close"><img src="img/skin/closeicon.png"></span></div>
 						<div class="editor"></div>
 					</li>
 					<li class="n">
@@ -116,6 +126,7 @@
 		</div>
 	<script src="libs/air/AIRAliases.js"></script>
 	<script src="libs/air/ApplicationUpdater_UI.swf" type="application/x-shockwave-flash"></script>
+	
 	<script src="AIRIntrospector.js"></script>
 	<script src="js/ace/ace-uncompressed.js"></script>
 	<!-- <script src="js/ace/theme-textmate.js"></script> -->
@@ -131,6 +142,7 @@
 	<script src="js/jquery.mockjax.js"></script>
 	<script src="js/mock.js"></script>
 	<script src="js/scripts.js"></script>
+	<script src="js/filemonitor.js"></script>
 
 </div>
 </body>

@@ -1,0 +1,90 @@
+@import "ubuntu";
+@import "stylesheet";
+@import "main";
+
+#leftbar-top {
+    background: url("../img/skin2/leftbar-top.png") no-repeat 0 0;	
+	position: absolute;
+	top: 0px;
+	left: 0;
+	width: 70px;
+	height: 61px;
+	z-index: 2;
+}
+#leftbar {
+	z-index: 2;
+	position: absolute;
+	left: 0;
+	top: 61px;
+	width: 70px;
+	bottom: 0;
+	background: url("../img/skin2/leftbar-repeat.png") repeat-y 0 0;
+}
+#wrapper {
+	position: absolute;
+	top: 0;
+	left: 55px;
+	z-index: 1;
+	right: 0;
+	bottom: 0;
+	overflow: hidden;
+}
+ul, li { margin: 0; padding: 0; list-style-type: none;}
+.subtabs {
+	background: #e7e2de;
+	border-bottom: 1px solid #cfcbc7;
+	-webkit-box-shadow: 0 1px 0 #fff;
+	height: 100%;
+}
+.subtabs-outer {
+	height: 23px;
+	position: absolute;
+	top: 27px;
+	left: 0;
+	right: 0;
+	border-left: 1px solid #bb9f8a;	
+}
+.modal .primary, .modal .secondary {
+	color: #6a5a4c;
+	width: 134px;
+	height: 34px;
+	line-height: 20px;
+	font-size: 17px;
+	font-weight: bold;
+	margin: 0 5px;
+}
+body.modal .primary {
+	padding-top: 4px;
+	/*background: url(../img/skin2/btn-okay.png) no-repeat;*/
+}
+body.modal .secondary {
+	/*background: url(../img/skin2/btn-cancel.png) no-repeat;*/
+}
+.modal .primary:hover, .modal .secondary:hover {
+	/*background-position: 0 100%;*/
+}
+#extras {
+    position: absolute;
+    bottom: 0; 
+    left: 0;
+    right: 0;
+}
+#actions li {
+    width: 63px;
+    height: 56px;
+    opacity: 0.5;
+    &:hover { opacity: 1; }
+    &.active { opacity: 1; }
+}
+#tab-project {
+    background: url("../img/skin2/sideicon-project.png") no-repeat center;
+    &.active {
+        background: url("../img/skin2/sideicon-project-active.png") no-repeat center, url("../img/skin2/sideicon-activebg.png") no-repeat;
+    }
+}
+#tab-prefs {
+    background: url("../img/skin2/sideicon-prefs.png") no-repeat center;
+    &.active {
+        background: url("../img/skin2/sideicon-prefs-active.png") no-repeat center, url("../img/skin2/sideicon-activebg.png") no-repeat;
+    }
+}

@@ -18,8 +18,11 @@
 		
 			<a href="help/crunch.html">What is Crunch?</a>
 			<a href="help/keys.html">Keyboard Shortcuts</a>
-			<a href="help/less.html">What is LESS?</a>
-			<a href="help/language.html">LESS language reference</a>
+			
+			<!--
+				Hide this for now. Do we need a sermon?
+				<a href="help/less.html">What is LESS?</a> -->
+			<a href="#" id="lesscss">LESSCSS.org</a>
 		</div>
 	</div>
 	<div id="right">
@@ -34,7 +37,7 @@
 	<script src="/js/jquery.min.js"></script>
 	<script>
 		$(document).ready(function() {
-			$('a').on('click',function() {
+			$('a').not('[id]').on('click',function() {
 	            var loader = new air.URLLoader();
 				var request = new air.URLRequest($(this).attr('href'));
 				configureListeners(loader);	
@@ -42,6 +45,11 @@
 				$(this).parent().find('a').removeClass('active');
 				$(this).addClass('active');
 				return false;
+			});
+			$('#lesscss').on('click',function() {
+				var url = "http://lesscss.org"; 
+				var urlReq = new air.URLRequest(url); 
+				air.navigateToURL(urlReq);
 			});
 			$('#left a:first-child').click();
 		});

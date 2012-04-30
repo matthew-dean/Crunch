@@ -1,20 +1,18 @@
-@import url(stylesheet.css);
-@import url(ubuntu.css);
-/* @import url(scrollbar.css); */
+/* @import url(scrollbar.css); */ 
 form { display: inline; }
 html { height: 100%; }
 body {
 	background-color: #EEE;
 	font-family: Quicksand, sans-serif;
 	font-weight: 700;
-	font-size: 13px;
+	font-size: 13.2px;
 	min-width: 600px;
 	min-height: 200px;
-	text-rendering: optimizeLegibility; 
+	/*text-rendering: optimizeLegibility; */
 	margin: 0; padding: 0;
 	letter-spacing: -0.05em;
 	overflow: hidden;
-	border: 1px solid #686868;
+	/* border: 1px solid #686868; */
 	position: relative;
 	height: 100%;
 	-webkit-box-sizing: border-box;
@@ -52,13 +50,18 @@ body.modal {
 	width: auto;
 	min-width: 0;
 	height: auto;
-	padding: 10px;
-	padding-left: 50px;
+	padding-left: 138px;
+	padding-top: 20px;
+	padding-right: 20px;
 	text-shadow: 0 1px 0 rgba(255,255,255,0.43);
-	background: #f2f0ed url(../img/crunch-texture.png);
+	background: url(../img/skin2/modal-icon.png) no-repeat left top, #f2f0ed url(../img/crunch-texture.png);
+	font-size: 13.2px;
+	/* color: #666155; */
+	font-weight: bold;
 }
 .modal h2 {
 	margin-bottom: 10px;
+	font-size: 16px;
 }
 .modal .img {
 	position: absolute;
@@ -77,14 +80,16 @@ body.modal {
 }
 .buttonbar {
 	position: absolute;
-	bottom: 10px;
-	left: 48px;
-	right: 10px;
+	bottom: 0px;
+	left: 0px;
+	right: 0px;
+	height: 39px;
+	padding: 10px;
+	padding-top: 20px;
 	text-align: right;
+	background: url(../img/crunch-texture.png) repeat, url(../img/skin2/modal-bottom-repeat.png) repeat-x;
 }
-.buttonbar hr {
-	margin-bottom: 10px;
-}
+
 .buttonbar .left {
 	float: left;
 }
@@ -144,8 +149,13 @@ body.modal {
 	bottom: 0; */
 	min-width: 215px;
 	width: 250px;
+    
+    .panel {
+        display: none;
+        &.active { display: block; }
+    }
 }
-#project {
+.panel-body {
 	position: absolute;
 	top: 28px;
 	left: 0;
@@ -153,10 +163,11 @@ body.modal {
 	right: 0;
 	overflow: auto;
 	padding: 8px;
+    padding-left: 12px;
 	background: #f2f0ed;
 /*			resize: horizontal; */
 }
-#project-header {
+.panel-header {
 	background: url(../img/skin2/sidebar-header-repeat.png) repeat-x top;
 	height: 22px;
 	position: absolute;
@@ -164,12 +175,12 @@ body.modal {
 	top: 0;
 	right: 0;
 	color: #584130;
-	font-size: 13px;
+	font-size: 13.2px;
 	padding: 3px 0 3px 10px;
 	font-weight: bold;
 
 }
-#project-header span {
+.panel-header span {
 	text-shadow: 0 1px 0 rgba(255,255,255,0.43);
 	font-weight: 700;
 	display: inline-block;
@@ -215,7 +226,7 @@ body.modal {
 	overflow-y: visible;
 	margin-top: -7px;
 }
-.CRC, .CRG, #resize { z-index: 100; }
+.CRC, .CRG, #resize { z-index: 2000; }
 
 
 #editor-window {
@@ -248,7 +259,7 @@ body.modal {
 	background-color: rgba(185,148,125,0.8);
 }
 .tabarrow span {
-	height: 13px;
+	height: 13.2px;
 	width: 8px;
 	display: inline-block;
 	background-image: url(../img/skin/arrows.png);
@@ -395,12 +406,12 @@ body.modal {
 	background: #f9f8f5 url(../img/skin2/editor-left-repeat.png) repeat-y left;
 	background-position: 0px 0;
 }
-.messages.show + .editor { bottom: 82px; }
+.messages.show + .editor { bottom: 80px; }
 
 .messages { 
 	position: absolute;
-	bottom: 0;
-	left: 50px;
+	bottom: -4px;
+	left: 46px;
 	right: 0;
 	height: 0;
 	font-size: 10px;
@@ -408,9 +419,10 @@ body.modal {
 	background: rgba(244,232,168,0.8);
 	z-index: 100;
 	border-top: 1px solid #b29681;
-	height: 46px;
+	height: 52px;
 	display: none;
 	color: #817641;
+    line-height: 1;
 }
 .messages .description { font-family: Ubuntu, "Courier New", Courier, monospace; font-size: 12px; font-weight: normal;}
 .messages.show { display: block; }
@@ -442,7 +454,7 @@ a.tab, a.new {
 	position: relative;
 	top: 2px;
 	padding: 5px 28px 5px 10px;
-	font-size: 13px;
+	font-size: 13.2px;
 	height: 13px;
 	line-height: 12px;
 	text-decoration: none;
@@ -453,7 +465,7 @@ a.new {
 	background-repeat: no-repeat;
 	background-position: center;
 	padding: 5px 10px;
-	left: -2px;
+	/*left: -2px; */
 }
 a.tab.other { 
 	background: rgba(141,71,28,0.8);
@@ -468,6 +480,7 @@ a.tab.other {
 	-webkit-box-shadow: 0 1px 0 rgba(255,255,255,0.5);
 }
 .close:hover { background: rgba(150,150,150,0.25); }
+.messages .close { top: 12px !important; }
 a.tab:hover, a.new:hover { background-color: rgba(192,155,132,1); }
 a.tab.other:hover { background: rgba(141,71,28,1); }
 #tabs li.active a.tab { 
@@ -502,27 +515,51 @@ button.primary {
 		linear,
 		left top,
 		left bottom,
-		color-stop(0, rgba(195,193,190,0.1)),
-		color-stop(0.5, rgba(0,0,0,0.1))
+		color-stop(0, rgba(220,220,220,0.2)),
+		color-stop(0.8, rgba(50,50,50,0.1))
 	);
-	border: 1px solid #b9b1a9;
+	border: 1px solid rgba(133,120,107,0.3);
 	color: #b9602a;
+	
+}
+button.primary:hover {
+	background-image: -webkit-gradient(
+		linear,
+		left top,
+		left bottom,
+		color-stop(0, rgba(255,255,255,0.3)),
+		color-stop(0.8, rgba(125,125,125,0.1))
+	);
 }
 .primary, .secondary {
 	border-radius: 5px;
 	padding: 6px 8px 6px;
+	text-shadow: 0 1px 0 rgba(255,255,255,0.43);
+	border: 1px solid rgba(133,120,107,0.5);
+	box-shadow: inset 0 1px 0px rgba(255,255,255,0.5);
+	-webkit-box-shadow: inset 0 1px 0px rgba(255,255,255,0.5);
 }
 button.secondary {
 	background-image: -webkit-gradient(
 		linear,
 		left top,
 		left bottom,
-		color-stop(0, #ffae3f),
-		color-stop(0.8, #f1822f)
+		color-stop(0, rgba(85,79,66, 0.05)),
+		color-stop(0.8, rgba(85,79,66, 0.3))
 	);
+	background-color: rgba(85,79,66, 0.1);
 	color: #480a00;
-	border: 1px solid #dc6716;
-	text-shadow: 0 1px 0 rgba(255,255,255,0.43);
+	
+	/*text-shadow: 0 1px 0 rgba(255,255,255,0.43);*/
+}
+button.secondary:hover {
+	background-image: -webkit-gradient(
+		linear,
+		left top,
+		left bottom,
+		color-stop(0.2, rgba(85,79,66, 0.05)),
+		color-stop(1, rgba(85,79,66, 0.2))
+	);
 }
 button.primary img {
 	height: 13px;
@@ -549,7 +586,7 @@ div.drop {
 	display: inline-block;
 }
 
-button.primary:hover { 
+button.primary:active {
 	background-image: -webkit-gradient(
 		linear,
 		left top,
@@ -558,13 +595,13 @@ button.primary:hover {
 		color-stop(0.5, rgba(255,255,255,0.3))
 	);
 }
-button.secondary:hover { 
+button.secondary:active { 
 	background-image: -webkit-gradient(
 		linear,
 		left top,
 		left bottom,
-		color-stop(0, #ffae3f),
-		color-stop(0.8, #ffc06a)
+		color-stop(0.2, rgba(85,79,66, 0.3)),
+		color-stop(1, rgba(85,79,66, 0.1))
 	);
 }
 button.primary span, div.drop span {
@@ -572,7 +609,7 @@ button.primary span, div.drop span {
 	display: inline-block;
 }
 #open-project {
-	font-size: 13px;
+	font-size: 13.2px;
 	width: 100%;
 	text-align: left;
 }
@@ -635,9 +672,15 @@ button.primary span, div.drop span {
 	background-color: #b85a20;
 	color: white;
 } */
-
-#info { width: 58px; background-position: -379px 0;}
-#help { width: 61px; background-position: -441px 0;}
+#info, #help { background: url(../img/skin2/sideicons-supp.png) no-repeat center; opacity: 0.3; }
+#info:hover, #help:hover { background-image: url(../img/skin2/sideicons-supp-invert.png);opacity: 0.5;}
+#info { 
+	width: 58px; 
+	background-position: 13px 0px;
+	height: 35px;
+    margin: 0;
+}
+#help { width: 58px; background-position: 13px -42px; height: 35px; margin: 10px 0;}
 #toolbar #convert {
 	background: url(../img/skin2/crunchit_t_text.png) no-repeat;
 	width: 117px;
@@ -646,9 +689,10 @@ button.primary span, div.drop span {
 	position: absolute;
 	right: 20px;
 	top: 0;
+    opacity: 0.85;
 }
-#wrapper #toolbar #convert[disabled] { background-position: top; }
-#toolbar #convert:hover { background-position: bottom; }
+#wrapper #toolbar #convert[disabled] { background-position: top; opacity: 0.2; }
+#toolbar #convert:hover { background-position: bottom; opacity: 1;}
 
 /* #new-file:hover { background-position: 0 100%; } */
 #open-file { background-image: url(../img/skin2/toolbar-icons.png); width: 31px; background-position: -23px 5px;}
@@ -656,8 +700,6 @@ button.primary span, div.drop span {
 #open-file:hover, #save:hover {
 	background-color: rgba(255,255,255,0.25);
 }
-#info:hover { background-position: -379px 100%;}
-#help:hover { background-position: -441px 100%;}
 
 .sep {
 	display: inline-block;
@@ -684,9 +726,11 @@ button.primary span, div.drop span {
 	text-shadow: 0 1px 0 rgba(255,255,255,0.43);
 	width: 46px;
 }
-#tabs .ace_variable { color: #6f8b44; }
+#tabs .ace_gutter-cell { padding-left: 9px; }
+#tabs .ace_variable, #tabs .ace_string { color: saturate(darken(#6f8b44,10%),10%); }
 #tabs .ace_variable.ace_language { color: #b7602a; }
-#tabs .ace_type { color: #35a2c0; }
-#tabs .ace_constant { color: #b080a8; }
-#tabs .ace_comment { color: #b9a595; }
+#tabs .ace_type { color: saturate(darken(#35a2c0,10%),10%); }
+#tabs .ace_constant { color: saturate(darken(#b080a8,10%), 10%); }
+#tabs .ace_comment { color: saturate(darken(#b9a595,10%),10%); }
+#tabs .ace_keyword { color: saturate(darken(#663212,10%),10%); }
 

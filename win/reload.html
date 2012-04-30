@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+	<title></title>
+	<link rel="stylesheet" type="text/css" href="/css/skin2.css">
+	<script>
+	//var file = window.parent.
+	function init() {
+		var o = window.opener;
+		var tab = decodeURIComponent(window.location.hash.slice(1));
+
+		$('#filename').html(decodeURIComponent(location.search.slice(1)));
+		$('#m-no').click(function() {
+			shutThisShitDown();
+		});
+		$('#m-yes').click(function() {
+			$('body').removeClass('keep');
+			o.Crunch.openFile(tab);
+			shutThisShitDown();
+		});
+		nativeWindow.activate();
+		nativeWindow.alwaysInFront = true;
+		//nativeWindow.addEventListener(
+		// 'deactivate', 
+		// function (e) {if($('body').hasClass('keep')) nativeWindow.activate();} 
+		//);
+	}
+	function shutThisShitDown() {
+		$('body').removeClass('keep');
+		nativeWindow.close();
+	}
+	</script>
+</head>
+
+<body onload="init()" class="modal keep">
+	<h2><span id="filename"></span></h2>
+	<p style="line-height: 1.5em;">This file has been modified outside of Crunch. We can totally reload it for you, if you want...</p>
+	<div class="buttonbar">
+		<button id="m-no" class="left secondary"><span>No, Thanks.</span></button>
+		<button id="m-yes" class="primary"><span>Yes, please!</span></button>
+	</div>
+	
+	<script src="/libs/air/AIRAliases.js"></script>
+	<script src="/AIRIntrospector.js"></script>
+	<script src="/js/jquery.min.js"></script>
+</body>
+</html>

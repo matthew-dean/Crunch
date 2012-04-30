@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" ?>
-<application xmlns="http://ns.adobe.com/air/application/3.0">
+<application xmlns="http://ns.adobe.com/air/application/3.2">
 
   <versionNumber>1.5</versionNumber>
   <versionLabel>1.5</versionLabel>
@@ -17,7 +17,7 @@
     <width>1000</width>
     <systemChrome>standard</systemChrome>
     <transparent>false</transparent>
-    <visible>true</visible>
+    <visible>false</visible>
 	<minSize>800 600</minSize>
   </initialWindow>
   <fileTypes> 

@@ -3,7 +3,10 @@
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 	<title></title>
+	<link rel="stylesheet" type="text/css" href="/css/ubuntu.css">
+	<link rel="stylesheet" type="text/css" href="/css/stylesheet.css">
 	<link rel="stylesheet" type="text/css" href="/css/main.css">
+	<link rel="stylesheet" type="text/css" href="/css/skin2.css">
 	<script>
 	//var file = window.parent.
 	function init() {
@@ -24,10 +27,10 @@
 		});
 		nativeWindow.activate();
 		nativeWindow.alwaysInFront = true;
-		nativeWindow.addEventListener(
-		 'deactivate', 
-		 function (e) {if($('body').hasClass('keep')) nativeWindow.activate();} 
-		);
+		//nativeWindow.addEventListener(
+		// 'deactivate', 
+		// function (e) {if($('body').hasClass('keep')) nativeWindow.activate();} 
+		//);
 	}
 	function shutThisShitDown() {
 		$('body').removeClass('keep');
@@ -37,14 +40,12 @@
 </head>
 
 <body onload="init()" class="modal keep">
-	<div class="img save"></div>
 	<h2>Do you want to save <br />"<span id="filename"></span>" ?</h2>
 	<p style="line-height: 1.5em;">If you don't save your changes, they will be lost forever. FOREVER.</p>
 	<div class="buttonbar">
-		<hr />		
-		<button id="m-dontsave" class="left primary"><span>Don't Save</span></button>
-		<button id="m-cancel" class="primary"><span>Cancel</span></button>
-		<button id="m-save" class="secondary"><span>Save</span></button>
+		<button id="m-dontsave" class="left secondary"><span>Don't Save</span></button>
+		<button id="m-cancel" class="secondary"><span>Cancel</span></button>
+		<button id="m-save" class="primary"><span>Save</span></button>
 	</div>
 	
 	<script src="/libs/air/AIRAliases.js"></script>
