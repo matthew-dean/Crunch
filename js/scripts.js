@@ -49,9 +49,29 @@ appUpdater.initialize();
 		}
 		function copyPaths() {
 			var root = Paths.project;
-			Paths.project = root.resolvePath(App.paths.project);
-			Paths.css = root.resolvePath(App.paths.css);
-			Paths.less = root.resolvePath(App.paths.less);
+			
+			// Add check to make sure folder still exists, else reset App variables
+			if(root.resolvePath(App.paths.project).isDirectory) {
+				Paths.project = root.resolvePath(App.paths.project);
+				if(root.resolvePath(App.paths.css).exists) {
+					Paths.css = root.resolvePath(App.paths.css);
+				}
+				if(root.resolvePath(App.paths.less).exists) {
+					Paths.less = root.resolvePath(App.paths.less);
+				}
+			} else {
+				App.paths.project = "";
+				App.paths.css = "";
+				App.paths.less = "";
+				
+				// If you want to keep existing files open then comment out this.
+				// The files will still load properly but seems improper to have
+				// the project closed but the files still open
+				App.openFiles = {};
+				
+				// Not sure if this is really needed, but it seems appropriate
+				updateAppState();
+			}
 		}
 		
 		function addOpenFile(file) {
@@ -477,9 +497,15 @@ appUpdater.initialize();
 			});
 			if(!found) {
 				var stream = new air.FileStream();
-				stream.open(file, air.FileMode.READ);
-				Crunch.FileMonitor.watch(file);
-				var fileData = stream.readUTFBytes(stream.bytesAvailable);
+				
+				// Add check to make sure file exists, otherwise return
+				if(file.exists) {
+					stream.open(file, air.FileMode.READ);
+					Crunch.FileMonitor.watch(file);
+					var fileData = stream.readUTFBytes(stream.bytesAvailable);
+				} else {
+					return
+				}
 				stream.close();
 
 				if(silent)
