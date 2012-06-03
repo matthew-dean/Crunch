@@ -49,29 +49,9 @@ appUpdater.initialize();
 		}
 		function copyPaths() {
 			var root = Paths.project;
-			
-			// Add check to make sure folder still exists, else reset App variables
-			if(root.resolvePath(App.paths.project).isDirectory) {
-				Paths.project = root.resolvePath(App.paths.project);
-				if(root.resolvePath(App.paths.css).exists) {
-					Paths.css = root.resolvePath(App.paths.css);
-				}
-				if(root.resolvePath(App.paths.less).exists) {
-					Paths.less = root.resolvePath(App.paths.less);
-				}
-			} else {
-				App.paths.project = "";
-				App.paths.css = "";
-				App.paths.less = "";
-				
-				// If you want to keep existing files open then comment out this.
-				// The files will still load properly but seems improper to have
-				// the project closed but the files still open
-				App.openFiles = {};
-				
-				// Not sure if this is really needed, but it seems appropriate
-				updateAppState();
-			}
+			Paths.project = root.resolvePath(App.paths.project);
+			Paths.css = root.resolvePath(App.paths.css);
+			Paths.less = root.resolvePath(App.paths.less);
 		}
 		
 		function addOpenFile(file) {
@@ -815,8 +795,11 @@ appUpdater.initialize();
 		}
 		
 		function initAppState() {
-			if(App.paths.project != "")
-				openProject(Paths.project);
+			if(App.paths.project != "") {
+				if(Paths.project.resolvePath(App.paths.project).isDirectory) {
+					openProject(Paths.project);
+				}	
+			}
 			$.each(App.openFiles, function(idx, val) {
 				var $el = openFile(Paths.project.resolvePath(idx));
 				if(val.cssFile) {
