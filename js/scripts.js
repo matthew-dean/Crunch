@@ -12,6 +12,8 @@ appUpdater.initialize();
 		var scrollWidth = 100;
 
 		// Get stored state
+		
+		// Paths are the default folders for open/save file dialogs
 		var Paths = {
 			project: air.File.documentsDirectory,
 			css: air.File.documentsDirectory,
@@ -35,6 +37,7 @@ appUpdater.initialize();
 			}
 		};	
         var storedPrefs = air.EncryptedLocalStore.getItem("state");
+        
         if(storedPrefs != null) {
 			var val = storedPrefs.readUTFBytes(storedPrefs.length);
         	$.extend(true, App, JSON.parse(val));
@@ -47,30 +50,41 @@ appUpdater.initialize();
 			air.EncryptedLocalStore.setItem("state", bytes);
 			copyPaths();
 		}
+		function checkValidPaths() {
+			var update = false;
+			var root = Paths.project;
+			if(!root.resolvePath(App.paths.project).isDirectory) {
+				App.paths.project = "";
+				update = true;
+			} 
+			if(!root.resolvePath(App.paths.css).isDirectory) {
+				App.paths.css = "";
+				update = true;
+			}
+			if(!root.resolvePath(App.paths.less).isDirectory) {
+				App.paths.less = "";
+				update = true;
+			}
+			$.each(App.openFiles, function(idx, val) {
+				if(!root.resolvePath(idx).exists) {
+					delete App.openFiles[idx];	
+					update = true;
+				}
+			});
+			
+			if(update) updateAppState();
+			
+		}
 		function copyPaths() {
 			var root = Paths.project;
-			
-			// Add check to make sure folder still exists, else reset App variables
 			if(root.resolvePath(App.paths.project).isDirectory) {
 				Paths.project = root.resolvePath(App.paths.project);
-				if(root.resolvePath(App.paths.css).exists) {
-					Paths.css = root.resolvePath(App.paths.css);
-				}
-				if(root.resolvePath(App.paths.less).exists) {
-					Paths.less = root.resolvePath(App.paths.less);
-				}
-			} else {
-				App.paths.project = "";
-				App.paths.css = "";
-				App.paths.less = "";
-				
-				// If you want to keep existing files open then comment out this.
-				// The files will still load properly but seems improper to have
-				// the project closed but the files still open
-				App.openFiles = {};
-				
-				// Not sure if this is really needed, but it seems appropriate
-				updateAppState();
+			}
+			if(root.resolvePath(App.paths.css).isDirectory) {
+				Paths.css = root.resolvePath(App.paths.css);
+			}
+			if(root.resolvePath(App.paths.less).isDirectory) {
+				Paths.less = root.resolvePath(App.paths.less);
 			}
 		}
 		
@@ -815,6 +829,8 @@ appUpdater.initialize();
 		}
 		
 		function initAppState() {
+			checkValidPaths();
+			
 			if(App.paths.project != "")
 				openProject(Paths.project);
 			$.each(App.openFiles, function(idx, val) {
