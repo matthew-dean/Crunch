@@ -2,7 +2,13 @@ var appUpdater = new runtime.air.update.ApplicationUpdaterUI();
 appUpdater.configurationFile = new air.File("app:/updateConfig.xml");
 appUpdater.initialize();
 
-//console = air.Introspector.Console; 
+//var AIRIntrospectorConfig = new Object(); 
+//AIRIntrospectorConfig.debuggerKey = 152;
+
+if(air && air.Introspector) {
+	console = air.Introspector.Console; 
+	console.log('test');
+}
 
 (function($) {
 
@@ -10,7 +16,12 @@ appUpdater.initialize();
 		var Parser;
 		var pendingClose = false;
 		var scrollWidth = 100;
-
+		var Editor;
+		var lessMode = require("ace/mode/less").Mode;
+		var EditSession = require("ace/edit_session").EditSession;
+		var UndoManager = require("ace/undomanager").UndoManager;
+		var canChangeSave = true;
+		
 		// Get stored state
 		
 		// Paths are the default folders for open/save file dialogs
@@ -172,7 +183,7 @@ appUpdater.initialize();
 		
 		function bindKey(keys, fn) {
 			jwerty.key(meta + '+' + keys, fn);
-			$('#tabs li textarea').live('keydown', jwerty.event(meta + '+' + keys, false));
+			$('#editor textarea').live('keydown', jwerty.event(meta + '+' + keys, false));
 		}
 
 
@@ -245,8 +256,9 @@ appUpdater.initialize();
 					}
 				});
 			}
-			parent.data('editor').focus();
-			parent.data('editor').resize();
+			Editor.setSession(parent.data('session'));
+			Editor.focus();
+			Editor.resize();
 			
 		}
 
@@ -269,10 +281,11 @@ appUpdater.initialize();
 			if(!pendingClose)
 				removeOpenFile($(el).data('file-less'));
 				
-			$(el).data('editor', null).remove();
+			$(el).remove();
 
 			if($('#tabs').children().length == 2) {
 				$('#splash').show();
+				$('#editor').css('z-index',-1);
 				$('#save, #save-as, #convert').attr('disabled', 'disabled');
 				if($("#findbar").css("top") == 0)
 					alert('visible');
@@ -281,6 +294,7 @@ appUpdater.initialize();
 				}, 100).find('input').blur();
 				//newTab();
 			} else {
+
 				if(wasActive) {
 					if(i == 1)
 						setActive($('#tabs > li.t > a')[i]);
@@ -319,6 +333,7 @@ appUpdater.initialize();
 
 		function newTab(css, position) {
 			$('#splash').hide();
+			$('#editor').css('z-index',1);
 			$('#save, #save-as').removeAttr('disabled');
 			var el;
 			var $firstTab = $('#tabs li:first-child');
@@ -329,14 +344,11 @@ appUpdater.initialize();
 			t++;
 			el.attr('id', 'panel-' + t);
 			el.find('.messages').attr('id', 'messages-' + t);
-			el.find('.editor').attr('id', 'editor-' + t);
-
-			var editor = ace.edit('editor-' + t);
-			//editor.setTheme("ace/theme/textmate");
-			editor.setShowPrintMargin(false);
-			var newMode = require("ace/mode/less").Mode;
-			editor.getSession().setMode(new newMode());
-			editor.getSession().on('change', function() {
+			
+			var tabSession = new EditSession("", new lessMode());
+			tabSession.setUndoManager(new UndoManager());
+			tabSession.on('change', function() {
+				if(!canChangeSave) return;
 				var activeEl = $("#tabs li.active");
 				//  && arguments[0].data.text.length==1
 				if(activeEl.data('dirty')) {
@@ -344,15 +356,13 @@ appUpdater.initialize();
 					activeEl.data('dirty', false);
 				}
 			});
-			el.find('textarea').bind('keydown', function(e) {
-				el.data('dirty', true);
-			});
+			
 			if(css) {
 				setTabType(el, true);
 				el.find('.filename').html('new.css');
 			}
-			el.data('editor', editor);
 			el.data('saved', true);
+			el.data('session', tabSession);
 			setActive(el.find('a.tab'));
 			adjustTabOverflow();
 			return el;
@@ -403,7 +413,7 @@ appUpdater.initialize();
 		});
 
 		function findText(val) {
-			$("#tabs li.active").data('editor').find(val, {
+			Editor.find(val, {
 				wrap : true,
 				caseSensitive : false,
 				wholeWord : false,
@@ -470,13 +480,13 @@ appUpdater.initialize();
 
 		});
 		function showMessage(el, msg) {
-			el.addClass('show').find('.description').html(msg);
-			el.closest('li').data('editor').resize();
+			el.add('#editor').addClass('show').find('.description').html(msg);
+			Editor.resize();
 		}
 
 		function hideMessage(el) {
-			el.removeClass('show').find('.description').html('');
-			el.closest('li').data('editor').resize();
+			el.add('#editor').removeClass('show').find('.description').html('');
+			Editor.resize();
 		}
 
 		function openFile(file, silent) {
@@ -496,7 +506,9 @@ appUpdater.initialize();
 						stream.open(file, air.FileMode.READ);
 						var fileData = stream.readUTFBytes(stream.bytesAvailable);
 						stream.close();
-						$(this).data('editor').getSession().setValue(fileData);
+						canChangeSave = false;
+						$(this).data('session').setValue(fileData);
+						canChangeSave = true;
 					}
 					if(!silent)
 						setActive($(this).find('a.tab'));
@@ -527,7 +539,9 @@ appUpdater.initialize();
 				else
 					el = newTab(false);
 				el.find('.filename').html(file.name);
-				el.data('editor').getSession().setValue(fileData);
+				canChangeSave = false;
+				el.data('session').setValue(fileData);
+				canChangeSave = true;
 
 				el.data('saved', true);
 				el.find('.save').hide();
@@ -550,9 +564,11 @@ appUpdater.initialize();
 		function crunchFile(el) {
 			var output;
 			try {
+				
+				// TODO: Should be top session
 				Parser = new (less.Parser)({
 					paths : [el.data('file-less').nativePath.replace(/[\w\.-]+$/, '')]
-				}).parse(el.data('editor').getSession().getValue(), function(err, tree) {
+				}).parse(el.data('session').getValue(), function(err, tree) {
 
 					if(err) {
 						throw err;
@@ -618,7 +634,7 @@ appUpdater.initialize();
 				}
 			} else {
 				fileSelect = el.data('file-less');
-				writeData = el.data('editor').getSession().getValue();
+				writeData = Editor.getSession().getValue();
 			}
 
 			Crunch.FileMonitor.unwatch(fileSelect);
@@ -702,13 +718,13 @@ appUpdater.initialize();
 				var newFile = event.target;
 				if(crunch) {
 					el.data('file-css', newFile);
-					App.paths.css = newFile.parent;
+					App.paths.css = newFile.parent.nativePath;
 					updateOpenFile(el.data('file-less'), el.data('file-css'));
 				} else {
 					el.data('file-less', newFile);
 					el.find('.filename').html(newFile.name);
 					el.find('.tab').attr('title', newFile.nativePath);
-					App.paths.less = newFile.parent;
+					App.paths.less = newFile.parent.nativePath;
 				}
 				updateAppState();
 
@@ -849,7 +865,30 @@ appUpdater.initialize();
 		}
 		function init() {
 			CreateMenus();
+			// Set up global editor 
+			
+			Editor = ace.edit('editor');
+			Editor.session.setMode("ace/mode/less");
+			Editor.setShowPrintMargin(false);
+			// Editor.on("onTextInput", function(text, pasted) {
+				// var activeEl = $("#tabs li.active");
+				// //  && arguments[0].data.text.length==1
+				// air.trace('Text was changed.');
+				// unSave(activeEl);
+				// //activeEl.data('dirty', false);
+// 				
+			// });
+			
 			initAppState();
+			air.trace(App);
+			
+			// Try to capture edit events and force saving -- TODO: better method?
+			
+			$('#editor textarea').live('keydown', function(e) {
+				if(!canChangeSave) return;
+				var activeEl = $("#tabs li.active");
+				activeEl.data('dirty',true);
+			});
 			
 			$('#chk-minify').on('change',function() {
 				App.prefs.minify = $('#chk-minify').is(':checked');
@@ -879,14 +918,14 @@ appUpdater.initialize();
 				gripInnerHtml : '<div id="resize"></div>',
 				onResize : function() {
 					if($('#tabs li.t.active').length > 0) {
-						$('#tabs li.t.active').data('editor').resize();
+						Editor.resize();
 						adjustTabOverflow();
 					}
 				}
 			});
 			$(window).resize(function() {
 				if($('#tabs li.t.active').length > 0) {
-					$('#tabs li.t.active').data('editor').resize();
+					Editor.resize();
 					adjustTabOverflow();
 				}
 			});
@@ -946,10 +985,10 @@ appUpdater.initialize();
 					});
 			});
 			$("#findbar .up").click(function() {
-				$("#tabs li.t.active").data('editor').findPrevious();
+				Editor.findPrevious();
 			});
 			$("#findbar .down").click(function() {
-				$("#tabs li.t.active").data('editor').findNext();
+				Editor.findNext();
 			});
 			$('#tabs a.tab .close').click(function() {
 				var listItem = $(this).parent().parent();
@@ -960,7 +999,7 @@ appUpdater.initialize();
 				$("#findbar").animate({
 					top : '-33px'
 				}, 100);
-				$("#tabs li.t.active").data('editor').focus();
+				Editor.focus();
 			});
 			$("#find").submit(function() {
 				findText($("#findbar input").val());

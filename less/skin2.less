@@ -35,6 +35,22 @@ ul, li { margin: 0; padding: 0; list-style-type: none;}
 	border-bottom: 1px solid #cfcbc7;
 	-webkit-box-shadow: 0 1px 0 #fff;
 	height: 100%;
+    padding: 0 5px;
+    span {
+        font-family: "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", sans-serif;
+        font-size: 11px;
+        float: left;
+        padding: 2px 4px 3px;
+        line-height: 1;
+        border-radius: 5px;
+        text-shadow: 0 1px 0 rgba(255,255,255,0.3);
+        margin: 4px 2px 0;
+        &.active {
+            background: #a9a39e;
+            color: white;
+            text-shadow: 0 0 0;
+        }
+    }
 }
 .subtabs-outer {
 	height: 23px;
@@ -88,3 +104,4 @@ body.modal .secondary {
         background: url("../img/skin2/sideicon-prefs-active.png") no-repeat center, url("../img/skin2/sideicon-activebg.png") no-repeat;
     }
 }
+
