@@ -36,6 +36,14 @@ ul, li { margin: 0; padding: 0; list-style-type: none;}
 	-webkit-box-shadow: 0 1px 0 #fff;
 	height: 100%;
     padding: 0 5px;
+    position: relative;
+    .imports {
+        position: absolute;
+        left: 100px;
+        top: 0;
+        height: 100%;
+        right: 0;
+    }
     span.t {
         font-family: "Lucida Sans", "Lucida Grande", "Lucida Sans Unicode", sans-serif;
         font-size: 11px;
@@ -45,6 +53,7 @@ ul, li { margin: 0; padding: 0; list-style-type: none;}
         border-radius: 5px;
         text-shadow: 0 1px 0 rgba(255,255,255,0.3);
         margin: 4px 2px 0;
+        cursor: default;
         &.active {
             background: #a9a39e;
             color: white;
