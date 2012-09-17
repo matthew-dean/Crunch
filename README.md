@@ -3,6 +3,16 @@ Crunch!
 
 Crunch is part of this complete breakfast.
 
+Installing Crunch
+--------------
+
+Go to the Downloads tab in Github. Under "Download Packages", get the latest AIR file and run it. RUN IT LIKE YOU MEAN IT. (Oh, btw, you'll need Adobe AIR installed to mean it.)
+
+Loving Crunch
+-------------
+Go to http://crunchapp.net/ and express your love for Crunch by clicking on the PayPal link and donating. Everyone who is awesome does this.
+
+
 Compiling / Testing a Crunch branch
 -----------------------------------
 
