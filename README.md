@@ -10,7 +10,7 @@ Go to the Downloads tab in Github. Under "Download Packages", get the latest AIR
 
 Loving Crunch
 -------------
-Go to http://crunchapp.net/ and express your love for Crunch by clicking on the PayPal link and donating. Everyone who is awesome does this.
+Go to http://crunchapp.net/ and express your love for Crunch by clicking on the "Buy Us A Coffee" link and donating. Everyone who is awesome does this. (Note: if you include your Twitter handle when donating, then either @kump or @matthewdl will tweet a picture of themselves drinking coffee.)
 
 
 Compiling / Testing a Crunch branch
