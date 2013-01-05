@@ -429,7 +429,7 @@ body.modal {
 .messages .description { font-family: Ubuntu, "Courier New", Courier, monospace; font-size: 12px; font-weight: normal;}
 .messages.show { display: block; }
 
-#tabs li:first-child { display: none; }
+#tabs li:first-child { display: none !important; }
 #tabs, #tabs li {
 	margin: 0; padding: 0;
 	list-style: none;
@@ -446,7 +446,7 @@ body.modal {
 /*	display: table; */
 }
 #tabs .messages { white-space: normal; }
-#tabs li { display: inline-block; /*display: table-cell; max-width: 150px; */ padding: 0 1px 0 0; }
+#tabs li  { display: inline-block !important; /*display: table-cell; max-width: 150px; */ padding: 0 1px 0 0; }
 #tabs li > div, #tabs li > div .ace_cursor { visibility: hidden !important; }
 #tabs li.active > div, #tabs li.active > div .ace_cursor { visibility: visible !important; }
 

@@ -1,3 +1,7 @@
+/// DEVELOPMENT SETTINGS
+var subTabsEnabled = true;
+var importsEnabled = false;
+
 var appUpdater = new runtime.air.update.ApplicationUpdaterUI();
 appUpdater.configurationFile = new air.File("app:/updateConfig.xml");
 appUpdater.initialize();
@@ -19,7 +23,8 @@ if(air && air.Introspector) {
 		var EditSession = require("ace/edit_session").EditSession;
 		var UndoManager = require("ace/undomanager").UndoManager;
 		var canChangeSave = true;
-
+		var SaveDialog;
+		
 		// Get stored state
 		var $crunchEl;
 
@@ -267,6 +272,8 @@ if(air && air.Introspector) {
 
 		function setActive(el) {
 			var $el = $(el);
+			console.log('Setting active tab...');
+			console.log($el);
 			var $scrollContainer;
 			var $tabContainer;
 			var $thisTab;
@@ -279,6 +286,13 @@ if(air && air.Introspector) {
 				$tabContainer.find('li').removeClass('active');
 				$thisTab.addClass('active');
 				tabSession = $thisTab.find('span.t.active').data('session');
+			
+				if($thisTab.data('notless') || !$thisTab.data('file-less')) {
+					$("#convert").attr('disabled', 'disabled');
+				} else {
+					$("#convert").removeAttr('disabled');
+				}
+			
 			}
 			else {
 				var $parentTab = $el.closest('.subtabs');
@@ -292,11 +306,7 @@ if(air && air.Introspector) {
 			
 			if($thisTab.length == 0)
 				return;
-			if($thisTab.data('notless') || !$thisTab.data('file-less')) {
-				$("#convert").attr('disabled', 'disabled');
-			} else {
-				$("#convert").removeAttr('disabled');
-			}
+			
 			var width = $scrollContainer.width();
 			var tabs = $tabContainer;
 			if(!($el.hasClass('.main') || $el.hasClass('.crunched'))) {
@@ -320,11 +330,15 @@ if(air && air.Introspector) {
 					});
 				}
 			}
-
+			console.log('Switching to this tab\'s active session...');
+			console.log(tabSession);
+			
 			Editor.setSession(tabSession.session);
 			
-			if(tabSession.readonly) 
+			if(tabSession.readonly) {
+				console.log('Setting readonly to true.');
 				Editor.setReadOnly(true);
+			}
 			else
 				Editor.setReadOnly(false);
 				
@@ -336,11 +350,22 @@ if(air && air.Introspector) {
 			Editor.resize();
 
 		}
-
+		
 		function tryCloseTab($el) {
-			if(!$el.data('session').saved) {
-				openWindow('win/save.html?#' + $el.attr('id'), 520, 225, true);
-			} else
+			var pendingFiles = [];
+			$el.find('span.t').each(function() {
+				// Some sub-tabs don't have sessions yet (crunched file subtab)
+				if($(this).data('session') && !$(this).data('session').saved) {
+					pendingFiles.push($(this));
+				}
+			});
+			
+			if(pendingFiles.length != 0) {
+				console.log(SaveDialog);
+				SaveDialog.window.init(pendingFiles, $el);
+				//openWindow('win/save.html?#' + $el.attr('id'), 520, 225, true);
+			}
+			else
 				closeTab($el);
 		}
 
@@ -400,10 +425,32 @@ if(air && air.Introspector) {
 				$("#arrow-right").removeAttr("disabled");
 		}
 
-		function unSave($el) {
-			if($el.data('session').saved) {
-				$el.data('session').saved = false;
-				$el.find('.save:first').show();
+		function unSave(tabSession) {
+			console.log('Unsaving session...');
+			console.log(tabSession);
+			
+			if(tabSession.saved) {
+				tabSession.saved = false;
+				$('#tabs li.t, #tabs .subtabs span.t').each(function() {
+					var $el = $(this);
+					if($(this).data('session') == tabSession)
+						$el.find('.save:first').show();
+				});
+				
+			}
+		}
+		function setSave(tabSession) {
+			console.log('Saving session...');
+			console.log(tabSession);
+			
+			if(!tabSession.saved) {
+				tabSession.saved = true;
+				$('#tabs li.t, #tabs .subtabs span.t').each(function() {
+					var $el = $(this);
+					if($(this).data('session') == tabSession)
+						$el.find('.save:first').hide();
+				});
+				
 			}
 		}
 
@@ -422,10 +469,10 @@ if(air && air.Introspector) {
 			$el.find('.messages').attr('id', 'messages-' + t);
 
 			var tabSession = getTabSession();
-			tabSession.session.on('change', function() {
-				if(!canChangeSave) return;
-				unSave($el);
-			});
+			// tabSession.session.on('change', function() {
+				// if(!canChangeSave) return;
+				// unSave($el);
+			// });
 			
 			if(css) {
 				setTabType($el, true);
@@ -444,19 +491,36 @@ if(air && air.Introspector) {
 					return Sessions[file.nativePath];
 				} 
 				else {
-					var tabSession = new EditSession("", new lessMode());
-					tabSession.setUndoManager(new UndoManager());
-					Sessions[file.nativePath] = {
-						session: tabSession,
+					var tabSession = {
 						saved: true
-					}
-					return Sessions[file.nativePath];
+					};
+					var session = new EditSession("", new lessMode());
+					session.setUndoManager(new UndoManager());
+					tabSession.session = session;
+					
+					tabSession.session.on('change', function() {
+						if(!canChangeSave) return;
+						unSave(tabSession);
+					});
+					
+					Sessions[file.nativePath] = tabSession;
+					
+					return tabSession;
 				}
 			}
 			else {
-				var tabSession = new EditSession("", new lessMode());
-				tabSession.setUndoManager(new UndoManager());
-				return { session: tabSession, saved: true };
+				var tabSession = {
+					saved: true
+				};
+				var session = new EditSession("", new lessMode());
+				session.setUndoManager(new UndoManager());
+				tabSession.session = session;
+				
+				tabSession.session.on('change', function() {
+					if(!canChangeSave) return;
+					unSave(tabSession);
+				});
+				return tabSession;
 			}
 			
 			
@@ -585,11 +649,14 @@ if(air && air.Introspector) {
 			else
 				tabSession = getTabSession(file);
 			
-			var tabTemplate = '<span class="t"><span class="filename">' + file.name  +'</span><span class="save" style="display: none;">*</span></span>';
+			var tabTemplate = '<span class="t"><span class="filename">' + file.name.replace('.less','')  +'</span><span class="save" style="display: none;">*</span></span>';
 			var $imports = $crunchEl.find('.subtabs .imports > div');
 			var $subtab = $(tabTemplate);
+			t++;
+			$subtab.attr('id', 'panel-' + t);
 			$subtab.data('file-less',file);
 			$subtab.data('session',tabSession);
+			$subtab.data('filename', file.name);
 			$imports.append($subtab);
 			if(!tabSession.saved)
 				$subtab.find('.save:first').show();			
@@ -608,6 +675,7 @@ if(air && air.Introspector) {
 			stream.close();
 		}
 		function openFile(file, silent) {
+			console.log('Opening file...');
 			
 			if(!file.nativePath)
 				file = new air.File(file);
@@ -634,7 +702,7 @@ if(air && air.Introspector) {
 					if(!silent)
 						setActive($(this).find('a.tab'));
 					else
-						$(this).find('a.tab').pulse({
+						$(this).find('span.crunched').pulse({
 							backgroundColor : ['rgba(141,71,28,1)', 'rgba(141,71,28,0.8)'],
 							color : ['#000000', '#FFFFFF']
 						}, 200, 3);
@@ -651,7 +719,7 @@ if(air && air.Introspector) {
 				$el.find('> a > .filename').html(file.name);
 
 				var tabSession;
-				
+				console.log('Creating file session...');
 				if(!(file.nativePath in Sessions)) {
 					
 					var fileData = getFileData(file);
@@ -666,10 +734,9 @@ if(air && air.Introspector) {
 				else {
 					tabSession = getTabSession(file);
 				}
-				tabSession.session.on('change', function() {
-					if(!canChangeSave) return;
-					unSave($el);
-				});
+				
+				
+				//console.log(tabSession);
 					
 				$el.data('session', tabSession);
 					
@@ -680,21 +747,32 @@ if(air && air.Introspector) {
 					
 				
 				$el.data('file-less', file);
-				$el.find('.subtabs .main').data('file-less', file).data('session', tabSession);
+				$el.find('.subtabs .main').data('file-less', file).data('session', tabSession).data('filename', file.name).find('.filename').html(file.name);
 				
+				// Non-LESS files don't have subtabs. Because screw those files.
 				if(!file.name.match(/\.less/i)) {
 					setTabType($el, true);
+					
 				}
 				else {
-					var compiled = crunchFile($el);
-					if(compiled.err == null) {
-						var $compiled = $el.find('.subtabs .crunched');
-						var tabSession = getTabSession();
-						canChangeSave = false;
-						tabSession.session.setValue(compiled.output);
-						canChangeSave = true;
-						tabSession.readonly = true;
-						$compiled.data('session', tabSession);
+					if(subTabsEnabled) {
+						$el.find('.subtabs').css('display','');
+					
+						// Cool feature, bra. We immediately create a Crunched file session from the LESS file we opened.
+						// That way, we can immediately support debugging without having to initially save a new CSS
+						var compiled = crunchFile($el);
+						console.log('Auto-creating compiled file...');
+						console.log(compiled);
+						var $crunchTab = $el.find('.subtabs .crunched');
+						if(compiled.err == null) {
+							var tabSession = getTabSession();
+							canChangeSave = false;
+							tabSession.session.setValue(compiled.output);
+							canChangeSave = true;
+							tabSession.readonly = true;
+							$crunchTab.data('session', tabSession).css('display','');
+						}
+							
 					}
 				}
 				
@@ -718,7 +796,8 @@ if(air && air.Introspector) {
 				// TODO: Should be top session
 				$crunchEl = $el;
 				Parser = new (less.Parser)({
-					paths : [$el.data('file-less').nativePath.replace(/[\w\.-]+$/, '')]
+					paths : [$el.data('file-less').nativePath.replace(/[\w\.-]+$/, '')],
+					rootpath: ""
 				}).parse($el.data('session').session.getValue(), function(err, tree) {
 					// Useful for stuff later
 					//console.log(tree);
@@ -767,7 +846,7 @@ if(air && air.Introspector) {
 			} else {
 				saveFile($el, crunch, false);
 				if(closeWindow)
-					closeTab($el);
+					tryCloseTab($el);
 			}
 		}
 
@@ -789,12 +868,13 @@ if(air && air.Introspector) {
 					canChangeSave = false;
 					tabSession = getTabSession(fileSelect);
 					tabSession.session.setValue(writeData);
+					tabSession.readonly = true;
 					canChangeSave = true;
 				}
 				else
 					tabSession = getTabSession(fileSelect);
 				
-				$el.find('.subtabs .crunched').data('session', tabSession);
+				$el.find('.subtabs .crunched').css('display','').data('session', tabSession).find('.filename').html(fileSelect.name);
 				
 			} else {
 				fileSelect = $el.data('file-less');
@@ -830,11 +910,16 @@ if(air && air.Introspector) {
 				alert("I failed in the saving of your glorious creation. Here's why: " + err.message);
 				return false;
 			}
-			// Comment out 2 lines with subtabs enabled
-			if(crunch)
-				openFile(fileSelect, true);
-			$el.data('session').saved = true;
-			$el.find('.save:first').hide();
+			
+			// With subtabs completely off, we open the crunched file in a new main tab.
+			if(!subTabsEnabled) {
+				if(crunch)
+					openFile(fileSelect, true);
+			}
+			//$el.data('session').saved = true;
+			setSave($el.data('session'));
+			
+			//$el.find('.save:first').hide();
 
 			if(update) {
 				$('#filelist li').each(function() {
@@ -907,7 +992,7 @@ if(air && air.Introspector) {
 
 		}
 
-		function openWindow(url, width, height, utility) {
+		function openWindow(url, width, height, utility, callback) {
 			var winType;
 			if(!utility) {
 				winType = air.NativeWindowType.NORMAL;
@@ -929,12 +1014,18 @@ if(air && air.Introspector) {
 			if(utility)
 				options.owner = window.nativeWindow;
 			modalWin = air.HTMLLoader.createRootWindow(true, options, true, bounds);
-
+			if(callback)
+				modalWin.window.nativeWindow.visible = false;
+			if(utility)
+				modalWin.window.nativeWindow.alwaysInFront = true;
+			
+			
 			modalWin.load(new air.URLRequest(url));
 
 			modalWin.addEventListener(air.Event.HTML_DOM_INITIALIZE, function(e) {
 				e.target.window.parent = e.target.window.opener = this;
-
+				if(callback)
+					callback(e.target);
 			});
 		}
 
@@ -1021,7 +1112,11 @@ if(air && air.Introspector) {
 			$.each(App.openFiles, function(idx, val) {
 				var $el = openFile(Paths.project.resolvePath(idx));
 				if(val.cssFile) {
-					$el.data('file-css', Paths.project.resolvePath(val.cssFile));
+					console.log('Has attached css file:');
+					console.log(val.cssFile);
+					var file = Paths.project.resolvePath(val.cssFile)
+					$el.data('file-css', file);
+					$el.find('span.crunched .filename').html(file.name);
 				}
 			});
 
@@ -1035,8 +1130,13 @@ if(air && air.Introspector) {
 
 		function init() {
 			CreateMenus();
+			
+			// Create save window
+			openWindow('win/save.html?', 520, 225, true, function(win) {
+				SaveDialog = win;
+			});
+			
 			// Set up global editor
-
 			Editor = ace.edit('editor');
 			Editor.session.setMode("ace/mode/less");
 			Editor.setShowPrintMargin(false);
@@ -1052,8 +1152,12 @@ if(air && air.Introspector) {
 					fileStream.open(file, air.FileMode.READ);
 					var fileData = fileStream.readUTFBytes(fileStream.bytesAvailable);
 					fileStream.close();
-
-					//addSubTab(file, fileData);
+					
+					
+					// Populate a scrollable list of imports. This will rock.
+					if(importsEnabled)
+						addSubTab(file, fileData);
+						
 					new (less.Parser)({
 						paths : [file.nativePath.replace(/[\w\.-]+$/, '')].concat(paths),
 						filename : file.nativePath
@@ -1216,9 +1320,9 @@ if(air && air.Introspector) {
 			$('#save-as').click(Commands.saveAs);
 			$('#convert').click(Commands.crunch);
 
-			$('#openwindow').click(function() {
-				openWindow('win/save.html', 522, 225, true);
-			});
+			// $('#openwindow').click(function() {
+				// openWindow('win/save.html', 522, 225, true);
+			// });
 			$('#open-project').click(Commands.openProject);
 
 			$('#info').click(function() {
@@ -1250,7 +1354,6 @@ if(air && air.Introspector) {
 			}
 
 			if(air.NativeApplication.supportsMenu) {
-				// Let's get rid of those pesky Mac menus. We can add stuff in later.
 
 				var appMenu = application.menu;
 				while(appMenu.items.length > 1) {
@@ -1332,7 +1435,10 @@ if(air && air.Introspector) {
 				var menuItem = docMenu.addItem(new air.NativeMenuItem(App.recent.files[i]));
 				menuItem.data = Paths.project.resolvePath(App.recent.files[i]);
 				menuItem.addEventListener(air.Event.SELECT, function(e) {
-					openFile(e.target.data);
+					if(e.target.data.exists)
+						openFile(e.target.data);
+					else
+						alert('File no longer exists.');
 				});
 			}
 			docMenu = air.NativeMenu(event.target).getItemByName("recentSites").submenu;
@@ -1342,7 +1448,10 @@ if(air && air.Introspector) {
 				var menuItem = docMenu.addItem(new air.NativeMenuItem(App.recent.folders[i]));
 				menuItem.data = Paths.project.resolvePath(App.recent.folders[i]);
 				menuItem.addEventListener(air.Event.SELECT, function(e) {
-					openProject(e.target.data);
+					if(e.target.data.exists)
+						openProject(e.target.data);
+					else
+						alert('Directory no longer exists.');
 				});
 			}
 
@@ -1377,6 +1486,7 @@ if(air && air.Introspector) {
 		return {
 			init : init,
 			closeTab : closeTab,
+			tryCloseTab: tryCloseTab,
 			trySave : trySave,
 			openFile : openFile,
 			Parser : Parser,

@@ -2,44 +2,73 @@
 <html>
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
-	<title></title>
+	<title>Save File</title>
 	<link rel="stylesheet" type="text/css" href="/css/ubuntu.css">
 	<link rel="stylesheet" type="text/css" href="/css/stylesheet.css">
 	<link rel="stylesheet" type="text/css" href="/css/main.css">
 	<link rel="stylesheet" type="text/css" href="/css/skin2.css">
 	<script>
-	//var file = window.parent.
-	function init() {
-		var o = window.opener;
-		var tab = o.$(window.location.hash);
-		$('#filename').html(tab.find(".filename").html());
+	
+	var o = window.opener;
+	console = o.console;
+
+		
+	function init(pendingFiles, $el) {
+		console.log(pendingFiles); 
+			
+		loadFile(pendingFiles.shift());
+		
+		var tab = $el;
+		
 		$('#m-dontsave').click(function() {
-			shutThisShitDown();
-			o.Crunch.closeTab(tab);
+			if(pendingFiles.length == 0) {
+				closeThisWindow();
+				o.Crunch.closeTab(tab);
+			}
+			else
+				loadFile(pendingFiles.shift());
 		});
-		$('#m-cancel').click(function() {
-			o.Crunch.pendingClose = false;
-			shutThisShitDown();
-		});
+		$('#m-cancel').click(cancelSave);
 		$('#m-save').click(function() {
-			$('body').removeClass('keep');
-			o.Crunch.trySave(tab, false, nativeWindow);
+			if(pendingFiles.length == 0) {
+				$('body').removeClass('keep');
+				o.Crunch.trySave(tab, false, nativeWindow);
+			}
+			else {
+				o.Crunch.trySave(tab, false, false);
+				loadFile(pendingFiles.shift());
+			}
 		});
+		nativeWindow.addEventListener(air.Event.CLOSING, function(evt) {
+			evt.preventDefault();
+			cancelSave();
+		});
+
 		nativeWindow.activate();
-		nativeWindow.alwaysInFront = true;
+		
+		//nativeWindow.alwaysInFront = true;
 		//nativeWindow.addEventListener(
 		// 'deactivate', 
 		// function (e) {if($('body').hasClass('keep')) nativeWindow.activate();} 
 		//);
 	}
-	function shutThisShitDown() {
-		$('body').removeClass('keep');
-		nativeWindow.close();
+	function cancelSave() {
+		o.Crunch.pendingClose = false;
+		pendingFiles = [];
+		closeThisWindow();
+	}
+	function loadFile($el) {
+		$('#filename').html($el.data('filename'));
+	}
+	function closeThisWindow() {
+		//$('body').removeClass('keep');
+		//nativeWindow.close();
+		nativeWindow.visible = false;
 	}
 	</script>
 </head>
 
-<body onload="init()" class="modal keep">
+<body class="modal keep">
 	<h2>Do you want to save <br />"<span id="filename"></span>" ?</h2>
 	<p style="line-height: 1.5em;">If you don't save your changes, they will be lost forever. FOREVER.</p>
 	<div class="buttonbar">
@@ -47,9 +76,7 @@
 		<button id="m-cancel" class="secondary"><span>Cancel</span></button>
 		<button id="m-save" class="primary"><span>Save</span></button>
 	</div>
-	
-	<script src="/libs/air/AIRAliases.js"></script>
-	<script src="/AIRIntrospector.js"></script>
-	<script src="/js/jquery.min.js"></script>
+	<script src="../libs/air/AIRAliases.js"></script>
+	<script src="../js/jquery.min.js"></script>
 </body>
 </html>
