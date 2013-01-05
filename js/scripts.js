@@ -598,6 +598,8 @@ if(air && air.Introspector) {
 		var lastCrunch;
 
 		// Intercept AJAX requests because AIR doesn't use them
+		// This should be refactored. It's currently used for JSTree, but this is dumb.
+		// JSTree supports populating via objects but I couldn't get it to work.
 		$.mockjax({
 			url : 'dir.html',
 			status : 200,
