@@ -2,13 +2,7 @@ var appUpdater = new runtime.air.update.ApplicationUpdaterUI();
 appUpdater.configurationFile = new air.File("app:/updateConfig.xml");
 appUpdater.initialize();
 
-//var AIRIntrospectorConfig = new Object(); 
-//AIRIntrospectorConfig.debuggerKey = 152;
-
-if(air && air.Introspector) {
-	console = air.Introspector.Console; 
-	console.log('test');
-}
+//console = air.Introspector.Console; 
 
 (function($) {
 
@@ -16,12 +10,7 @@ if(air && air.Introspector) {
 		var Parser;
 		var pendingClose = false;
 		var scrollWidth = 100;
-		var Editor;
-		var lessMode = require("ace/mode/less").Mode;
-		var EditSession = require("ace/edit_session").EditSession;
-		var UndoManager = require("ace/undomanager").UndoManager;
-		var canChangeSave = true;
-		
+
 		// Get stored state
 		
 		// Paths are the default folders for open/save file dialogs
@@ -183,7 +172,7 @@ if(air && air.Introspector) {
 		
 		function bindKey(keys, fn) {
 			jwerty.key(meta + '+' + keys, fn);
-			$('#editor textarea').live('keydown', jwerty.event(meta + '+' + keys, false));
+			$('#tabs li textarea').live('keydown', jwerty.event(meta + '+' + keys, false));
 		}
 
 
@@ -256,9 +245,8 @@ if(air && air.Introspector) {
 					}
 				});
 			}
-			Editor.setSession(parent.data('session'));
-			Editor.focus();
-			Editor.resize();
+			parent.data('editor').focus();
+			parent.data('editor').resize();
 			
 		}
 
@@ -281,11 +269,10 @@ if(air && air.Introspector) {
 			if(!pendingClose)
 				removeOpenFile($(el).data('file-less'));
 				
-			$(el).remove();
+			$(el).data('editor', null).remove();
 
 			if($('#tabs').children().length == 2) {
 				$('#splash').show();
-				$('#editor').css('z-index',-1);
 				$('#save, #save-as, #convert').attr('disabled', 'disabled');
 				if($("#findbar").css("top") == 0)
 					alert('visible');
@@ -294,7 +281,6 @@ if(air && air.Introspector) {
 				}, 100).find('input').blur();
 				//newTab();
 			} else {
-
 				if(wasActive) {
 					if(i == 1)
 						setActive($('#tabs > li.t > a')[i]);
@@ -333,7 +319,6 @@ if(air && air.Introspector) {
 
 		function newTab(css, position) {
 			$('#splash').hide();
-			$('#editor').css('z-index',1);
 			$('#save, #save-as').removeAttr('disabled');
 			var el;
 			var $firstTab = $('#tabs li:first-child');
@@ -344,11 +329,14 @@ if(air && air.Introspector) {
 			t++;
 			el.attr('id', 'panel-' + t);
 			el.find('.messages').attr('id', 'messages-' + t);
-			
-			var tabSession = new EditSession("", new lessMode());
-			tabSession.setUndoManager(new UndoManager());
-			tabSession.on('change', function() {
-				if(!canChangeSave) return;
+			el.find('.editor').attr('id', 'editor-' + t);
+
+			var editor = ace.edit('editor-' + t);
+			//editor.setTheme("ace/theme/textmate");
+			editor.setShowPrintMargin(false);
+			var newMode = require("ace/mode/less").Mode;
+			editor.getSession().setMode(new newMode());
+			editor.getSession().on('change', function() {
 				var activeEl = $("#tabs li.active");
 				//  && arguments[0].data.text.length==1
 				if(activeEl.data('dirty')) {
@@ -356,13 +344,15 @@ if(air && air.Introspector) {
 					activeEl.data('dirty', false);
 				}
 			});
-			
+			el.find('textarea').bind('keydown', function(e) {
+				el.data('dirty', true);
+			});
 			if(css) {
 				setTabType(el, true);
 				el.find('.filename').html('new.css');
 			}
+			el.data('editor', editor);
 			el.data('saved', true);
-			el.data('session', tabSession);
 			setActive(el.find('a.tab'));
 			adjustTabOverflow();
 			return el;
@@ -413,7 +403,7 @@ if(air && air.Introspector) {
 		});
 
 		function findText(val) {
-			Editor.find(val, {
+			$("#tabs li.active").data('editor').find(val, {
 				wrap : true,
 				caseSensitive : false,
 				wholeWord : false,
@@ -480,13 +470,13 @@ if(air && air.Introspector) {
 
 		});
 		function showMessage(el, msg) {
-			el.add('#editor').addClass('show').find('.description').html(msg);
-			Editor.resize();
+			el.addClass('show').find('.description').html(msg);
+			el.closest('li').data('editor').resize();
 		}
 
 		function hideMessage(el) {
-			el.add('#editor').removeClass('show').find('.description').html('');
-			Editor.resize();
+			el.removeClass('show').find('.description').html('');
+			el.closest('li').data('editor').resize();
 		}
 
 		function openFile(file, silent) {
@@ -506,9 +496,7 @@ if(air && air.Introspector) {
 						stream.open(file, air.FileMode.READ);
 						var fileData = stream.readUTFBytes(stream.bytesAvailable);
 						stream.close();
-						canChangeSave = false;
-						$(this).data('session').setValue(fileData);
-						canChangeSave = true;
+						$(this).data('editor').getSession().setValue(fileData);
 					}
 					if(!silent)
 						setActive($(this).find('a.tab'));
@@ -539,9 +527,7 @@ if(air && air.Introspector) {
 				else
 					el = newTab(false);
 				el.find('.filename').html(file.name);
-				canChangeSave = false;
-				el.data('session').setValue(fileData);
-				canChangeSave = true;
+				el.data('editor').getSession().setValue(fileData);
 
 				el.data('saved', true);
 				el.find('.save').hide();
@@ -564,11 +550,9 @@ if(air && air.Introspector) {
 		function crunchFile(el) {
 			var output;
 			try {
-				
-				// TODO: Should be top session
 				Parser = new (less.Parser)({
 					paths : [el.data('file-less').nativePath.replace(/[\w\.-]+$/, '')]
-				}).parse(el.data('session').getValue(), function(err, tree) {
+				}).parse(el.data('editor').getSession().getValue(), function(err, tree) {
 
 					if(err) {
 						throw err;
@@ -634,7 +618,7 @@ if(air && air.Introspector) {
 				}
 			} else {
 				fileSelect = el.data('file-less');
-				writeData = Editor.getSession().getValue();
+				writeData = el.data('editor').getSession().getValue();
 			}
 
 			Crunch.FileMonitor.unwatch(fileSelect);
@@ -718,13 +702,13 @@ if(air && air.Introspector) {
 				var newFile = event.target;
 				if(crunch) {
 					el.data('file-css', newFile);
-					App.paths.css = newFile.parent.nativePath;
+					App.paths.css = newFile.parent;
 					updateOpenFile(el.data('file-less'), el.data('file-css'));
 				} else {
 					el.data('file-less', newFile);
 					el.find('.filename').html(newFile.name);
 					el.find('.tab').attr('title', newFile.nativePath);
-					App.paths.less = newFile.parent.nativePath;
+					App.paths.less = newFile.parent;
 				}
 				updateAppState();
 
@@ -865,30 +849,7 @@ if(air && air.Introspector) {
 		}
 		function init() {
 			CreateMenus();
-			// Set up global editor 
-			
-			Editor = ace.edit('editor');
-			Editor.session.setMode("ace/mode/less");
-			Editor.setShowPrintMargin(false);
-			// Editor.on("onTextInput", function(text, pasted) {
-				// var activeEl = $("#tabs li.active");
-				// //  && arguments[0].data.text.length==1
-				// air.trace('Text was changed.');
-				// unSave(activeEl);
-				// //activeEl.data('dirty', false);
-// 				
-			// });
-			
 			initAppState();
-			air.trace(App);
-			
-			// Try to capture edit events and force saving -- TODO: better method?
-			
-			$('#editor textarea').live('keydown', function(e) {
-				if(!canChangeSave) return;
-				var activeEl = $("#tabs li.active");
-				activeEl.data('dirty',true);
-			});
 			
 			$('#chk-minify').on('change',function() {
 				App.prefs.minify = $('#chk-minify').is(':checked');
@@ -918,14 +879,14 @@ if(air && air.Introspector) {
 				gripInnerHtml : '<div id="resize"></div>',
 				onResize : function() {
 					if($('#tabs li.t.active').length > 0) {
-						Editor.resize();
+						$('#tabs li.t.active').data('editor').resize();
 						adjustTabOverflow();
 					}
 				}
 			});
 			$(window).resize(function() {
 				if($('#tabs li.t.active').length > 0) {
-					Editor.resize();
+					$('#tabs li.t.active').data('editor').resize();
 					adjustTabOverflow();
 				}
 			});
@@ -985,10 +946,10 @@ if(air && air.Introspector) {
 					});
 			});
 			$("#findbar .up").click(function() {
-				Editor.findPrevious();
+				$("#tabs li.t.active").data('editor').findPrevious();
 			});
 			$("#findbar .down").click(function() {
-				Editor.findNext();
+				$("#tabs li.t.active").data('editor').findNext();
 			});
 			$('#tabs a.tab .close').click(function() {
 				var listItem = $(this).parent().parent();
@@ -999,7 +960,7 @@ if(air && air.Introspector) {
 				$("#findbar").animate({
 					top : '-33px'
 				}, 100);
-				Editor.focus();
+				$("#tabs li.t.active").data('editor').focus();
 			});
 			$("#find").submit(function() {
 				findText($("#findbar input").val());

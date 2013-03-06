@@ -218,9 +218,6 @@ less.Parser = function Parser(env) {
         mime:  env && env.mime,         // MIME type of .less files
         error: null,                    // Error in parsing/evaluating an import
         push: function (path, callback) {
-
-		// Changed this line for Crunch from...
-        	air.trace('Adding... ' + path);
             var that = this;
             this.queue.push(path);
 
