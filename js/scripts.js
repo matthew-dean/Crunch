@@ -7,7 +7,7 @@ appUpdater.initialize();
 
 if(air && air.Introspector) {
 	console = air.Introspector.Console;
-	//console.log('test');
+	console.log('test');
 }(function($) {
 
 	var Crunch = function() {
@@ -184,6 +184,8 @@ if(air && air.Introspector) {
 			save : function() {
 				
 				var $activeEl = $("#tabs li.active .subtabs .active");
+				console.log($activeEl);
+				console.log($activeEl.data('session'));
 				trySave($activeEl, false);
 			},
 			saveAs : function() {
@@ -195,10 +197,9 @@ if(air && air.Introspector) {
 			crunch : function() {
 				var $activeEl = $("#tabs li.active");
 				lastCrunch = crunchFile($activeEl);
-				if(lastCrunch.err != null) {
-					showMessage($activeEl.find('.messages'), lastCrunch.err);
+				if(!lastCrunch)
 					return;
-				}
+
 				if(!($activeEl.data('session').saved)) {
 					var answer = confirm('You have to save before crunching. Go ahead and save?');
 					if(answer) {
@@ -270,26 +271,24 @@ if(air && air.Introspector) {
 			var $scrollContainer;
 			var $tabContainer;
 			var $thisTab;
-			var tabSession;
-
+			
 			if($el.is("a")) {
 				$scrollContainer = $("#scroller");
 				$tabContainer = $('#tabs');	
 				$thisTab = $el.parent();
 				$tabContainer.find('li').removeClass('active');
 				$thisTab.addClass('active');
-				tabSession = $thisTab.find('span.t.active').data('session');
 			}
 			else {
-				var $parentTab = $el.closest('.subtabs');
+				var $parentTab = $el.parent();
 				$scrollContainer = $parentTab.find('.imports');
 				$tabContainer = $scrollContainer.find('>div');
 				$thisTab = $el;
-				$parentTab.find('span.t').removeClass('active');
+				$parentTab.find('.subtabs span.t').removeClass('active');
 				$el.addClass('active');
-				tabSession = $el.data('session');
 			}
 			
+			// WHY IS THIS ZERO?? WHERE I AM
 			if($thisTab.length == 0)
 				return;
 			if($thisTab.data('notless') || !$thisTab.data('file-less')) {
@@ -301,8 +300,8 @@ if(air && air.Introspector) {
 			var tabs = $tabContainer;
 			if(!($el.hasClass('.main') || $el.hasClass('.crunched'))) {
 				if(($thisTab.outerWidth() + $thisTab.position().left) > width) {
-					$tabContainer.animate({
-						'margin-left' : ($tabContainer[0].scrollWidth - width) * -1
+					tabs.animate({
+						'margin-left' : (tabs[0].scrollWidth - width) * -1
 					}, {
 						duration : 'fast',
 						complete : function() {
@@ -310,8 +309,8 @@ if(air && air.Introspector) {
 						}
 					});
 				} else if($thisTab.position().left < 0) {
-					$tabContainer.animate({
-						'margin-left' : $tabContainer.margin().left - $thisTab.position().left + 25
+					tabs.animate({
+						'margin-left' : tabs.margin().left - $thisTab.position().left + 25
 					}, {
 						duration : 'fast',
 						complete : function() {
@@ -320,15 +319,8 @@ if(air && air.Introspector) {
 					});
 				}
 			}
-
-			Editor.setSession(tabSession.session);
-			
-			if(tabSession.readonly) 
-				Editor.setReadOnly(true);
-			else
-				Editor.setReadOnly(false);
-				
-			if(tabSession.saved)
+			Editor.setSession($thisTab.data('session').session);
+			if($thisTab.data('session').saved)
 				$thisTab.find('.save:first').hide();
 			else
 				$thisTab.find('.save:first').show();
@@ -345,7 +337,6 @@ if(air && air.Introspector) {
 		}
 
 		function closeTab(el) {
-
 			var i = $(el).index('#tabs > li.t');
 			var wasActive = $(el).hasClass('active');
 
@@ -433,7 +424,6 @@ if(air && air.Introspector) {
 			}
 
 			$el.data('session', tabSession);
-			$el.find('.subtabs .main').data('session', tabSession);
 			setActive($el.find('a.tab'));
 			adjustTabOverflow();
 			return $el;
@@ -541,8 +531,28 @@ if(air && air.Introspector) {
 				this.responseText = getTree(settings.data.path);
 			}
 		});
-		
-		// No longer needed as of LESS 1.3
+
+		// // Less.js tries to do an XMLHttpRequest. Not sure how to circumvent, so we'll just hijack that too.
+		// // Yes, the fact that there are two hijackers is stupid, I know. There's a good explanation... well, a reasonable explanation, and I'll fix later.
+		// var server = new MockHttpServer();
+		// server.handle = function(request) {
+		//
+		// if(request.url.match(/\.less/i)) {
+		// request.url = request.url.replace(/app:\//ig, '');
+		// var getFile = Paths.project.resolvePath(request.url);
+		// if(!getFile.exists) {
+		// request.receive(404, "Not found.");
+		// } else {
+		// request.setResponseHeader("Last-Modified", getFile.modificationDate);
+		// var fileStream = new air.FileStream();
+		// fileStream.open(getFile, air.FileMode.READ);
+		// request.receive(200, fileStream.readUTFBytes(fileStream.bytesAvailable));
+		// fileStream.close();
+		// }
+		// }
+		// };
+		// server.start();
+
 		// $(window).bind('crunch.error', function(ev, e, href) {
 			// air.trace('LESS error')
 			// var $activeEl = $("#tabs li.active .messages");
@@ -586,7 +596,7 @@ if(air && air.Introspector) {
 				tabSession = getTabSession(file);
 			
 			var tabTemplate = '<span class="t"><span class="filename">' + file.name  +'</span><span class="save" style="display: none;">*</span></span>';
-			var $imports = $crunchEl.find('.subtabs .imports > div');
+			var $imports = $crunchEl.find('.subtabs .imports');
 			var $subtab = $(tabTemplate);
 			$subtab.data('file-less',file);
 			$subtab.data('session',tabSession);
@@ -678,26 +688,12 @@ if(air && air.Introspector) {
 				else
 					$el.find('.save:first').show();
 					
-				
-				$el.data('file-less', file);
-				$el.find('.subtabs .main').data('file-less', file).data('session', tabSession);
-				
 				if(!file.name.match(/\.less/i)) {
 					setTabType($el, true);
 				}
-				else {
-					var compiled = crunchFile($el);
-					if(compiled.err == null) {
-						var $compiled = $el.find('.subtabs .crunched');
-						var tabSession = getTabSession();
-						canChangeSave = false;
-						tabSession.session.setValue(compiled.output);
-						canChangeSave = true;
-						tabSession.readonly = true;
-						$compiled.data('session', tabSession);
-					}
-				}
-				
+				$el.data('file-less', file);
+				$el.find('.subtabs .main').data('file-less', file).data('session', tabSession);
+
 				setActive($el.find('a.tab'));
 				addOpenFile(file);
 
@@ -712,7 +708,6 @@ if(air && air.Introspector) {
 
 		function crunchFile($el) {
 			var output;
-			var errMessage = null;
 			try {
 
 				// TODO: Should be top session
@@ -732,7 +727,7 @@ if(air && air.Introspector) {
 					hideMessage($el.find('.messages'));
 				});
 			} catch(err) {
-				errMessage = err.message;
+				var errMessage = err.message;
 				//if(err.index) {
 				//	errMessage += ' Index: ' + err.index;
 				//}
@@ -742,10 +737,11 @@ if(air && air.Introspector) {
 				if(err.filename) {
 					errMessage += '<br>Filename: ' + err.filename;
 				}
+				showMessage($el.find('.messages'), errMessage);
 				return false;
 			}
 
-			return { output: output, err: errMessage };
+			return output;
 		}
 
 		function trySave($el, crunch, closeWindow) {
@@ -778,24 +774,11 @@ if(air && air.Introspector) {
 			if(crunch) {
 				fileSelect = $el.data('file-css');
 				try {
-					writeData = lastCrunch.output;
+					writeData = lastCrunch;
 				} catch(err) {
 					alert("I failed at saving. My bad. Here's what happened: " + err.message);
 					return false;
 				}
-				
-				var tabSession;
-				if(!(fileSelect.nativePath in Sessions)) {
-					canChangeSave = false;
-					tabSession = getTabSession(fileSelect);
-					tabSession.session.setValue(writeData);
-					canChangeSave = true;
-				}
-				else
-					tabSession = getTabSession(fileSelect);
-				
-				$el.find('.subtabs .crunched').data('session', tabSession);
-				
 			} else {
 				fileSelect = $el.data('file-less');
 				writeData = Editor.getSession().getValue();
@@ -830,7 +813,6 @@ if(air && air.Introspector) {
 				alert("I failed in the saving of your glorious creation. Here's why: " + err.message);
 				return false;
 			}
-			// Comment out 2 lines with subtabs enabled
 			if(crunch)
 				openFile(fileSelect, true);
 			$el.data('session').saved = true;
@@ -886,7 +868,6 @@ if(air && air.Introspector) {
 				var newFile = event.target;
 				if(crunch) {
 					$el.data('file-css', newFile);
-					$el.find('.subtabs .crunched .filename').html(newFile.name);
 					App.paths.css = newFile.parent.nativePath;
 					updateOpenFile($el.data('file-less'), $el.data('file-css'));
 				} else {
@@ -1053,7 +1034,7 @@ if(air && air.Introspector) {
 					var fileData = fileStream.readUTFBytes(fileStream.bytesAvailable);
 					fileStream.close();
 
-					//addSubTab(file, fileData);
+					addSubTab(file, fileData);
 					new (less.Parser)({
 						paths : [file.nativePath.replace(/[\w\.-]+$/, '')].concat(paths),
 						filename : file.nativePath
@@ -1113,14 +1094,11 @@ if(air && air.Introspector) {
 				}
 			});
 
-			$('#tabs').on('click','li.t > a', function() {
+			$('#tabs > li.t > a').click(function() {
 				if(!pendingClose && $(this).parent().data('file-less')) {
 					App.activeTab = $(this).parent().data('file-less').nativePath;
 					updateAppState();
 				}
-				setActive($(this));
-			});
-			$('.subtabs').on('click', '.t', function() {
 				setActive($(this));
 			});
 			$('.messages .close').click(function() {
@@ -1179,7 +1157,6 @@ if(air && air.Introspector) {
 			$('#tabs a.tab .close').click(function() {
 				var listItem = $(this).parent().parent();
 				tryCloseTab(listItem);
-				return false;
 			});
 
 			$("#findbar .close").click(function() {
