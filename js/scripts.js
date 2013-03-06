@@ -2,13 +2,15 @@ var appUpdater = new runtime.air.update.ApplicationUpdaterUI();
 appUpdater.configurationFile = new air.File("app:/updateConfig.xml");
 appUpdater.initialize();
 
-//var AIRIntrospectorConfig = new Object();
+//var AIRIntrospectorConfig = new Object(); 
 //AIRIntrospectorConfig.debuggerKey = 152;
 
 if(air && air.Introspector) {
-	console = air.Introspector.Console;
+	console = air.Introspector.Console; 
 	console.log('test');
-}(function($) {
+}
+
+(function($) {
 
 	var Crunch = function() {
 		var Parser;
@@ -19,40 +21,37 @@ if(air && air.Introspector) {
 		var EditSession = require("ace/edit_session").EditSession;
 		var UndoManager = require("ace/undomanager").UndoManager;
 		var canChangeSave = true;
-
+		
 		// Get stored state
-		var $crunchEl;
-
+		
 		// Paths are the default folders for open/save file dialogs
 		var Paths = {
-			project : air.File.documentsDirectory,
-			css : air.File.documentsDirectory,
-			less : air.File.documentsDirectory
+			project: air.File.documentsDirectory,
+			css: air.File.documentsDirectory,
+			less: air.File.documentsDirectory
 		}
 		var App = {
-			paths : {
-				project : "",
-				css : "",
-				less : ""
+			paths: {
+				project: "",
+				css: "",
+				less: ""
 			},
 			// currently open files
-			openFiles : {},
-			activeTab : "",
-			recent : {
-				files : [],
-				folders : []
+			openFiles: {},
+			activeTab: "",
+			recent: {
+				files: [],
+				folders: []
 			},
-			prefs : {
-				minify : true
+			prefs: {
+				minify: true
 			}
-		};
-		var Sessions = {};
-
-		var storedPrefs = air.EncryptedLocalStore.getItem("state");
-
-		if(storedPrefs != null) {
+		};	
+        var storedPrefs = air.EncryptedLocalStore.getItem("state");
+        
+        if(storedPrefs != null) {
 			var val = storedPrefs.readUTFBytes(storedPrefs.length);
-			$.extend(true, App, JSON.parse(val));
+        	$.extend(true, App, JSON.parse(val));
 			copyPaths();
 		}
 		function updateAppState() {
@@ -62,14 +61,13 @@ if(air && air.Introspector) {
 			air.EncryptedLocalStore.setItem("state", bytes);
 			copyPaths();
 		}
-
 		function checkValidPaths() {
 			var update = false;
 			var root = Paths.project;
 			if(!root.resolvePath(App.paths.project).isDirectory) {
 				App.paths.project = "";
 				update = true;
-			}
+			} 
 			if(!root.resolvePath(App.paths.css).isDirectory) {
 				App.paths.css = "";
 				update = true;
@@ -80,15 +78,14 @@ if(air && air.Introspector) {
 			}
 			$.each(App.openFiles, function(idx, val) {
 				if(!root.resolvePath(idx).exists) {
-					delete App.openFiles[idx];
+					delete App.openFiles[idx];	
 					update = true;
 				}
 			});
-			if(update)
-				updateAppState();
-
+			
+			if(update) updateAppState();
+			
 		}
-
 		function copyPaths() {
 			var root = Paths.project;
 			if(root.resolvePath(App.paths.project).isDirectory) {
@@ -101,13 +98,13 @@ if(air && air.Introspector) {
 				Paths.less = root.resolvePath(App.paths.less);
 			}
 		}
-
+		
 		function addOpenFile(file) {
 			var updateState = false;
 			if(!(file.nativePath in App.openFiles)) {
 				updateState = true;
 				App.openFiles[file.nativePath] = {
-					rootFile : file.nativePath
+					rootFile: file.nativePath
 				}
 			}
 			if(App.recent.files.indexOf(file.nativePath) == -1) {
@@ -119,98 +116,60 @@ if(air && air.Introspector) {
 			if(updateState)
 				updateAppState();
 		}
-
 		function updateOpenFile(less, css) {
 			if(less.nativePath in App.openFiles) {
 				App.openFiles[less.nativePath].cssFile = css.nativePath;
 				updateAppState();
 			}
 		}
-
 		function addRecentProject(dir) {
-
-			if(App.recent.folders.indexOf(dir.nativePath) == -1) {
+			
+			if(App.recent.folders.indexOf(dir.nativePath) == -1) {	
 				App.recent.folders.unshift(dir.nativePath);
 				if(App.recent.folders.length > 10)
 					App.recent.folders.pop();
 				updateAppState();
 			}
-
+			
 		}
-
 		function removeOpenFile(file) {
 			if(file && file.nativePath && (file.nativePath in App.openFiles)) {
 				delete App.openFiles[file.nativePath];
 				updateAppState();
 			}
 		}
+		//var lessParser = less.Parser;
+		//less.Parser = {};
+		//less.Parser.prototype = lessParser;
 
+
+		// Clunky, but works for now
 		Commands = {
-			newLess : function() {
+			newLess: function() {
 				newTab();
 			},
-			newCss : function() {
+			newCss: function() {
 				newTab(true);
 			},
-			openFile : function() {
-				var fileToOpen = new air.File(Paths.less.nativePath);
-				var txtFilter = new air.FileFilter("LESS file", "*.less;*.css");
-				try {
-					fileToOpen.browseForOpen("Open", [txtFilter]);
-					fileToOpen.addEventListener(air.Event.SELECT, fileSelected);
-				} catch (error) {
-					alert("FRAK. This happened: " + error.message);
-				}
-
-				function fileSelected(event) {
-					openFile(event.target);
-				}
-
+			openFile: function() {
+				$('#open-file:not(:disabled)').click();
 			},
-			openProject : function() {
-				var selectDir = new air.File(Paths.project.nativePath);
-				try {
-					selectDir.browseForDirectory("Select Directory");
-					selectDir.addEventListener(air.Event.SELECT, directorySelected);
-				} catch (error) {
-					alert("Failed:" + error.message);
-				}
-
-				function directorySelected(event) {
-					openProject(event.target);
-				}
-
+			openProject: function() {
+				$('#open-project:not(:disabled)').click();
 			},
-			save : function() {
-				
-				var $activeEl = $("#tabs li.active .subtabs .active");
-				console.log($activeEl);
-				console.log($activeEl.data('session'));
-				trySave($activeEl, false);
+			save: function() {
+				$('#save:not(:disabled)').click();
 			},
-			saveAs : function() {
-				var $activeEl = $("#tabs li.active .subtabs .active");
-				if(!$activeEl.hasClass('.main'))
-					return;
-				saveAsFile($activeEl, false);
+			saveAs: function() {
+				var activeEl = $("#tabs li.active");
+				saveAsFile(activeEl, false);
 			},
-			crunch : function() {
-				var $activeEl = $("#tabs li.active");
-				lastCrunch = crunchFile($activeEl);
-				if(!lastCrunch)
-					return;
-
-				if(!($activeEl.data('session').saved)) {
-					var answer = confirm('You have to save before crunching. Go ahead and save?');
-					if(answer) {
-						trySave($activeEl, false);
-					} else
-						return;
-				}
-				trySave($activeEl, true);
+			crunch: function() {
+				$('#convert:not(:disabled)').click();
 			}
 		};
-
+		
+		
 		// Keyboard mappings
 		var meta = "ctrl";
 		if(navigator.platform.indexOf('Mac') > -1)
@@ -221,7 +180,7 @@ if(air && air.Introspector) {
 		bindKey('s', Commands.save);
 		bindKey('shift+s', Commands.saveAs);
 		bindKey('enter', Commands.crunch);
-
+		
 		function bindKey(keys, fn) {
 			jwerty.key(meta + '+' + keys, fn);
 			$('#editor textarea').live('keydown', jwerty.event(meta + '+' + keys, false));
@@ -267,73 +226,47 @@ if(air && air.Introspector) {
 		}
 
 		function setActive(el) {
-			var $el = $(el);
-			var $scrollContainer;
-			var $tabContainer;
-			var $thisTab;
-			
-			if($el.is("a")) {
-				$scrollContainer = $("#scroller");
-				$tabContainer = $('#tabs');	
-				$thisTab = $el.parent();
-				$tabContainer.find('li').removeClass('active');
-				$thisTab.addClass('active');
-			}
-			else {
-				var $parentTab = $el.parent();
-				$scrollContainer = $parentTab.find('.imports');
-				$tabContainer = $scrollContainer.find('>div');
-				$thisTab = $el;
-				$parentTab.find('.subtabs span.t').removeClass('active');
-				$el.addClass('active');
-			}
-			
-			// WHY IS THIS ZERO?? WHERE I AM
-			if($thisTab.length == 0)
-				return;
-			if($thisTab.data('notless') || !$thisTab.data('file-less')) {
+			$('#tabs li').removeClass('active');
+			var parent = $(el).parent();
+			parent.addClass('active');
+			if(parent.data('notless') || !parent.data('file-less')) {
 				$("#convert").attr('disabled', 'disabled');
 			} else {
 				$("#convert").removeAttr('disabled');
 			}
-			var width = $scrollContainer.width();
-			var tabs = $tabContainer;
-			if(!($el.hasClass('.main') || $el.hasClass('.crunched'))) {
-				if(($thisTab.outerWidth() + $thisTab.position().left) > width) {
-					tabs.animate({
-						'margin-left' : (tabs[0].scrollWidth - width) * -1
-					}, {
-						duration : 'fast',
-						complete : function() {
-							adjustTabOverflow();
-						}
-					});
-				} else if($thisTab.position().left < 0) {
-					tabs.animate({
-						'margin-left' : tabs.margin().left - $thisTab.position().left + 25
-					}, {
-						duration : 'fast',
-						complete : function() {
-							adjustTabOverflow();
-						}
-					});
-				}
+			var width = $("#scroller").width();
+			var tabs = $('#tabs');
+
+			if((parent.outerWidth() + parent.position().left) > width) {
+				tabs.animate({
+					'margin-left' : (tabs[0].scrollWidth - width) * -1
+				}, {
+					duration : 'fast',
+					complete : function() {
+						adjustTabOverflow();
+					}
+				});
+			} else if(parent.position().left < 0) {
+				tabs.animate({
+					'margin-left' : tabs.margin().left - parent.position().left + 25
+				}, {
+					duration : 'fast',
+					complete : function() {
+						adjustTabOverflow();
+					}
+				});
 			}
-			Editor.setSession($thisTab.data('session').session);
-			if($thisTab.data('session').saved)
-				$thisTab.find('.save:first').hide();
-			else
-				$thisTab.find('.save:first').show();
+			Editor.setSession(parent.data('session'));
 			Editor.focus();
 			Editor.resize();
-
+			
 		}
 
-		function tryCloseTab($el) {
-			if(!$el.data('session').saved) {
-				openWindow('win/save.html?#' + $el.attr('id'), 520, 225, true);
+		function tryCloseTab(el) {
+			if(!el.data('saved')) {
+				openWindow('win/save.html?#' + el.attr('id'), 520, 225, true);
 			} else
-				closeTab($el);
+				closeTab(el);
 		}
 
 		function closeTab(el) {
@@ -343,16 +276,16 @@ if(air && air.Introspector) {
 			// Stop monitoring file
 			if($(el).data('file-less'))
 				Crunch.FileMonitor.unwatch($(el).data('file-less'));
-
+			
 			// Remove from open files list
 			if(!pendingClose)
 				removeOpenFile($(el).data('file-less'));
-
+				
 			$(el).remove();
 
 			if($('#tabs').children().length == 2) {
 				$('#splash').show();
-				$('#editor').css('z-index', -1);
+				$('#editor').css('z-index',-1);
 				$('#save, #save-as, #convert').attr('disabled', 'disabled');
 				if($("#findbar").css("top") == 0)
 					alert('visible');
@@ -372,7 +305,7 @@ if(air && air.Introspector) {
 			}
 			if(pendingClose)
 				closeWindow();
-
+				
 			adjustTabOverflow();
 			return false;
 		}
@@ -391,73 +324,56 @@ if(air && air.Introspector) {
 				$("#arrow-right").removeAttr("disabled");
 		}
 
-		function unSave($el) {
-			if($el.data('session').saved) {
-				$el.data('session').saved = false;
-				$el.find('.save:first').show();
+		function unSave(el) {
+			if(el.data('saved')) {
+				el.data('saved', false);
+				el.find('.save').show();
 			}
 		}
 
 		function newTab(css, position) {
 			$('#splash').hide();
-			$('#editor').css('z-index', 1);
+			$('#editor').css('z-index',1);
 			$('#save, #save-as').removeAttr('disabled');
-			var $el;
+			var el;
 			var $firstTab = $('#tabs li:first-child');
 			if(position && position.length == 1)
-				$el = $firstTab.clone(true, true).show().insertAfter(position);
+				el = $firstTab.clone(true, true).show().insertAfter(position);
 			else
-				$el = $firstTab.clone(true, true).show().insertBefore($('#tabs li.n'));
+				el = $firstTab.clone(true, true).show().insertBefore($('#tabs li.n'));
 			t++;
-			$el.attr('id', 'panel-' + t);
-			$el.find('.messages').attr('id', 'messages-' + t);
-
-			var tabSession = getTabSession();
-			tabSession.session.on('change', function() {
+			el.attr('id', 'panel-' + t);
+			el.find('.messages').attr('id', 'messages-' + t);
+			
+			var tabSession = new EditSession("", new lessMode());
+			tabSession.setUndoManager(new UndoManager());
+			tabSession.on('change', function() {
 				if(!canChangeSave) return;
-				unSave($el);
+				var activeEl = $("#tabs li.active");
+				//  && arguments[0].data.text.length==1
+				if(activeEl.data('dirty')) {
+					unSave(activeEl);
+					activeEl.data('dirty', false);
+				}
 			});
 			
 			if(css) {
-				setTabType($el, true);
-				$el.find('> a > .filename').html('new.css');
+				setTabType(el, true);
+				el.find('.filename').html('new.css');
 			}
-
-			$el.data('session', tabSession);
-			setActive($el.find('a.tab'));
+			el.data('saved', true);
+			el.data('session', tabSession);
+			setActive(el.find('a.tab'));
 			adjustTabOverflow();
-			return $el;
-		}
-		function getTabSession(file) {
-			if(file) {
-				if(file.nativePath in Sessions) {
-					return Sessions[file.nativePath];
-				} 
-				else {
-					var tabSession = new EditSession("", new lessMode());
-					tabSession.setUndoManager(new UndoManager());
-					Sessions[file.nativePath] = {
-						session: tabSession,
-						saved: true
-					}
-					return Sessions[file.nativePath];
-				}
-			}
-			else {
-				var tabSession = new EditSession("", new lessMode());
-				tabSession.setUndoManager(new UndoManager());
-				return { session: tabSession, saved: true };
-			}
-			
-			
+			return el;
 		}
 
-		function setTabType($el, notless) {
-			$el.data('notless', notless);
+		function setTabType(el, notless) {
+			el.data('notless', notless);
 			if(notless)
-				$el.find('a.tab').addClass('other');
+				el.find('a.tab').addClass('other');
 			else
-				$el.find('a.tab').removeClass('other');
+				el.find('a.tab').removeClass('other');
 		}
 
 		var commands = require("ace/commands/default_commands").commands;
@@ -532,113 +448,66 @@ if(air && air.Introspector) {
 			}
 		});
 
-		// // Less.js tries to do an XMLHttpRequest. Not sure how to circumvent, so we'll just hijack that too.
-		// // Yes, the fact that there are two hijackers is stupid, I know. There's a good explanation... well, a reasonable explanation, and I'll fix later.
-		// var server = new MockHttpServer();
-		// server.handle = function(request) {
-		//
-		// if(request.url.match(/\.less/i)) {
-		// request.url = request.url.replace(/app:\//ig, '');
-		// var getFile = Paths.project.resolvePath(request.url);
-		// if(!getFile.exists) {
-		// request.receive(404, "Not found.");
-		// } else {
-		// request.setResponseHeader("Last-Modified", getFile.modificationDate);
-		// var fileStream = new air.FileStream();
-		// fileStream.open(getFile, air.FileMode.READ);
-		// request.receive(200, fileStream.readUTFBytes(fileStream.bytesAvailable));
-		// fileStream.close();
-		// }
-		// }
-		// };
-		// server.start();
+		// Less.js tries to do an XMLHttpRequest. Not sure how to circumvent, so we'll just hijack that too.
+		// Yes, the fact that there are two hijackers is stupid, I know. There's a good explanation... well, a reasonable explanation, and I'll fix later.
+		var server = new MockHttpServer();
+		server.handle = function(request) {
 
-		// $(window).bind('crunch.error', function(ev, e, href) {
-			// air.trace('LESS error')
-			// var $activeEl = $("#tabs li.active .messages");
-			// var msg = e.message;
-			// // Fix line numbers later
-			// //		showMessage(activeEl, e.message + " (Line " + e.line + ")<br>Filename: " + href
-			// //			.replace('app:/' + $('#root').attr('title'),''));
-			// //		showMessage(activeEl, e.message + "<br>Filename: " + href
-			// //			.replace('app:/' + $('#root').attr('title'),''));
-			// showMessage($activeEl, e.message + "<br>Filename: " + href.replace('app://', ''));
-// 
-		// });
-		
-		function showMessage($el, msg) {
-			$el.add('#editor').addClass('show').find('.description').html(msg);
+			if(request.url.match(/\.less/i)) {
+				request.url = request.url.replace(/app:\//ig, '');
+				var getFile = Paths.project.resolvePath(request.url);
+				if(!getFile.exists) {
+					request.receive(404, "Not found.");
+				} else {
+					request.setResponseHeader("Last-Modified", getFile.modificationDate);
+					var fileStream = new air.FileStream();
+					fileStream.open(getFile, air.FileMode.READ);
+					request.receive(200, fileStream.readUTFBytes(fileStream.bytesAvailable));
+					fileStream.close();
+				}
+			}
+		};
+		server.start();
+		$(window).bind('crunch.error', function(ev, e, href) {
+			var activeEl = $("#tabs li.active .messages");
+			var msg = e.message;
+			// Fix line numbers later
+			//		showMessage(activeEl, e.message + " (Line " + e.line + ")<br>Filename: " + href
+			//			.replace('app:/' + $('#root').attr('title'),''));
+			//		showMessage(activeEl, e.message + "<br>Filename: " + href
+			//			.replace('app:/' + $('#root').attr('title'),''));
+			showMessage(activeEl, e.message + "<br>Filename: " + href.replace('app://', ''));
+
+		});
+		function showMessage(el, msg) {
+			el.add('#editor').addClass('show').find('.description').html(msg);
 			Editor.resize();
 		}
 
-		function hideMessage($el) {
-			$el.add('#editor').removeClass('show').find('.description').html('');
+		function hideMessage(el) {
+			el.add('#editor').removeClass('show').find('.description').html('');
 			Editor.resize();
 		}
 
-		function addSubTab(file, fileData) {
-			if(!$crunchEl.data('imports'))
-				$crunchEl.data('imports', {});
-			else {
-				if(file.nativePath in $crunchEl.data('imports'))
-					return;
-			}
-			$crunchEl.data('imports')[file.nativePath] = "";
-			
-			var tabSession;
-			if(!(file.nativePath in Sessions)) {
-				canChangeSave = false;
-				tabSession = getTabSession(file);
-				tabSession.session.setValue(fileData);
-				canChangeSave = true;
-			}
-			else
-				tabSession = getTabSession(file);
-			
-			var tabTemplate = '<span class="t"><span class="filename">' + file.name  +'</span><span class="save" style="display: none;">*</span></span>';
-			var $imports = $crunchEl.find('.subtabs .imports');
-			var $subtab = $(tabTemplate);
-			$subtab.data('file-less',file);
-			$subtab.data('session',tabSession);
-			$imports.append($subtab);
-			if(!tabSession.saved)
-				$subtab.find('.save:first').show();			
-			
-		}
-		function getFileData(file) {
-			var stream = new air.FileStream();
-			// Add check to make sure file exists, otherwise return
-			if(file.exists) {
-				stream.open(file, air.FileMode.READ);
-				Crunch.FileMonitor.watch(file);
-				return stream.readUTFBytes(stream.bytesAvailable);
-			} else {
-				return false;
-			}
-			stream.close();
-		}
 		function openFile(file, silent) {
-			
 			if(!file.nativePath)
 				file = new air.File(file);
-			
+
 			// For now, only open CSS and LESS files.
-			// Later, allow other file types that Ace supports?
 			if(!file.nativePath.match(/\.(less|css)$/i))
 				return;
 			// Wait a tick, what if it's already open?
 			var found = false;
-			var $el = null;
-
+			var el = null;
 			$("#tabs li.t").each(function() {
-
-				// Don't know if this is needed anymore with the new file monitoring of 1.5
 				if($(this).data('file-less') && ($(this).data('file-less').nativePath == file.nativePath)) {
-					if($(this).data('session').saved && $(this).data('file-less').modificationDate != file.modificationDate) {
-						var fileData = getFileData(file);
-						
+					if($(this).data('saved') && $(this).data('file-less').modificationDate != file.modificationDate) {
+						var stream = new air.FileStream();
+						stream.open(file, air.FileMode.READ);
+						var fileData = stream.readUTFBytes(stream.bytesAvailable);
+						stream.close();
 						canChangeSave = false;
-						$(this).data('session').session.setValue(fileData);
+						$(this).data('session').setValue(fileData);
 						canChangeSave = true;
 					}
 					if(!silent)
@@ -648,75 +517,59 @@ if(air && air.Introspector) {
 							backgroundColor : ['rgba(141,71,28,1)', 'rgba(141,71,28,0.8)'],
 							color : ['#000000', '#FFFFFF']
 						}, 200, 3);
-					$el = $(this);
+					el = $(this);
 					found = true;
 				}
 			});
 			if(!found) {
+				var stream = new air.FileStream();
 				
+				// Add check to make sure file exists, otherwise return
+				if(file.exists) {
+					stream.open(file, air.FileMode.READ);
+					Crunch.FileMonitor.watch(file);
+					var fileData = stream.readUTFBytes(stream.bytesAvailable);
+				} else {
+					return
+				}
+				stream.close();
+
 				if(silent)
-					$el = newTab(false, $("#tabs li.t.active"));
+					el = newTab(false, $("#tabs li.t.active"));
 				else
-					$el = newTab(false);
-				$el.find('> a > .filename').html(file.name);
+					el = newTab(false);
+				el.find('.filename').html(file.name);
+				canChangeSave = false;
+				el.data('session').setValue(fileData);
+				canChangeSave = true;
 
-				var tabSession;
-				
-				if(!(file.nativePath in Sessions)) {
-					
-					var fileData = getFileData(file);
-					if(fileData === false)
-						return;
-					
-					canChangeSave = false;
-					tabSession = getTabSession(file);
-					tabSession.session.setValue(fileData);
-					canChangeSave = true;
-				}
-				else {
-					tabSession = getTabSession(file);
-				}
-				tabSession.session.on('change', function() {
-					if(!canChangeSave) return;
-					unSave($el);
-				});
-					
-				$el.data('session', tabSession);
-					
-				if(tabSession.saved)
-					$el.find('.save.first').hide();
-				else
-					$el.find('.save:first').show();
-					
+				el.data('saved', true);
+				el.find('.save').hide();
 				if(!file.name.match(/\.less/i)) {
-					setTabType($el, true);
+					setTabType(el, true);
 				}
-				$el.data('file-less', file);
-				$el.find('.subtabs .main').data('file-less', file).data('session', tabSession);
-
-				setActive($el.find('a.tab'));
+				el.data('file-less', file);
+				setActive(el.find('a.tab'));
 				addOpenFile(file);
-
+				
 				//setTimeout(function() {
 				//	$("li.active").data('editor').resize();
 				//},1000);
 
 			}
-			return $el;
+			return el;
 
 		}
 
-		function crunchFile($el) {
+		function crunchFile(el) {
 			var output;
 			try {
-
+				
 				// TODO: Should be top session
-				$crunchEl = $el;
 				Parser = new (less.Parser)({
-					paths : [$el.data('file-less').nativePath.replace(/[\w\.-]+$/, '')]
-				}).parse($el.data('session').session.getValue(), function(err, tree) {
-					// Useful for stuff later
-					//console.log(tree);
+					paths : [el.data('file-less').nativePath.replace(/[\w\.-]+$/, '')]
+				}).parse(el.data('session').getValue(), function(err, tree) {
+
 					if(err) {
 						throw err;
 					}
@@ -724,7 +577,7 @@ if(air && air.Introspector) {
 						compress : App.prefs.minify
 					});
 					//$('#output').val(output);
-					hideMessage($el.find('.messages'));
+					hideMessage(el.find('.messages'));
 				});
 			} catch(err) {
 				var errMessage = err.message;
@@ -737,15 +590,15 @@ if(air && air.Introspector) {
 				if(err.filename) {
 					errMessage += '<br>Filename: ' + err.filename;
 				}
-				showMessage($el.find('.messages'), errMessage);
+				showMessage(el.find('.messages'), errMessage);
 				return false;
 			}
 
 			return output;
 		}
 
-		function trySave($el, crunch, closeWindow) {
-			if($el.length == 0)
+		function trySave(el, crunch, closeWindow) {
+			if(el.length == 0)
 				return;
 			if(closeWindow) {
 				closeWindow.alwaysInFront = false;
@@ -754,25 +607,25 @@ if(air && air.Introspector) {
 			} else
 				closeWindow = false;
 			if(crunch)
-				fileSelect = $el.data('file-css');
+				fileSelect = el.data('file-css');
 			else
-				fileSelect = $el.data('file-less');
+				fileSelect = el.data('file-less');
 
 			if(!fileSelect) {
-				saveAsFile($el, crunch, closeWindow);
+				saveAsFile(el, crunch, closeWindow);
 			} else {
-				saveFile($el, crunch, false);
+				saveFile(el, crunch, false);
 				if(closeWindow)
-					closeTab($el);
+					closeTab(el);
 			}
 		}
 
-		function saveFile($el, crunch, ask, update) {
+		function saveFile(el, crunch, ask, update) {
 			var fileSelect;
 			var writeData;
 
 			if(crunch) {
-				fileSelect = $el.data('file-css');
+				fileSelect = el.data('file-css');
 				try {
 					writeData = lastCrunch;
 				} catch(err) {
@@ -780,7 +633,7 @@ if(air && air.Introspector) {
 					return false;
 				}
 			} else {
-				fileSelect = $el.data('file-less');
+				fileSelect = el.data('file-less');
 				writeData = Editor.getSession().getValue();
 			}
 
@@ -796,8 +649,8 @@ if(air && air.Introspector) {
 				stream.open(fileSelect, air.FileMode.WRITE);
 				try {
 					stream.writeUTFBytes(writeData);
-					if($el.data('notless') && fileSelect.name.match(/\.less/i)) {
-						setTabType($el, false);
+					if(el.data('notless') && fileSelect.name.match(/\.less/i)) {
+						setTabType(el, false);
 					}
 
 				} catch(err) {
@@ -805,9 +658,7 @@ if(air && air.Introspector) {
 					return false;
 				} finally {
 					stream.close();
-					setTimeout(function() {
-						Crunch.FileMonitor.watch(fileSelect)
-					}, 1000);
+					setTimeout(function() { Crunch.FileMonitor.watch(fileSelect) }, 1000);
 				}
 			} catch(err) {
 				alert("I failed in the saving of your glorious creation. Here's why: " + err.message);
@@ -815,8 +666,8 @@ if(air && air.Introspector) {
 			}
 			if(crunch)
 				openFile(fileSelect, true);
-			$el.data('session').saved = true;
-			$el.find('.save:first').hide();
+			el.data('saved', true);
+			el.find('.save').hide();
 
 			if(update) {
 				$('#filelist li').each(function() {
@@ -824,31 +675,31 @@ if(air && air.Introspector) {
 						$('#filelist').jstree('refresh', this);
 				});
 			}
-			setActive($el.find('a.tab'));
+			setActive(el.find('a.tab'));
 
 			return true;
 
 		}
 
-		function saveAsFile($el, crunch, closeAfterSave) {
-			var filename = $el.find('> a > .filename').html();
+		function saveAsFile(el, crunch, closeAfterSave) {
+			var filename = el.find('.filename').html();
 			var fileSelect;
 			var filemonitored = false;
 			if(crunch) {
-				if(!$el.data('file-css'))
+				if(!el.data('file-css'))
 					fileSelect = Paths.css.resolvePath(filename.replace('.less', '.css'));
 				else
-					fileSelect = $el.data('file-css');
+					fileSelect = el.data('file-css');
 			} else {
-				if(!$el.data('file-less'))
+				if(!el.data('file-less'))
 					fileSelect = Paths.less.resolvePath(filename);
 				else {
-					fileSelect = $el.data('file-less');
+					fileSelect = el.data('file-less');
 					Crunch.FileMonitor.unwatch(fileSelect);
 					filemonitored = true;
-				}
+				}	
 			}
-
+			
 			setTimeout(function() {
 				try {
 					fileSelect.browseForSave("Save As");
@@ -863,26 +714,25 @@ if(air && air.Introspector) {
 			function reWatch(event) {
 				Crunch.FileMonitor.watch(fileSelect);
 			}
-
 			function saveData(event) {
 				var newFile = event.target;
 				if(crunch) {
-					$el.data('file-css', newFile);
+					el.data('file-css', newFile);
 					App.paths.css = newFile.parent.nativePath;
-					updateOpenFile($el.data('file-less'), $el.data('file-css'));
+					updateOpenFile(el.data('file-less'), el.data('file-css'));
 				} else {
-					$el.data('file-less', newFile);
-					$el.find('> a > .filename').html(newFile.name);
-					$el.find('.tab').attr('title', newFile.nativePath);
+					el.data('file-less', newFile);
+					el.find('.filename').html(newFile.name);
+					el.find('.tab').attr('title', newFile.nativePath);
 					App.paths.less = newFile.parent.nativePath;
 				}
 				updateAppState();
 
-				saveFile($el, crunch, false, true);
+				saveFile(el, crunch, false, true);
 
 				if(closeAfterSave) {
 					//closeAfterSave.close();
-					closeTab($el);
+					closeTab(el);
 				}
 			}
 
@@ -957,9 +807,9 @@ if(air && air.Introspector) {
 			App.paths.project = App.paths.less = App.paths.css = dir.nativePath;
 			addRecentProject(dir);
 			updateAppState();
-
+			
 			var directory = Paths.project;
-
+			
 			var tree = '<li id="root" class="jstree-open" title="' + directory.nativePath + '"><a href="#">' + directory.name + '</a>' + getTree(directory.nativePath) + '</li>';
 			$("#filelist").jstree({
 				"core" : {
@@ -993,10 +843,10 @@ if(air && air.Introspector) {
 				$(this).toggleClass('click');
 			});
 		}
-
+		
 		function initAppState() {
 			checkValidPaths();
-
+			
 			if(App.paths.project != "")
 				openProject(Paths.project);
 			$.each(App.openFiles, function(idx, val) {
@@ -1005,7 +855,7 @@ if(air && air.Introspector) {
 					$el.data('file-css', Paths.project.resolvePath(val.cssFile));
 				}
 			});
-
+			
 			$('#tabs li.t').each(function() {
 				if($(this).data('file-less') && $(this).data('file-less').nativePath == App.activeTab)
 					setActive($(this).find("a"));
@@ -1013,65 +863,51 @@ if(air && air.Introspector) {
 			$('#chk-minify').attr('checked', App.prefs.minify);
 
 		}
-
 		function init() {
 			CreateMenus();
-			// Set up global editor
-
+			// Set up global editor 
+			
 			Editor = ace.edit('editor');
 			Editor.session.setMode("ace/mode/less");
 			Editor.setShowPrintMargin(false);
+			// Editor.on("onTextInput", function(text, pasted) {
+				// var activeEl = $("#tabs li.active");
+				// //  && arguments[0].data.text.length==1
+				// air.trace('Text was changed.');
+				// unSave(activeEl);
+				// //activeEl.data('dirty', false);
+// 				
+			// });
 			
-			// Set up parser function
-			less.Parser.importer = function(path, paths, callback, env) {
-
-				var file = Paths.project.resolvePath(paths[0]).resolvePath(path);
-
-				// Adopted from the Node.js implementation
-				if(file.exists) {
-					var fileStream = new air.FileStream();
-					fileStream.open(file, air.FileMode.READ);
-					var fileData = fileStream.readUTFBytes(fileStream.bytesAvailable);
-					fileStream.close();
-
-					addSubTab(file, fileData);
-					new (less.Parser)({
-						paths : [file.nativePath.replace(/[\w\.-]+$/, '')].concat(paths),
-						filename : file.nativePath
-					}).parse(fileData, function(e, root) {
-						callback(e, root, fileData);
-					});
-				} else {
-					if( typeof (env.errback) === "function") {
-						env.errback.call(null, path, paths, callback, env);
-					} else {
-						callback({
-							type : 'File',
-							message : "'" + path + "' wasn't found.\n"
-						});
-					}
-				}
-
-			};
 			initAppState();
-
-			$('#chk-minify').on('change', function() {
+			air.trace(App);
+			
+			// Try to capture edit events and force saving -- TODO: better method?
+			
+			$('#editor textarea').live('keydown', function(e) {
+				if(!canChangeSave) return;
+				var activeEl = $("#tabs li.active");
+				activeEl.data('dirty',true);
+			});
+			
+			$('#chk-minify').on('change',function() {
 				App.prefs.minify = $('#chk-minify').is(':checked');
 				updateAppState();
 			});
 			$('#actions').on('click', "li", function(e) {
 				var $el = $(this);
 				$el.addClass('active').siblings().removeClass('active');
-
+				
 				if($el.attr('id') == 'tab-prefs') {
 					$('#panel-prefs').addClass('active');
 					$('#panel-files').removeClass('active');
-				} else {
+				}
+				else {
 					$('#panel-prefs').removeClass('active');
 					$('#panel-files').addClass('active');
 				}
 			});
-
+				
 			$(window).on('crunch.filechanged', function(e, file) {
 				nativeWindow.activate();
 				openWindow('win/reload.html?' + encodeURIComponent(file.name) + '#' + encodeURIComponent(file.nativePath), 520, 225, true);
@@ -1099,12 +935,12 @@ if(air && air.Introspector) {
 					App.activeTab = $(this).parent().data('file-less').nativePath;
 					updateAppState();
 				}
-				setActive($(this));
+				setActive(this);
 			});
 			$('.messages .close').click(function() {
 				hideMessage($(this).closest('.messages'));
 			});
-
+			
 			$("#arrow-left").click(function() {
 				var tabs = $("#tabs");
 				if(tabs.margin().left > -scrollWidth)
@@ -1185,18 +1021,64 @@ if(air && air.Introspector) {
 					}
 				}
 			});
-
 			$('.new-less').click(Commands.newLess);
 			$('.new-css').click(Commands.newCss);
-			$('.open-file').click(Commands.openFile);
-			$('#save').click(Commands.save);
-			$('#save-as').click(Commands.saveAs);
-			$('#convert').click(Commands.crunch);
 
+			$('.open-file').click(function() {
+				var fileToOpen = new air.File(Paths.less.nativePath);
+				var txtFilter = new air.FileFilter("LESS file", "*.less;*.css");
+				try {
+					fileToOpen.browseForOpen("Open", [txtFilter]);
+					fileToOpen.addEventListener(air.Event.SELECT, fileSelected);
+				} catch (error) {
+					alert("FRAK. This happened: " + error.message);
+				}
+
+				function fileSelected(event) {
+					openFile(event.target);
+				}
+
+			});
+			$('#save').click(function() {
+				var activeEl = $("#tabs li.active");
+				trySave(activeEl, false);
+			});
+			
+			$('#save-as').click(Commands.saveAs);
+			
+			$('#convert').bind('click', function(event) {
+				var activeEl = $("#tabs li.active");
+				lastCrunch = crunchFile(activeEl);
+				if(!lastCrunch)
+					return;
+
+				if(!(activeEl.data('saved'))) {
+					var answer = confirm('You have to save before crunching. Go ahead and save?');
+					if(answer) {
+						trySave(activeEl, false);
+					} else
+						return;
+				}
+				trySave(activeEl, true);
+
+			});
 			$('#openwindow').click(function() {
 				openWindow('win/save.html', 522, 225, true);
 			});
-			$('#open-project').click(Commands.openProject);
+			$('#open-project').bind('click', function(event) {
+				var selectDir = new air.File(Paths.project.nativePath);
+				try {
+					selectDir.browseForDirectory("Select Directory");
+					selectDir.addEventListener(air.Event.SELECT, directorySelected);
+				} catch (error) {
+					alert("Failed:" + error.message);
+				}
+
+				function directorySelected(event) {
+					openProject(event.target);
+				}
+
+			});
 
 			$('#info').click(function() {
 				openWindow('win/about.html', 522, 550, true);
@@ -1211,11 +1093,11 @@ if(air && air.Introspector) {
 		function CreateMenus() {
 			var fileMenu;
 			var editMenu;
-
+			
 			if(air.NativeWindow.supportsMenu && nativeWindow.systemChrome != air.NativeWindowSystemChrome.NONE) {
 				$('.windowMenu').show();
 				fileMenu = createFileMenu();
-
+				
 				// Edit menu is hidden for now.
 				//editMenu = createEditMenu();
 				$('#fileMenu').click(function(e) {
@@ -1237,12 +1119,11 @@ if(air && air.Introspector) {
 				application.menu.addEventListener(air.Event.SELECT, selectCommandMenu);
 				fileMenu = application.menu.addItem(new air.NativeMenuItem("File"));
 				fileMenu.submenu = createFileMenu();
-				//	editMenu = application.menu.addItem(new air.NativeMenuItem("Edit"));
-				//	editMenu.submenu = createEditMenu();
+			//	editMenu = application.menu.addItem(new air.NativeMenuItem("Edit"));
+			//	editMenu.submenu = createEditMenu();
 
 			}
 		}
-
 		function addMenuItem(menu, label, func, key) {
 
 			var cmd = menu.addItem(new air.NativeMenuItem(label));
@@ -1251,7 +1132,7 @@ if(air && air.Introspector) {
 				cmd.keyEquivalent = key;
 
 		}
-
+		
 		function createFileMenu() {
 			var fileMenu = new air.NativeMenu();
 			fileMenu.addEventListener(air.Event.SELECT, selectCommandMenu);
@@ -1260,21 +1141,23 @@ if(air && air.Introspector) {
 			addMenuItem(fileMenu, "New", Commands.newLess, "n");
 			addMenuItem(fileMenu, "Open File...", Commands.openFile, "o");
 			addMenuItem(fileMenu, "Open Project...", Commands.openProject, "O");
-
+			
 			fileMenu.addItem(new air.NativeMenuItem("", true));
-
+			
 			addMenuItem(fileMenu, "Save", Commands.save, "s");
-			addMenuItem(fileMenu, "Save As...", Commands.saveAs, "S");
+			addMenuItem(fileMenu, "Save As...", Commands.saveAs, "s");
 
 			fileMenu.addItem(new air.NativeMenuItem("", true));
 			var recentFiles = fileMenu.addSubmenu(new air.NativeMenu(), "Recent Files");
 			recentFiles.name = "recentFiles";
+			
 			recentFiles = fileMenu.addSubmenu(new air.NativeMenu(), "Recent Websites");
 			recentFiles.name = "recentSites";
-
+			
 			fileMenu.addItem(new air.NativeMenuItem("", true));
 			addMenuItem(fileMenu, "Crunch!", Commands.crunch, "enter");
-
+			
+			
 			// var openProj = fileMenu.addItem(new air.NativeMenuItem("Recent Projects"));
 			// openProj.submenu = new air.NativeMenu();
 			// openProj.submenu.addEventListener(air.Event.PREPARING, updateRecentDocumentMenu);
@@ -1312,9 +1195,10 @@ if(air && air.Introspector) {
 					openFile(e.target.data);
 				});
 			}
+			
 			docMenu = air.NativeMenu(event.target).getItemByName("recentSites").submenu;
 			docMenu.removeAllItems();
-
+			
 			for(var i in App.recent.folders) {
 				var menuItem = docMenu.addItem(new air.NativeMenuItem(App.recent.folders[i]));
 				menuItem.data = Paths.project.resolvePath(App.recent.folders[i]);
@@ -1322,7 +1206,7 @@ if(air && air.Introspector) {
 					openProject(e.target.data);
 				});
 			}
-
+			
 		}
 
 		function selectCommand(event) {
@@ -1356,8 +1240,8 @@ if(air && air.Introspector) {
 			closeTab : closeTab,
 			trySave : trySave,
 			openFile : openFile,
-			Parser : Parser,
-			App : App
+			Parser: Parser,
+			App: App
 		}
 	}();
 

@@ -219,6 +219,8 @@ less.Parser = function Parser(env) {
         error: null,                    // Error in parsing/evaluating an import
         push: function (path, callback) {
 
+		// Changed this line for Crunch from...
+        	air.trace('Adding... ' + path);
             var that = this;
             this.queue.push(path);
 
@@ -768,7 +770,7 @@ less.Parser = function Parser(env) {
                     return new(tree.URL)((value.value || value.data || value instanceof tree.Variable) ? value : new(tree.Anonymous)(value), "");
 					
                     //return new(tree.URL)((value.value || value.data || value instanceof tree.Variable)
-                    //                   ? value : new(tree.Anonymous)(value), imports.paths);
+                    //                    ? value : new(tree.Anonymous)(value), imports.paths);
                 },
 
                 dataURI: function () {
@@ -3385,7 +3387,7 @@ function log(str) {
 function error(e, href) {
 	
 	// Modified for Crunch
-	//$(window).trigger('crunch.error',[e, href]);
+	$(window).trigger('crunch.error',[e, href]);
 	
     var id = 'less-error-message:' + extractId(href);
     var template = '<li><label>{line}</label><pre class="{class}">{content}</pre></li>';
