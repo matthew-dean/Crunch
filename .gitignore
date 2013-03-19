@@ -5,4 +5,5 @@
 bin
 cert
 ._*
-
+.tmp*~
+.project
