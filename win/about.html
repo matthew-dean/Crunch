@@ -49,6 +49,7 @@
 	
     
 	
+	<script src="/js/settings.js"></script>
 	<script src="/libs/air/AIRAliases.js"></script>
 	<script src="/AIRIntrospector.js"></script>
 	<script src="/js/jquery.min.js"></script>
@@ -56,7 +57,7 @@
 	
 		var appVersion = $($.parseXML(air.NativeApplication.nativeApplication.applicationDescriptor)).find('versionLabel').text();
 
-		$('#header .description').html("Version " + appVersion);
+		$('#header .description').html("Version " + appVersion + ", less.js " + (typeof(lessjsVersion) === "undefined" ? "Unknown" : lessjsVersion));
 		
     	$('#bio span').click(function() {
 			var url = "http://crunchapp.net"; 
