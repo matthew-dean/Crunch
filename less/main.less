@@ -1,3 +1,4 @@
+/* @import url(scrollbar.css); */ 
 form { display: inline; }
 html { height: 100%; }
 body {
@@ -359,7 +360,7 @@ body.modal {
 	right: 0;
 	display: none;
 }
-#editor, #editor-bg, #splash { 
+.editor, #editor-bg, #splash { 
 	position: absolute;
 	top: 49px;
 	left: 0;
@@ -367,7 +368,7 @@ body.modal {
 	right: 0;
 	border-top: 1px solid #ffffff;
 }
-#editor { left: 1px; top: 51px; z-index: -1; }
+.editor { left: 1px; top: 51px; }
 #splash {
 	padding: 33px 33px 10px 89px;
 	overflow: auto;
@@ -408,7 +409,7 @@ body.modal {
 	background: #f9f8f5 url(../img/skin2/editor-left-repeat.png) repeat-y left;
 	background-position: 0px 0;
 }
-#editor.show { bottom: 80px; }
+.messages.show + .editor { bottom: 80px; }
 
 .messages { 
 	position: absolute;
@@ -713,7 +714,7 @@ button.primary span, div.drop span {
 }
 
 
-#editor {
+#tabs .editor {
 	line-height: 24px;
 	font-family: Ubuntu, "Courier New", Courier, monospace;
 	font-weight: normal;
@@ -722,17 +723,17 @@ button.primary span, div.drop span {
 	color: #7a7974;
 	text-shadow: 0 1px 0 rgba(255,255,255,0.43);
 }
-#editor .ace_gutter {
+#tabs .ace_gutter {
 	background-color: transparent;
 	color: #584130;
 	text-shadow: 0 1px 0 rgba(255,255,255,0.43);
 	width: 46px;
 }
-#editor .ace_gutter-cell { padding-left: 9px; }
-#editor .ace_variable, #tabs .ace_string { color: saturate(darken(#6f8b44,10%),10%); }
-#editor .ace_variable.ace_language { color: #b7602a; }
-#editor .ace_type { color: saturate(darken(#35a2c0,10%),10%); }
-#editor .ace_constant { color: saturate(darken(#b080a8,10%), 10%); }
-#editor .ace_comment { color: saturate(darken(#b9a595,10%),10%); }
-#editor .ace_keyword { color: saturate(darken(#663212,10%),10%); }
+#tabs .ace_gutter-cell { padding-left: 9px; }
+#tabs .ace_variable, #tabs .ace_string { color: saturate(darken(#6f8b44,10%),10%); }
+#tabs .ace_variable.ace_language { color: #b7602a; }
+#tabs .ace_type { color: saturate(darken(#35a2c0,10%),10%); }
+#tabs .ace_constant { color: saturate(darken(#b080a8,10%), 10%); }
+#tabs .ace_comment { color: saturate(darken(#b9a595,10%),10%); }
+#tabs .ace_keyword { color: saturate(darken(#663212,10%),10%); }
 

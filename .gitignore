@@ -1,8 +1,0 @@
-*.class
-*.pyc
-*.pyo
-.gitignore
-bin
-cert
-._*
-
