@@ -155,6 +155,13 @@ appUpdater.initialize();
 			},
 			crunch: function() {
 				$('#convert:not(:disabled)').click();
+			},
+			checkForUpdates: function() {
+				appUpdater.isCheckForUpdateVisible = true;
+				appUpdater.checkNow();
+			},
+			exit: function() {
+				closeWindow();
 			}
 		};
 		
@@ -169,6 +176,8 @@ appUpdater.initialize();
 		bindKey('s', Commands.save);
 		bindKey('shift+s', Commands.saveAs);
 		bindKey('enter', Commands.crunch);
+		bindKey('shift+u', Commands.checkForUpdates);
+		bindKey('e', Commands.exit);
 		
 		function bindKey(keys, fn) {
 			jwerty.key(meta + '+' + keys, fn);
@@ -1118,6 +1127,9 @@ appUpdater.initialize();
 			fileMenu.addItem(new air.NativeMenuItem("", true));
 			addMenuItem(fileMenu, "Crunch!", Commands.crunch, "enter");
 			
+			fileMenu.addItem(new air.NativeMenuItem("", true));
+			addMenuItem(fileMenu, "Check for updates...", Commands.checkForUpdates, "U");
+			addMenuItem(fileMenu, "Exit", Commands.exit, "e");
 			
 			// var openProj = fileMenu.addItem(new air.NativeMenuItem("Recent Projects"));
 			// openProj.submenu = new air.NativeMenu();
