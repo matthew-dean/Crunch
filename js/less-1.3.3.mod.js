@@ -1,8 +1,6 @@
 //
 // LESS - Leaner CSS v1.3.3
 // http://lesscss.org
-//
-// Modified for Crunch
 // 
 // Copyright (c) 2009-2013, Alexis Sellier
 // Licensed under the Apache 2.0 License.
@@ -807,12 +805,8 @@ less.Parser = function Parser(env) {
 
                     expect(')');
 
-                    /*return new(tree.URL)((value.value != null || value instanceof tree.Variable)
-                                        ? value : new(tree.Anonymous)(value), env.rootpath);*/
-					
-					// Modified for Crunch
-					return new(tree.URL)((value.value != null || value instanceof tree.Variable)
-                                        ? value : new(tree.Anonymous)(value), "");
+                    return new(tree.URL)((value.value != null || value instanceof tree.Variable)
+                                        ? value : new(tree.Anonymous)(value), env.rootpath);
                 },
 
                 //
@@ -4095,7 +4089,7 @@ function extractUrlParts(url, baseUrl) {
         if (!baseUrlParts) {
             throw new Error("Could not parse page url - '"+baseUrl+"'");
         }
-        urlParts[1] = baseUrlParts[1];
+        urlParts[1] = urlParts[1] || baseUrlParts[1] || "";
         if (!urlParts[2]) {
             urlParts[3] = baseUrlParts[3] + urlParts[3];
         }
@@ -4125,28 +4119,7 @@ function loadStyleSheet(sheet, callback, reload, remaining) {
     // some env variables for imports
     var contents  = sheet.contents || {};
     var files     = sheet.files || {};
-
-	/* Start of Crunch modification
-	 * 
-	 * @losnir:
-	 * I had to modify this line -- apparently the 'extractUrlParts' does not play nice with the result of window.location.href
-	 * which is 'app:/main.html' in Adobe Air.
-	 * 
-	 * I am checking whether the url starts with http:// or https://, and if it is, then it is considered a standard web url and is passed
-	 * untouched to extractUrlParts. If it is not, then I can assume it is a local path, and then I construct my own "fake" result of extractUrlParts.
-	 * 
-	 * var hrefParts = extractUrlParts(sheet.href, window.location.href);
-	 */
-	var hrefParts = (sheet.href.match(/^https?:\/\//i) !== "null" ?
-		{
-			url: 	sheet.href,
-			path:	sheet.href.replace(/\\/g, '/').replace(/\/[^\/]*$/, '')
-		} :
-		extractUrlParts(sheet.href, ""));
-	/*
-	 * End of Crunch modification
-	 */
-
+    var hrefParts = extractUrlParts(sheet.href, window.location.href);
     var href      = hrefParts.url;
     var css       = cache && cache.getItem(href);
     var timestamp = cache && cache.getItem(href + ':timestamp');
@@ -4335,10 +4308,6 @@ function log(str) {
 }
 
 function error(e, href) {
-	
-	// Modified for Crunch
-	$(window).trigger('crunch.error',[e, href]);
-	
     var id = 'less-error-message:' + extractId(href);
     var template = '<li><label>{line}</label><pre class="{class}">{content}</pre></li>';
     var elem = document.createElement('div'), timer, content, error = [];
