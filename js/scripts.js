@@ -559,8 +559,12 @@ appUpdater.initialize();
 		function crunchFile(el) {
 			var output;
 			try {
+				var entryPath = el.data('file-less').nativePath.replace(/[\w\.-]+$/, '');
 				Parser = new (less.Parser)({
-					paths : [el.data('file-less').nativePath.replace(/[\w\.-]+$/, '')]
+					//paths : [entryPath],
+					entryPath : entryPath,
+					//rootpath: entryPath,
+					relativeUrls: true
 				}).parse(el.data('editor').getSession().getValue(), function(err, tree) {
 
 					if(err) {
