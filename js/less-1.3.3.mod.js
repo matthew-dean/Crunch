@@ -4126,19 +4126,19 @@ function loadStyleSheet(sheet, callback, reload, remaining) {
     var styles    = { css: css, timestamp: timestamp };
     var rootpath;
 
-    if (less.relativeUrls) {
-        if (less.rootpath) {
+    if (sheet.relativeUrls) {
+        if (sheet.rootpath || sheet.rootpath == "") {
             if (sheet.entryPath) {
-                rootpath = extractUrlParts(less.rootpath + pathDiff(hrefParts.path, sheet.entryPath)).path;
+                rootpath = extractUrlParts(sheet.rootpath + pathDiff(hrefParts.path, sheet.entryPath)).path;
             } else {
-                rootpath = less.rootpath;
+                rootpath = sheet.rootpath;
             }
         } else {
             rootpath = hrefParts.path;
         }
     } else  {
-        if (less.rootpath) {
-            rootpath = less.rootpath;
+        if (sheet.rootpath || sheet.rootpath == "") {
+            rootpath = sheet.rootpath;
         } else {
             if (sheet.entryPath) {
                 rootpath = sheet.entryPath;
