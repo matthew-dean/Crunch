@@ -806,7 +806,7 @@ less.Parser = function Parser(env) {
                     expect(')');
 
                     return new(tree.URL)((value.value != null || value instanceof tree.Variable)
-                                        ? value : new(tree.Anonymous)(value), env.rootpath);
+                                        ? value : new(tree.Anonymous)(value), "");
                 },
 
                 //
@@ -4077,7 +4077,7 @@ function extractUrlParts(url, baseUrl) {
 
     var urlPartsRegex = /^((?:[a-z-]+:)?\/\/(?:[^\/\?#]*\/)|([\/\\]))?((?:[^\/\\\?#]*[\/\\])*)([^\/\\\?#]*)([#\?].*)?$/,
         urlParts = url.match(urlPartsRegex),
-        returner = {}, directories = [], i, baseUrlParts;
+        returner = {}, directories = [], i, baseUrlParts, baseUrl = baseUrl || "";
 
     if (!urlParts) {
         throw new Error("Could not parse sheet href - '"+url+"'");
@@ -4119,26 +4119,26 @@ function loadStyleSheet(sheet, callback, reload, remaining) {
     // some env variables for imports
     var contents  = sheet.contents || {};
     var files     = sheet.files || {};
-    var hrefParts = extractUrlParts(sheet.href, window.location.href);
-    var href      = hrefParts.url;
+    var hrefParts = extractUrlParts(sheet.href);
+    var href      = extractUrlParts(sheet.href, sheet.entryPath).url;
     var css       = cache && cache.getItem(href);
     var timestamp = cache && cache.getItem(href + ':timestamp');
     var styles    = { css: css, timestamp: timestamp };
     var rootpath;
 
-    if (less.relativeUrls) {
-        if (less.rootpath) {
+    if (sheet.relativeUrls) {
+        if (sheet.rootpath) {
             if (sheet.entryPath) {
-                rootpath = extractUrlParts(less.rootpath + pathDiff(hrefParts.path, sheet.entryPath)).path;
+                rootpath = extractUrlParts(sheet.rootpath + pathDiff(hrefParts.path, sheet.entryPath)).path;
             } else {
-                rootpath = less.rootpath;
+                rootpath = sheet.rootpath;
             }
         } else {
             rootpath = hrefParts.path;
         }
     } else  {
-        if (less.rootpath) {
-            rootpath = less.rootpath;
+        if (sheet.rootpath) {
+            rootpath = sheet.rootpath;
         } else {
             if (sheet.entryPath) {
                 rootpath = sheet.entryPath;
