@@ -4098,12 +4098,12 @@ function extractUrlParts(url, baseUrl) {
     if (urlParts[3]) {
         directories = urlParts[3].replace("\\", "/").split("/");
 
-        for(i = 0; i < directories.length; i++) {
+        /*for(i = 0; i < directories.length; i++) {
             if (directories[i] === ".." && i > 0) {
                 directories.splice(i-1, 2);
                 i -= 2;
             }
-        }
+        }*/
     }
 
     returner.hostPart = urlParts[1];
@@ -4308,6 +4308,9 @@ function log(str) {
 }
 
 function error(e, href) {
+
+    $(window).trigger('crunch.error',[e, href]);
+
     var id = 'less-error-message:' + extractId(href);
     var template = '<li><label>{line}</label><pre class="{class}">{content}</pre></li>';
     var elem = document.createElement('div'), timer, content, error = [];
