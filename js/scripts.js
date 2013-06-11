@@ -564,7 +564,8 @@ appUpdater.initialize();
 					//paths : [entryPath],
 					entryPath : entryPath,
 					//rootpath: entryPath,
-					relativeUrls: true
+					relativeUrls: true,
+					filename: el.data('file-less').name
 				}).parse(el.data('editor').getSession().getValue(), function(err, tree) {
 
 					if(err) {
