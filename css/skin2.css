@@ -1,6 +1,6 @@
 /* CSS crunched with Crunch - http://crunchapp.net/ */
-@font-face{font-family:'Ubuntu';src:url('UbuntuMono-Regular.ttf') format('truetype');font-weight:normal;font-style:normal;}.font2{font-family:'Ubuntu';}
-@font-face{font-family:'UbuntuMonoBold';src:url('UbuntuMono-Bold.ttf') format('truetype');font-weight:bold;font-style:normal;}@font-face{font-family:'Quicksand';src:url('Quicksand_Book-webfont.ttf') format('truetype');font-weight:400;font-style:normal;}@font-face{font-family:'Quicksand';src:url('Quicksand_Book_Oblique-webfont.ttf') format('truetype');font-weight:400;font-style:italic;}@font-face{font-family:'Quicksand';src:url('Quicksand_Bold-webfont.ttf') format('truetype');font-weight:700;font-style:normal;}@font-face{font-family:'Quicksand';src:url('Quicksand_Bold_Oblique-webfont.ttf') format('truetype');font-weight:700;font-style:italic;}.font1{font-family:'Quicksand';}
+@font-face{font-family:'Ubuntu';src:url('fonts/UbuntuMono-Regular.ttf') format('truetype');font-weight:normal;font-style:normal;}.font2{font-family:'Ubuntu';}
+@font-face{font-family:'UbuntuMonoBold';src:url('fonts/UbuntuMono-Bold.ttf') format('truetype');font-weight:bold;font-style:normal;}@font-face{font-family:'Quicksand';src:url('fonts/Quicksand_Book-webfont.ttf') format('truetype');font-weight:400;font-style:normal;}@font-face{font-family:'Quicksand';src:url('fonts/Quicksand_Book_Oblique-webfont.ttf') format('truetype');font-weight:400;font-style:italic;}@font-face{font-family:'Quicksand';src:url('fonts/Quicksand_Bold-webfont.ttf') format('truetype');font-weight:700;font-style:normal;}@font-face{font-family:'Quicksand';src:url('fonts/Quicksand_Bold_Oblique-webfont.ttf') format('truetype');font-weight:700;font-style:italic;}.font1{font-family:'Quicksand';}
 form{display:inline;}
 html{height:100%;}
 body{background-color:#EEE;font-family:Quicksand,sans-serif;font-weight:700;font-size:13.2px;min-width:600px;min-height:200px;margin:0;padding:0;letter-spacing:-0.05em;overflow:hidden;position:relative;height:100%;-webkit-box-sizing:border-box;}
@@ -136,7 +136,7 @@ button.primary span,div.drop span{vertical-align:middle;display:inline-block;}
 #save{background-image:url(../img/skin2/toolbar-icons.png);width:24px;background-position:4px 5px;}
 #open-file:hover,#save:hover{background-color:rgba(255, 255, 255, 0.25);}
 .sep{display:inline-block;height:27px;width:2px;background:url(../img/skin/sep.png) no-repeat center;vertical-align:middle;margin:0 5px;}
-#tabs .editor{line-height:24px;font-family:Ubuntu,"Courier New",Courier,monospace;font-weight:normal;letter-spacing:0;font-size:14px;color:#7a7974;text-shadow:0 1px 0 rgba(255, 255, 255, 0.43);}
+#tabs .editor{line-height:20px;font-family:Ubuntu,"Courier New",Courier,monospace;font-weight:normal;letter-spacing:0;font-size:14px;color:#7a7974;text-shadow:0 1px 0 rgba(255, 255, 255, 0.43);}
 #tabs .ace_gutter{background-color:transparent;color:#584130;text-shadow:0 1px 0 rgba(255, 255, 255, 0.43);width:46px;}
 #tabs .ace_gutter-cell{padding-left:9px;}
 #tabs .ace_variable,#tabs .ace_string{color:#55712b;}
