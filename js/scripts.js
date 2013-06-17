@@ -451,7 +451,6 @@ appUpdater.initialize();
 		// Yes, the fact that there are two hijackers is stupid, I know. There's a good explanation... well, a reasonable explanation, and I'll fix later.
 		var server = new MockHttpServer();
 		server.handle = function(request) {
-
 			if(request.url.match(/\.less/i)) {
 				request.url = request.url.replace(/app:\//ig, '');
 				var getFile = Paths.project.resolvePath(request.url);
@@ -562,8 +561,8 @@ appUpdater.initialize();
 				var entryPath = el.data('file-less').nativePath.replace(/[\w\.-]+$/, '');
 				Parser = new (less.Parser)({
 					//paths : [entryPath],
-					entryPath : entryPath,
-					//rootpath: entryPath,
+					//entryPath : entryPath,
+					rootpath: entryPath,
 					relativeUrls: true,
 					filename: el.data('file-less').name
 				}).parse(el.data('editor').getSession().getValue(), function(err, tree) {

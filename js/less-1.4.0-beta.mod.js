@@ -698,8 +698,9 @@ less.Parser = function Parser(env) {
 
                     expect(')');
 
+                    // Modified for Crunch
                     return new(tree.URL)((value.value != null || value instanceof tree.Variable)
-                                        ? value : new(tree.Anonymous)(value), env.currentFileInfo);
+                                        ? value : new(tree.Anonymous)(value), "");
                 },
 
                 //
@@ -5525,7 +5526,8 @@ function loadStyleSheet(sheet, callback, reload, remaining) {
 
     // sheet may be set to the stylesheet for the initial load or a collection of properties including
     // some env variables for imports
-    var hrefParts = extractUrlParts(sheet.href, "");
+    // Modified for Crunch
+    var hrefParts = extractUrlParts(sheet.href, sheet.currentFileInfo.rootpath.toLowerCase());
     var href      = hrefParts.url;
     var css       = cache && cache.getItem(href);
     var timestamp = cache && cache.getItem(href + ':timestamp');
