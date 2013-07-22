@@ -10,7 +10,8 @@ appUpdater.initialize();
 		var Parser;
 		var pendingClose = false;
 		var scrollWidth = 100;
-
+		var selectedTab = null;
+		var isPlatformMac = navigator.platform.indexOf('Mac') > -1;
 		// Get stored state
 		
 		// Paths are the default folders for open/save file dialogs
@@ -33,7 +34,9 @@ appUpdater.initialize();
 				folders: []
 			},
 			prefs: {
-				minify: true
+				minify: true,
+				filemonitoring: true,
+				saveOnCrunch: true
 			}
 		};	
         var storedPrefs = air.EncryptedLocalStore.getItem("state");
@@ -49,6 +52,17 @@ appUpdater.initialize();
 			bytes.writeUTFBytes(str);
 			air.EncryptedLocalStore.setItem("state", bytes);
 			copyPaths();
+
+		}
+		function applyAppSetting(pref) {
+			switch(pref) {
+				case 'filemonitoring':
+					if(App.prefs[pref]) Crunch.FileMonitor.start();
+					else Crunch.FileMonitor.stop();
+					break;
+				default:
+					break;
+			}
 		}
 		function checkValidPaths() {
 			var update = false;
@@ -154,7 +168,12 @@ appUpdater.initialize();
 				saveAsFile(activeEl, false);
 			},
 			crunch: function() {
-				$('#convert:not(:disabled)').click();
+				var Crunch = $('#convert:not(:disabled)');
+				if(Crunch.length > 0) {
+					if(App.prefs.saveOnCrunch)
+						Commands.save();
+					Crunch.click();
+				}
 			},
 			checkForUpdates: function() {
 				appUpdater.isCheckForUpdateVisible = true;
@@ -162,28 +181,56 @@ appUpdater.initialize();
 			},
 			exit: function() {
 				closeWindow();
+			},
+			closeTab: function() {
+				tryCloseTab($("#tabs li.t.active"));
+			},
+			nextTab: function() {
+				var nextTab = $('#tabs li.t.active').next('li.t[id]').find('a');
+				if(nextTab.length > 0) setActive(nextTab);
+				else if($('#tabs li.t[id]').length > 1) setActive($('#tabs li.t[id]:first').find('a'));
+			},
+			previousTab: function() {
+				var previousTab = $('#tabs li.t.active').prev('li.t[id]').find('a');
+				if(previousTab.length > 0) setActive(previousTab);
+				else if($('#tabs li.t[id]').length > 1) setActive($('#tabs li.t[id]:last').find('a'));
+			},
+			selectAll: function() {
+				$("#tabs li.active").data("editor").selectAll();
+			},
+			Find: function() {
+				toggleDropdown($("#findbar"));
+			},
+			findNext: function() {
+				$("#tabs li.t.active").data("editor").findNext();
+			},
+			findPrevious: function() {
+				$("#tabs li.t.active").data("editor").findPrevious();
+			},
+			gotoLine: function() {
+				toggleDropdown($("#gotolinebar"));
 			}
 		};
 		
-		
+
 		// Keyboard mappings
-		var meta = "ctrl";
-		if(navigator.platform.indexOf('Mac') > -1)
-			meta = "cmd"
+		var meta = isPlatformMac ? "cmd" : "ctrl";
+
 		bindKey('n', Commands.newLess);
 		bindKey('o', Commands.openFile);
 		bindKey('shift+o', Commands.openProject);
 		bindKey('s', Commands.save);
 		bindKey('shift+s', Commands.saveAs);
 		bindKey('enter', Commands.crunch);
-		bindKey('shift+u', Commands.checkForUpdates);
 		bindKey('e', Commands.exit);
-		
+		bindKey('w', Commands.closeTab);
+		bindKey('tab', Commands.nextTab);
+		bindKey('shift+tab', Commands.previousTab);
+
 		function bindKey(keys, fn) {
 			jwerty.key(meta + '+' + keys, fn);
 			$('#tabs li textarea').live('keydown', jwerty.event(meta + '+' + keys, false));
 		}
-
 
 		window.htmlLoader.addEventListener("nativeDragDrop", function(event) {
 			var filelist = event.clipboard.getData(air.ClipboardFormats.FILE_LIST_FORMAT);
@@ -256,7 +303,6 @@ appUpdater.initialize();
 			}
 			parent.data('editor').focus();
 			parent.data('editor').resize();
-			
 		}
 
 		function tryCloseTab(el) {
@@ -377,18 +423,56 @@ appUpdater.initialize();
 
 		var commands = require("ace/commands/default_commands").commands;
 
+		function toggleDropdown(e) {
+			// @losnir: If already open, then just focus & highlight all
+			if(e.css("top") == "0px") {
+				e.find("input").focus().select();
+				return;
+			}
+
+			// Let's close everything else
+			$("#dropdowns-outer div").each(function() {
+				$(this).find(".close").click();
+			});
+
+			// Let's slide it down
+			e.animate({top : '0'}, 100, function() { $(this).find("input").focus().select(); })
+		}
+
 		commands.push({
+			name : "gotoline",
+			bindKey : {
+				win : "Ctrl-G",
+				mac : "Command-L",
+				sender : "editor"
+			},
+			exec : Commands.gotoLine
+		},{
 			name : "find",
 			bindKey : {
 				win : "Ctrl-F",
 				mac : "Command-F",
 				sender : "editor"
 			},
-			exec : function() {
-				$("#findbar").animate({
-					top : '0'
-				}, 100).find('input').focus().select();
-			}
+			exec : Commands.Find
+		}, {
+		},{
+			name : "findnext",
+			bindKey : {
+				win : "Ctrl-K|F3",
+				mac : "Command-K",
+				sender : "editor"
+			},
+			exec : Commands.findNext
+		}, {
+		},{
+			name : "findprevious",
+			bindKey : {
+				win : "Ctrl-Shift-K,Shift-F3",
+				mac : "Command-Shift-K",
+				sender : "editor"
+			},
+			exec : Commands.findPrevious
 		}, {
 			name : "replace",
 			bindKey : {
@@ -418,6 +502,11 @@ appUpdater.initialize();
 				wholeWord : false,
 				regExp : false
 			});
+			return false;
+		}
+
+		function gotoLine(val) {
+			$("#tabs li.active").data('editor').gotoLine(val, 0, true);
 			return false;
 		}
 
@@ -762,7 +851,6 @@ appUpdater.initialize();
 
 			modalWin.addEventListener(air.Event.HTML_DOM_INITIALIZE, function(e) {
 				e.target.window.parent = e.target.window.opener = this;
-
 			});
 		}
 
@@ -857,17 +945,23 @@ appUpdater.initialize();
 				if($(this).data('file-less') && $(this).data('file-less').nativePath == App.activeTab)
 					setActive($(this).find("a"));
 			});
-			$('#chk-minify').attr('checked', App.prefs.minify);
 
+			$('#panel-prefs .panel-body input[type="checkbox"]').each(function() {
+				$(this).attr('checked', App.prefs[$(this).data("pref")]);
+				applyAppSetting($(this).data("pref"));
+			});
 		}
 		function init() {
 			CreateMenus();
 			initAppState();
 			
-			$('#chk-minify').on('change',function() {
-				App.prefs.minify = $('#chk-minify').is(':checked');
+			// @losnir: Will serve well every 'checkbox' based pref
+			$('#panel-prefs .panel-body input[type="checkbox"]').on('change', function() {
+				App.prefs[$(this).data("pref")] = $(this).is(':checked');
 				updateAppState();
+				applyAppSetting($(this).data("pref"));
 			});
+
 			$('#actions').on('click', "li", function(e) {
 				var $el = $(this);
 				$el.addClass('active').siblings().removeClass('active');
@@ -959,29 +1053,42 @@ appUpdater.initialize();
 					});
 			});
 			$("#findbar .up").click(function() {
-				$("#tabs li.t.active").data('editor').findPrevious();
+				Commands.findPrevious();
 			});
 			$("#findbar .down").click(function() {
-				$("#tabs li.t.active").data('editor').findNext();
+				Commands.findNext();
 			});
 			$('#tabs a.tab .close').click(function() {
 				var listItem = $(this).parent().parent();
 				tryCloseTab(listItem);
 			});
 
-			$("#findbar .close").click(function() {
-				$("#findbar").animate({
-					top : '-33px'
-				}, 100);
+			$("#dropdowns-outer > div > .close").click(function() {
+				$(this).parent().animate({top : '-33px'}, 100);
 				$("#tabs li.t.active").data('editor').focus();
 			});
-			$("#find").submit(function() {
-				findText($("#findbar input").val());
+			$("#gotoline").submit(function() {
+				if((/^\d+$/).test(n = $(this).find("input").val()))
+					gotoLine(n);
 				return false;
 			});
-			$("#findbar input").change(function() {
-				findText($("#findbar input").val());
+			$("#find").submit(function() {
+				findText($(this).find("input").val());
+				return false;
 			});
+			$("#findbar input").on("input", function() {
+				findText($(this).val());
+			});
+			$("#dropdowns-outer > div input").live("keydown", jwerty.event('esc', function() {
+				$(this).parent().siblings(".close").click();
+			})).live("keydown", jwerty.event('ctrl+g', function(e) {
+				e.preventDefault();
+				Commands.gotoLine();
+			})).live("keydown", jwerty.event('ctrl+f', function(e) {
+				e.preventDefault();
+				Commands.Find();
+			}));
+
 			$("#filelist").dblclick(function(e) {
 
 				var $target = $(event.target);
@@ -1058,7 +1165,7 @@ appUpdater.initialize();
 				openWindow('win/about.html', 522, 550, true);
 			});
 			$('#help').click(function() {
-				openWindow('win/help.html', 750, 490, false);
+				openWindow('win/help.html', 760, 490, false);
 			});
 		}
 
@@ -1067,18 +1174,25 @@ appUpdater.initialize();
 		function CreateMenus() {
 			var fileMenu;
 			var editMenu;
-			
+			var tabMenu;
+
 			if(air.NativeWindow.supportsMenu && nativeWindow.systemChrome != air.NativeWindowSystemChrome.NONE) {
 				$('.windowMenu').show();
 				fileMenu = createFileMenu();
-				
+				tabMenu = createTabMenu();
+
 				// Edit menu is hidden for now.
-				//editMenu = createEditMenu();
+				editMenu = createEditMenu();
 				$('#fileMenu').click(function(e) {
 					fileMenu.display(window.nativeWindow.stage, $(this).position().left + 55, $(this).position().top + 27);
 				});
 				$('#editMenu').click(function(e) {
 					editMenu.display(window.nativeWindow.stage, $(this).position().left + 55, $(this).position().top + 27);
+				});
+				$('#tabs a.tab').on("contextmenu", function(e) {
+					e.preventDefault();
+					selectedTab = $(this).parent();
+					tabMenu.display(window.nativeWindow.stage, e.pageX + 10, e.pageY + 10);
 				});
 			}
 
@@ -1093,18 +1207,17 @@ appUpdater.initialize();
 				application.menu.addEventListener(air.Event.SELECT, selectCommandMenu);
 				fileMenu = application.menu.addItem(new air.NativeMenuItem("File"));
 				fileMenu.submenu = createFileMenu();
-			//	editMenu = application.menu.addItem(new air.NativeMenuItem("Edit"));
-			//	editMenu.submenu = createEditMenu();
+				editMenu = application.menu.addItem(new air.NativeMenuItem("Edit"));
+				editMenu.submenu = createEditMenu();
 
 			}
 		}
-		function addMenuItem(menu, label, func, key) {
+		function addMenuItem(menu, label, func, keyEq, keyMod) {
 
 			var cmd = menu.addItem(new air.NativeMenuItem(label));
 			cmd.addEventListener(air.Event.SELECT, func);
-			if(key)
-				cmd.keyEquivalent = key;
-
+			if(keyEq) cmd.keyEquivalent = keyEq;
+			if(keyMod !== undefined) cmd.keyEquivalentModifiers = keyMod;
 		}
 		
 		function createFileMenu() {
@@ -1132,7 +1245,7 @@ appUpdater.initialize();
 			addMenuItem(fileMenu, "Crunch!", Commands.crunch, "enter");
 			
 			fileMenu.addItem(new air.NativeMenuItem("", true));
-			addMenuItem(fileMenu, "Check for updates...", Commands.checkForUpdates, "U");
+			addMenuItem(fileMenu, "Check for updates...", Commands.checkForUpdates);
 			addMenuItem(fileMenu, "Exit", Commands.exit, "e");
 			
 			// var openProj = fileMenu.addItem(new air.NativeMenuItem("Recent Projects"));
@@ -1147,17 +1260,58 @@ appUpdater.initialize();
 			var editMenu = new air.NativeMenu();
 			editMenu.addEventListener(air.Event.SELECT, selectCommandMenu);
 
-			var copyCommand = editMenu.addItem(new air.NativeMenuItem("Copy"));
-			copyCommand.addEventListener(air.Event.SELECT, selectCommand);
-			copyCommand.keyEquivalent = "c";
-			var pasteCommand = editMenu.addItem(new air.NativeMenuItem("Paste"));
-			pasteCommand.addEventListener(air.Event.SELECT, selectCommand);
-			pasteCommand.keyEquivalent = "v";
+			addMenuItem(editMenu, "Select All", Commands.selectAll, "a");
+			//addMenuItem(editMenu, "Cut", Commands.cut, "x");
+			//addMenuItem(editMenu, "Copy", Commands.copy, "c");
+			//addMenuItem(editMenu, "Paste", Commands.paste, "v");
+
 			editMenu.addItem(new air.NativeMenuItem("", true));
+
+			addMenuItem(editMenu, "Find...", Commands.Find, "f");
+			addMenuItem(editMenu, "Find Next...", Commands.findNext, isPlatformMac ? "k" : "f3", isPlatformMac ? undefined : []);
+			addMenuItem(editMenu, "Find Previous...", Commands.findPrevious, isPlatformMac ? "K" : "F3", isPlatformMac ? undefined : []);
+
+			editMenu.addItem(new air.NativeMenuItem("", true));
+
+			addMenuItem(editMenu, "Goto Line...", Commands.gotoLine, isPlatformMac ? "l" : "g");
+
 			//var preferencesCommand = editMenu.addItem(new air.NativeMenuItem("Preferences"));
 			//preferencesCommand.addEventListener(air.Event.SELECT,selectCommand);
 
 			return editMenu;
+		}
+
+		function createTabMenu() {
+			var tabMenu = new air.NativeMenu();
+			tabMenu.addEventListener(air.Event.SELECT, selectCommandMenu);
+
+			addMenuItem(tabMenu, "Close", function() {
+				tryCloseTab(selectedTab);
+			});
+
+
+			addMenuItem(tabMenu, "Close others", function() {
+				$("#tabs li.t[id]").each(function() {
+					if($(this).attr("id") == selectedTab.attr("id")) return;
+					tryCloseTab($(this));
+				});
+			});	
+
+			/*addMenuItem(tabMenu, "Close tabs to the left", function() {
+				$("#tabs li.t[id]").each(function() {
+					if($(this).attr("id") == selectedTab.attr("id")) return false;
+					tryCloseTab($(this));
+				});
+			});*/
+
+			addMenuItem(tabMenu, "Close tabs to the right", function() {
+				$.each($("#tabs li.t[id]").get().reverse(), function() {
+					if($(this).attr("id") == selectedTab.attr("id")) return false;
+					tryCloseTab($(this));
+				});
+			});	
+
+			return tabMenu;		
 		}
 
 		function updateRecentMenus(event) {

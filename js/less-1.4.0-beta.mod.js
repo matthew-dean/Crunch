@@ -2007,6 +2007,10 @@ tree.functions = {
     "data-uri": function(mimetypeNode, filePathNode) {
 
         if (typeof window !== 'undefined') {
+            /*return new(tree.URL)((value.value != null || value instanceof tree.Variable)
+                                        ? value : new(tree.Anonymous)(value), "");*/
+
+
             return new tree.URL(filePathNode || mimetypeNode, this.currentFileInfo).eval(this.env);
         }
 
@@ -5506,12 +5510,14 @@ function extractUrlParts(url, baseUrl) {
             }
         }
 
+        /* Crunch @losnir: Not good
         for(i = 0; i < directories.length; i++) {
             if (directories[i] === ".." && i > 0) {
                 directories.splice(i-1, 2);
                 i -= 2;
             }
         }
+        */
     }
 
     returner.hostPart = urlParts[1];

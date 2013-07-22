@@ -63,8 +63,17 @@ body.modal {
 	font-weight: bold;
 }
 .modal h2 {
-	margin-bottom: 10px;
+	padding: 0;
+	margin: 0;
 	font-size: 16px;
+}
+.modal h3 {
+	padding: 0;
+	margin: 4px 0 0 0;
+	font-size: 11px;
+}
+.modal p {
+	margin-top: 10px;
 }
 .modal .img {
 	position: absolute;
@@ -288,7 +297,7 @@ body.modal {
 }
 #arrow-right span { background-position: -8px 0; }
 
-#findbar-outer {
+#dropdowns-outer {
 	position: absolute;
 	right: 21px;
 	top: 50px;
@@ -297,7 +306,7 @@ body.modal {
 	overflow: hidden;
 	z-index: 1000;
 }
-#findbar {
+#findbar, #gotolinebar {
 	position: absolute;
 	top: -33px;
 	left: 0;
@@ -317,7 +326,11 @@ body.modal {
 	-webkit-box-sizing: border-box; 
 	box-sizing: border-box;	
 }
-#findbar input {
+#gotolinebar {
+	width: 50%;
+	left: 50%;
+}
+#findbar input, #gotolinebar input {
 	border: 1px solid #9d9a92;
 	border-radius: 2px;
 	-webkit-box-shadow: inset 0 2px 0 #e3e3e3;
@@ -330,8 +343,10 @@ body.modal {
 	z-index: 2;
 	font-size: 12px;
 }
-#findbar button {
-	background: rgba(227,227,227,0.1) url(../img/skin/updown.png);
+#gotolinebar input {
+	width: 70px;
+}
+#findbar button, #gotolinebar button {
 	width: 25px;
 	height: 24px;
 	position: absolute;
@@ -339,17 +354,23 @@ body.modal {
 	top: 4px;
 	z-index: 1;
 }
-#findbar button:hover { background-color: rgba(227,227,227,0.25); }
-#findbar button:active { background-color: rgba(150,150,150,0.1); }
-#findbar .close {
-	right: 7px;
-	top: 14px;
+#findbar .up, #findbar .down {
+	background: rgba(227,227,227,0.1) url(../img/skin/updown.png);
 }
 #findbar .up {
 	right: 53px;
 }
 #findbar .down {
 	background-position: -25px 0;
+}
+#gotolinebar .go {
+	background: rgba(227,227,227,0.1) url(../img/skin/go.png);
+}
+#findbar button:hover, #gotolinebar button:hover { background-color: rgba(227,227,227,0.25); }
+#findbar button:active, #gotolinebar button:active { background-color: rgba(150,150,150,0.1); }
+#findbar .close, #gotolinebar .close {
+	right: 7px;
+	top: 14px;
 }
 
 #preview {
@@ -737,3 +758,7 @@ button.primary span, div.drop span {
 #tabs .ace_comment { color: saturate(darken(#b9a595,10%),10%); }
 #tabs .ace_keyword { color: saturate(darken(#663212,10%),10%); }
 
+#panel-prefs .panel-body label {
+	margin-bottom: 4px;
+	display: block;
+}

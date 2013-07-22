@@ -49,13 +49,13 @@
 	
     
 	
-	<script src="/js/settings.js"></script>
 	<script src="/libs/air/AIRAliases.js"></script>
 	<script src="/AIRIntrospector.js"></script>
 	<script src="/js/jquery.min.js"></script>
 	<script>
 	
 		var appVersion = $($.parseXML(air.NativeApplication.nativeApplication.applicationDescriptor)).find('versionLabel').text();
+		var lessjsVersion = window.opener.$("#lessjs").data("ver");
 
 		$('#header .description').html("Version " + appVersion + ", less.js " + (typeof(lessjsVersion) === "undefined" ? "Unknown" : lessjsVersion));
 		
