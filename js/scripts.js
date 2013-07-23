@@ -11,6 +11,8 @@ appUpdater.initialize();
 		var pendingClose = false;
 		var scrollWidth = 100;
 		var selectedTab = null;
+		var tabMenu = null;
+
 		var isPlatformMac = navigator.platform.indexOf('Mac') > -1;
 		// Get stored state
 		
@@ -401,6 +403,11 @@ appUpdater.initialize();
 			});
 			el.find('textarea').bind('keydown', function(e) {
 				el.data('dirty', true);
+			});
+			el.find("a.tab").on("contextmenu", function(e) {
+				e.preventDefault();
+				selectedTab = $(this).parent();
+				tabMenu.display(window.nativeWindow.stage, e.pageX + 10, e.pageY + 10);
 			});
 			if(css) {
 				setTabType(el, true);
@@ -1172,27 +1179,20 @@ appUpdater.initialize();
 		var application = air.NativeApplication.nativeApplication;
 
 		function CreateMenus() {
+			tabMenu = createTabMenu();
 			var fileMenu;
 			var editMenu;
-			var tabMenu;
 
 			if(air.NativeWindow.supportsMenu && nativeWindow.systemChrome != air.NativeWindowSystemChrome.NONE) {
 				$('.windowMenu').show();
 				fileMenu = createFileMenu();
-				tabMenu = createTabMenu();
-
-				// Edit menu is hidden for now.
 				editMenu = createEditMenu();
+
 				$('#fileMenu').click(function(e) {
 					fileMenu.display(window.nativeWindow.stage, $(this).position().left + 55, $(this).position().top + 27);
 				});
 				$('#editMenu').click(function(e) {
 					editMenu.display(window.nativeWindow.stage, $(this).position().left + 55, $(this).position().top + 27);
-				});
-				$('#tabs a.tab').on("contextmenu", function(e) {
-					e.preventDefault();
-					selectedTab = $(this).parent();
-					tabMenu.display(window.nativeWindow.stage, e.pageX + 10, e.pageY + 10);
 				});
 			}
 
@@ -1209,7 +1209,6 @@ appUpdater.initialize();
 				fileMenu.submenu = createFileMenu();
 				editMenu = application.menu.addItem(new air.NativeMenuItem("Edit"));
 				editMenu.submenu = createEditMenu();
-
 			}
 		}
 		function addMenuItem(menu, label, func, keyEq, keyMod) {
