@@ -10,12 +10,19 @@ Go to the Downloads tab in Github. Under "Download Packages", get the latest AIR
 
 Loving Crunch
 -------------
+
 Go to http://crunchapp.net/ and express your love for Crunch by clicking on the "Buy Us A Coffee" link and donating. Everyone who is awesome does this. (Note: if you include your Twitter handle when donating, then either @kump or @matthewdl will tweet a picture of themselves drinking coffee.)
 
-
-Compiling / Testing a Crunch branch
------------------------------------
+Compiling Crunch
+-----------------
 
 Crunch runs on Adobe AIR. Get the Adobe AIR SDK, and simply do "adl application.xml" on the command line (when you've set up your environments path to the adl executable) to test edits to Crunch. 
 
 Then be all like, "Whaaaaaat?" and your computer will be all like, "Aw yeah, that's some Crunchy action you got goin'."
+
+Testing Crunch
+--------------
+
+When you are done, please go and test you crunchy build against an expected SUPER-NEAT MASTER OF AN OUTPUT FILE!
+
+*[learn how](tests)*

@@ -1,0 +1,50 @@
+// /**
+//  * Crunch! Test procedure for new builds
+//  * ==========================================
+//  *
+//  * - Usage (after every build):
+//  *
+//  *   1. Turn off minification.
+//  *   2. Crunch this file as "tests.css" and put it in the same path.
+//  *   3. Verify MD5 checksum.
+//  *   4. Cross fingers.
+//  *   5. Rinse & repeat.
+//  *
+//  * @date    Wed, 24 Jul 2013
+//  * @author  Nir Azuelos @losnir <nirazuelos@gmail.com>
+//  * @version 1.0.0
+//  * @since   Crunch! 1.7.0 Release
+//  * @md5	   24d2ef303ba6e383fa93d9117956f737 
+//  */
+
+/**
+ * @start
+ */
+
+@import "src/nesting-url.less";
+@import "src/traverse.less";
+@import "src/functions.less";
+
+/* function(data-uri) */
+#data-uri {
+    .data-uri("this/is/a/path/bg.png");
+}
+
+/* function(url) */
+#url {
+    .url("this/is/a/path/bg.png");
+}
+
+/* Nesting and URL Parsing */
+#nesting, #url {
+	.nesting-url();
+}
+
+/* Traversing and Imports */
+#traverse {
+	.traverse();
+}
+
+/**
+ * @end
+ */
