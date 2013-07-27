@@ -12,3 +12,5 @@ Test procedure for new builds
 5. Rinse & repeat.
 
 *View the [md5 of the expected output](tests.css.md5).*
+
+*View the [CRC32 of the expected output](tests.css.sfv).*
