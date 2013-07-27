@@ -333,9 +333,7 @@ appUpdater.initialize();
 				$('#save, #save-as, #convert').attr('disabled', 'disabled');
 				if($("#findbar").css("top") == 0)
 					alert('visible');
-				$("#findbar").animate({
-					top : '-33px'
-				}, 100).find('input').blur();
+				$("#dropdowns-outer > div > .close").click();
 				//newTab();
 			} else {
 				if(wasActive) {
@@ -388,11 +386,10 @@ appUpdater.initialize();
 			el.find('.messages').attr('id', 'messages-' + t);
 			el.find('.editor').attr('id', 'editor-' + t);
 
-			var editor = ace.edit('editor-' + t);
-			//editor.setTheme("ace/theme/textmate");
+			var editor = ace.edit("editor-" + t);
+			editor.setTheme("ace/theme/crunch");
 			editor.setShowPrintMargin(false);
-			var newMode = require("ace/mode/less").Mode;
-			editor.getSession().setMode(new newMode());
+			editor.getSession().setMode("ace/mode/less");
 			editor.getSession().on('change', function() {
 				var activeEl = $("#tabs li.active");
 				//  && arguments[0].data.text.length==1
@@ -407,7 +404,7 @@ appUpdater.initialize();
 			el.find("a.tab").on("contextmenu", function(e) {
 				e.preventDefault();
 				selectedTab = $(this).parent();
-				tabMenu.display(window.nativeWindow.stage, e.pageX + 10, e.pageY + 10);
+				tabMenu.display(window.nativeWindow.stage, e.pageX, e.pageY);
 			});
 			if(css) {
 				setTabType(el, true);
@@ -432,18 +429,18 @@ appUpdater.initialize();
 
 		function toggleDropdown(e) {
 			// @losnir: If already open, then just focus & highlight all
-			if(e.css("top") == "0px") {
+			if(e.is(":visible")) {
 				e.find("input").focus().select();
 				return;
 			}
 
-			// Let's close everything else
-			$("#dropdowns-outer div").each(function() {
+			// @losnir: Let's close everything else
+			$("#dropdowns-outer > div:visible").each(function() {
 				$(this).find(".close").click();
 			});
 
-			// Let's slide it down
-			e.animate({top : '0'}, 100, function() { $(this).find("input").focus().select(); })
+			// @losnir: Let's slide it down
+			e.show().animate({top : '0'}, 100, function() { $(this).find("input").focus().select(); }).parent().show();
 		}
 
 		commands.push({
@@ -964,7 +961,7 @@ appUpdater.initialize();
 			
 			// @losnir: Will serve well every 'checkbox' based pref
 			$('#panel-prefs .panel-body input[type="checkbox"]').on('change', function() {
-				App.prefs[$(this).data("pref")] = $(this).is(':checked');
+				App.prefs[$(this).data("pref")] = $(this).is(":checked");
 				updateAppState();
 				applyAppSetting($(this).data("pref"));
 			});
@@ -1071,8 +1068,13 @@ appUpdater.initialize();
 			});
 
 			$("#dropdowns-outer > div > .close").click(function() {
-				$(this).parent().animate({top : '-33px'}, 100);
-				$("#tabs li.t.active").data('editor').focus();
+				$(this).parent().animate({top : '-33px'}, 100, function() {
+					if(!$(this).siblings(":visible").length) {
+						$(this).parent().hide();
+						$("#tabs li.t.active").data('editor').focus();
+					}
+					$(this).hide();
+				});
 			});
 			$("#gotoline").submit(function() {
 				if((/^\d+$/).test(n = $(this).find("input").val()))
@@ -1095,6 +1097,7 @@ appUpdater.initialize();
 				e.preventDefault();
 				Commands.Find();
 			}));
+			$("#dropdowns-outer, #dropdowns-outer > div").hide();
 
 			$("#filelist").dblclick(function(e) {
 

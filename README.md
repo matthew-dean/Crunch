@@ -23,6 +23,6 @@ Then be all like, "Whaaaaaat?" and your computer will be all like, "Aw yeah, tha
 Testing Crunch
 --------------
 
-When you are done, please go and test you crunchy build against an expected SUPER-NEAT MASTER OF AN OUTPUT FILE!
+When you are done, please go and test your crunchy build against an expected SUPER-NEAT MASTER OF AN OUTPUT FILE!
 
 *[learn how](tests)*

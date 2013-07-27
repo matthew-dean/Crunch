@@ -74,8 +74,8 @@ body.modal{min-width:0;position:fixed;top:0;left:0;right:0;bottom:0;padding-left
 #findbar button:active,#gotolinebar button:active{background-color:rgba(150,150,150,0.1)}
 #findbar .close,#gotolinebar .close{right:7px;top:14px}
 #preview{position:absolute;top:0;width:200px;bottom:0;right:0;display:none}
-.editor,#editor-bg,#splash{position:absolute;top:49px;left:0;bottom:-4px;right:0;border-top:1px solid #ffffff}
-.editor{left:1px;top:51px}
+.editor.ace-crunch,#editor-bg,#splash{position:absolute;top:49px;left:0;bottom:-4px;right:0;border-top:1px solid #ffffff}
+.editor.ace-crunch{left:1px;top:51px}
 #splash{padding:33px 33px 10px 89px;overflow:auto}
 #resize{position:absolute;top:50%;left:0;height:31px;width:8px;border:1px solid #bb9f8a;border-left:none;border-radius:0 7px 7px 0;margin-top:-5px;margin-left:4px;-webkit-box-shadow:1px 0 3px rgba(0,0,0,0.1);background:#f2f0ed url(../img/skin/resize.png) no-repeat left}
 #resize:before{background:url(../img/skin/resize.png) no-repeat left;display:block;width:100%;height:100%}
@@ -142,15 +142,6 @@ button.primary span,div.drop span{vertical-align:middle;display:inline-block}
 #save{background-image:url(../img/skin2/toolbar-icons.png);width:24px;background-position:4px 5px}
 #open-file:hover,#save:hover{background-color:rgba(255,255,255,0.25)}
 .sep{display:inline-block;height:27px;width:2px;background:url(../img/skin/sep.png) no-repeat center;vertical-align:middle;margin:0 5px}
-#tabs .editor{line-height:20px;font-family:Ubuntu,"Courier New",Courier,monospace;font-weight:normal;letter-spacing:0;font-size:14px;color:#7a7974;text-shadow:0 1px 0 rgba(255,255,255,0.43)}
-#tabs .ace_gutter{background-color:transparent;color:#584130;text-shadow:0 1px 0 rgba(255,255,255,0.43);width:46px}
-#tabs .ace_gutter-cell{padding-left:9px}
-#tabs .ace_variable,#tabs .ace_string{color:#55712b}
-#tabs .ace_variable.ace_language{color:#b7602a}
-#tabs .ace_type{color:#2086a2}
-#tabs .ace_constant{color:#a9549b}
-#tabs .ace_comment{color:#b08a6b}
-#tabs .ace_keyword{color:#3e1c07}
 #panel-prefs .panel-body label{margin-bottom:4px;display:block}
 #leftbar-top{background:url("../img/skin2/leftbar-top.png") no-repeat 0 0;position:absolute;top:0px;left:0;width:70px;height:61px;z-index:2}
 #leftbar{z-index:2;position:absolute;left:0;top:61px;width:70px;bottom:0;background:url("../img/skin2/leftbar-repeat.png") repeat-y 0 0}
