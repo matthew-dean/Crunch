@@ -12788,29 +12788,21 @@ var VirtualRenderer = function(container, theme) {
 
         this.$gutterLayer.element.style.marginTop = (-offset) + "px";
         this.content.style.marginTop = (-offset) + "px";
-        
-function toFixed(x) {
-  if (Math.abs(x) < 1.0) {
-    var e = parseInt(x.toString().split('e-')[1]);
-    if (e) {
-        x *= Math.pow(10,e-1);
-        x = '0.' + (new Array(e)).join('0') + x.toString().substring(2);
-    }
-  } else {
-    var e = parseInt(x.toString().split('+')[1]);
-    if (e > 20) {
-        e -= 20;
-        x /= Math.pow(10,e);
-        x += (new Array(e+1)).join('0');
-    }
-  }
-  return x;
-}
 
-        var test = longestLine + 2 * this.$padding;
-        test /= 3;
-        //alert(test)
-        this.content.style.width = test + "px";
+        /* Crunch; @losnir: I had to hack this part to prevent extremely long lines (typically data-uri's)
+            from cropping due to a bug in WebKit that turns CSS's high-value int to scientific notation,
+            which prevents the child elements from stretching to 100% width. The fix works by explicitly
+            setting the width of the child elements to the desired width. ---- See issue matthew-dean/Crunch#81 
+        this.content.style.width = longestLine + 2 * this.$padding + "px"; */
+        var _contentWidth = longestLine + 2 * this.$padding + "px";
+        this.content.style.width = _contentWidth;
+        if(this.content.hasChildNodes()) {
+            var _contentChild = this.content.childNodes;
+            for(var i = 0; i < _contentChild.length; i++) {
+                _contentChild[i].style.width = _contentWidth;
+            }
+        }
+
         this.content.style.height = minHeight + "px";
 
         return changes;

@@ -172,9 +172,6 @@ border: 1px solid rgb(200, 200, 250);\
 .ace-crunch .ace_indent-guide {\
 background: url(\"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAACCAYAAACZgbYnAAAAE0lEQVQImWP4////f4bLly//BwAmVgd1/w11/gAAAABJRU5ErkJggg==\") right repeat-y;\
 }\
-.ace-crunch .ace_text-layer {\
-	width: auto;\
-}\
 ";
 
 var dom = require("../lib/dom");
