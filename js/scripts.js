@@ -2,7 +2,7 @@ var appUpdater = new runtime.air.update.ApplicationUpdaterUI();
 appUpdater.configurationFile = new air.File("app:/updateConfig.xml");
 appUpdater.initialize();
 
-//console = air.Introspector.Console; 
+console = air.Introspector.Console || null; 
 
 (function($) {
 
@@ -390,6 +390,61 @@ appUpdater.initialize();
 			editor.setTheme("ace/theme/crunch");
 			editor.setShowPrintMargin(false);
 			editor.getSession().setMode("ace/mode/less");
+			editor.commands.addCommands([{
+				name : "gotoline",
+				bindKey : {
+					win : "Ctrl-G",
+					mac : "Command-L",
+					sender : "editor"
+				},
+				exec : Commands.gotoLine
+			},{
+				name : "find",
+				bindKey : {
+					win : "Ctrl-F",
+					mac : "Command-F",
+					sender : "editor"
+				},
+				exec : Commands.Find
+			}, {
+			},{
+				name : "findnext",
+				bindKey : {
+					win : "Ctrl-K|F3",
+					mac : "Command-K",
+					sender : "editor"
+				},
+				exec : Commands.findNext
+			}, {
+			},{
+				name : "findprevious",
+				bindKey : {
+					win : "Ctrl-Shift-K|Shift-F3",
+					mac : "Command-Shift-K",
+					sender : "editor"
+				},
+				exec : Commands.findPrevious
+			}, {
+				name : "replace",
+				bindKey : {
+					win : "Ctrl-R",
+					mac : "Command-R",
+					sender : "editor"
+				},
+				exec : function() {
+					// Not implemented
+				}
+			}, {
+				name : "replaceall",
+				bindKey : {
+					win : "Ctrl-Shift-R",
+					mac : "Command-Shift-R",
+					sender : "editor"
+				},
+				exec : function() {
+					// Not implemented
+				}
+			}]);
 			editor.getSession().on('change', function() {
 				var activeEl = $("#tabs li.active");
 				//  && arguments[0].data.text.length==1
@@ -425,8 +480,6 @@ appUpdater.initialize();
 				el.find('a.tab').removeClass('other');
 		}
 
-		var commands = require("ace/commands/default_commands").commands;
-
 		function toggleDropdown(e) {
 			// @losnir: If already open, then just focus & highlight all
 			if(e.is(":visible")) {
@@ -442,62 +495,6 @@ appUpdater.initialize();
 			// @losnir: Let's slide it down
 			e.show().animate({top : '0'}, 100, function() { $(this).find("input").focus().select(); }).parent().show();
 		}
-
-		commands.push({
-			name : "gotoline",
-			bindKey : {
-				win : "Ctrl-G",
-				mac : "Command-L",
-				sender : "editor"
-			},
-			exec : Commands.gotoLine
-		},{
-			name : "find",
-			bindKey : {
-				win : "Ctrl-F",
-				mac : "Command-F",
-				sender : "editor"
-			},
-			exec : Commands.Find
-		}, {
-		},{
-			name : "findnext",
-			bindKey : {
-				win : "Ctrl-K|F3",
-				mac : "Command-K",
-				sender : "editor"
-			},
-			exec : Commands.findNext
-		}, {
-		},{
-			name : "findprevious",
-			bindKey : {
-				win : "Ctrl-Shift-K,Shift-F3",
-				mac : "Command-Shift-K",
-				sender : "editor"
-			},
-			exec : Commands.findPrevious
-		}, {
-			name : "replace",
-			bindKey : {
-				win : "Ctrl-R",
-				mac : "Command-R",
-				sender : "editor"
-			},
-			exec : function() {
-				// Not implemented
-			}
-		}, {
-			name : "replaceall",
-			bindKey : {
-				win : "Ctrl-Shift-R",
-				mac : "Command-Shift-R",
-				sender : "editor"
-			},
-			exec : function() {
-				// Not implemented
-			}
-		});
 
 		function findText(val) {
 			$("#tabs li.active").data('editor').find(val, {

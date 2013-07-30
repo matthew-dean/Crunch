@@ -3689,7 +3689,9 @@ var TextInput = function(parentNode, host) {
             return;
         }
 
-        var clipboardData = e.clipboardData || window.clipboardData;
+        /* Crunch; @losnir: Use old clipboard method for Adobe AIR - it does not support `clipboardData` data object natively
+        var clipboardData = e.clipboardData || window.clipboardData; */
+        var clipboardData = useragent.isAIR ? false : (e.clipboardData || window.clipboardData);
 
         if (clipboardData && !BROKEN_SETDATA) {
             var supported = clipboardData.setData("Text", data);
@@ -3719,7 +3721,10 @@ var TextInput = function(parentNode, host) {
             return;
         }
 
-        var clipboardData = e.clipboardData || window.clipboardData;
+        /* Crunch; @losnir: Use old clipboard method for Adobe AIR - it does not support `clipboardData` data object natively
+        var clipboardData = e.clipboardData || window.clipboardData; */
+        var clipboardData = useragent.isAIR ? false : (e.clipboardData || window.clipboardData);
+        
         if (clipboardData && !BROKEN_SETDATA) {
             var supported = clipboardData.setData("Text", data);
             if (supported) {
@@ -3741,7 +3746,9 @@ var TextInput = function(parentNode, host) {
     };
 
     var onPaste = function(e) {
-        var clipboardData = e.clipboardData || window.clipboardData;
+        /* Crunch; @losnir: Use old clipboard method for Adobe AIR - it does not support `clipboardData` data object natively
+        var clipboardData = e.clipboardData || window.clipboardData; */
+        var clipboardData = useragent.isAIR ? false : (e.clipboardData || window.clipboardData);
 
         if (clipboardData) {
             var data = clipboardData.getData("Text");
@@ -12788,7 +12795,7 @@ var VirtualRenderer = function(container, theme) {
 
         this.$gutterLayer.element.style.marginTop = (-offset) + "px";
         this.content.style.marginTop = (-offset) + "px";
-
+        
         /* Crunch; @losnir: I had to hack this part to prevent extremely long lines (typically data-uri's)
             from cropping due to a bug in WebKit that turns CSS's high-value int to scientific notation,
             which prevents the child elements from stretching to 100% width. The fix works by explicitly

@@ -11,9 +11,7 @@ h3{color:#807540;font-size:17px;font-family:Quicksand,sans-serif;margin-top:0;ma
 .CodeMirror{border:1px solid black;background:white}
 #toolbar{background:url(../img/skin2/filebar-repeat.png) repeat-x top;height:27px;padding-left:10px}
 body.modal{min-width:0;position:fixed;top:0;left:0;right:0;bottom:0;padding-left:138px;padding-top:20px;padding-right:20px;text-shadow:0 1px 0 rgba(255,255,255,0.43);background:url(../img/skin2/modal-icon.png) no-repeat left top,#f2f0ed url(../img/crunch-texture.png);font-size:13.2px;font-weight:bold}
-.modal h2{padding:0;margin:0;font-size:16px}
-.modal h3{padding:0;margin:4px 0 0 0;font-size:11px}
-.modal p{margin-top:10px}
+.modal h2{margin-bottom:10px;font-size:16px}
 .modal .img{position:absolute;left:0;top:0;height:50px;width:65px}
 .modal .save{background-image:url(../img/skin/app-icons.png);height:50px;width:65px;top:-15px;left:-8px;background-position:-146px 0}
 .buttonbar{position:absolute;bottom:0px;left:0px;right:0px;height:39px;padding:10px;padding-top:20px;text-align:right;background:url(../img/crunch-texture.png) repeat,url(../img/skin2/modal-bottom-repeat.png) repeat-x}
@@ -81,7 +79,7 @@ body.modal{min-width:0;position:fixed;top:0;left:0;right:0;bottom:0;padding-left
 #resize:before{background:url(../img/skin/resize.png) no-repeat left;display:block;width:100%;height:100%}
 .CRD #resize{left:-1px}
 #editor-bg{border-left:1px solid #bb9f8a;background:#f9f8f5 url(../img/skin2/editor-left-repeat.png) repeat-y left;background-position:0px 0}
-.messages.show+.editor{bottom:80px}
+.messages.show+.editor.ace-crunch{bottom:80px}
 .messages{position:absolute;bottom:-4px;left:46px;right:0;height:0;font-size:10px;padding:15px;background:rgba(244,232,168,0.8);z-index:100;border-top:1px solid #b29681;height:52px;display:none;color:#817641;line-height:1}
 .messages .description{font-family:Ubuntu,"Courier New",Courier,monospace;font-size:12px;font-weight:normal}
 .messages.show{display:block}
