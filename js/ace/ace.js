@@ -3490,7 +3490,10 @@ var event = require("../lib/event");
 var useragent = require("../lib/useragent");
 var dom = require("../lib/dom");
 var lang = require("../lib/lang");
-var BROKEN_SETDATA = useragent.isChrome < 18;
+
+/* Crunch; @losnir: setData is broken in Adobe AIR too.
+var BROKEN_SETDATA = useragent.isChrome < 18; */
+var BROKEN_SETDATA = useragent.isChrome < 18 || useragent.isAIR;
 
 var TextInput = function(parentNode, host) {
     var text = dom.createElement("textarea");
@@ -3499,6 +3502,7 @@ var TextInput = function(parentNode, host) {
         text.setAttribute("x-palm-disable-auto-cap", true);
 
     text.wrap = "off";
+    text.setAttribute("wrap", "off");
     text.autocorrect = "off";
     text.autocapitalize = "off";
     text.spellcheck = false;
@@ -3689,9 +3693,7 @@ var TextInput = function(parentNode, host) {
             return;
         }
 
-        /* Crunch; @losnir: Use old clipboard method for Adobe AIR - it does not support `clipboardData` data object natively
-        var clipboardData = e.clipboardData || window.clipboardData; */
-        var clipboardData = useragent.isAIR ? false : (e.clipboardData || window.clipboardData);
+        var clipboardData = e.clipboardData || window.clipboardData;
 
         if (clipboardData && !BROKEN_SETDATA) {
             var supported = clipboardData.setData("Text", data);
@@ -3721,9 +3723,7 @@ var TextInput = function(parentNode, host) {
             return;
         }
 
-        /* Crunch; @losnir: Use old clipboard method for Adobe AIR - it does not support `clipboardData` data object natively
-        var clipboardData = e.clipboardData || window.clipboardData; */
-        var clipboardData = useragent.isAIR ? false : (e.clipboardData || window.clipboardData);
+        var clipboardData = e.clipboardData || window.clipboardData;
         
         if (clipboardData && !BROKEN_SETDATA) {
             var supported = clipboardData.setData("Text", data);
@@ -3746,9 +3746,7 @@ var TextInput = function(parentNode, host) {
     };
 
     var onPaste = function(e) {
-        /* Crunch; @losnir: Use old clipboard method for Adobe AIR - it does not support `clipboardData` data object natively
-        var clipboardData = e.clipboardData || window.clipboardData; */
-        var clipboardData = useragent.isAIR ? false : (e.clipboardData || window.clipboardData);
+        var clipboardData = e.clipboardData || window.clipboardData;
 
         if (clipboardData) {
             var data = clipboardData.getData("Text");

@@ -1068,7 +1068,7 @@ console = air.Introspector.Console || null;
 				$(this).parent().animate({top : '-33px'}, 100, function() {
 					if(!$(this).siblings(":visible").length) {
 						$(this).parent().hide();
-						$("#tabs li.t.active").data('editor').focus();
+						var activeTab = $("#tabs li.t.active").length && _activeTab.data('editor').focus();
 					}
 					$(this).hide();
 				});

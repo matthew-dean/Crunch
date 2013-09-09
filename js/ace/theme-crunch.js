@@ -31,7 +31,6 @@ font-family: Ubuntu,\"Courier New\",Courier,monospace;\
 font-weight: normal;\
 letter-spacing: 0;\
 font-size: 14px;\
-color: #7a7974;\
 text-shadow: 0 1px 0 rgba(255, 255, 255, 0.43);\
 }\
 .ace-crunch .ace_gutter {\
@@ -46,9 +45,6 @@ background: #e8e8e8;\
 }\
 .ace-crunch .ace_fold {\
 background-color: #6B72E6;\
-}\
-.ace-crunch .ace_scroller {\
-background-color: #FFFFFF;\
 }\
 .ace-crunch .ace_cursor {\
 border-left: 2px solid black;\
@@ -76,10 +72,7 @@ color: red;\
 .ace-crunch .ace_support.ace_function {\
 color: rgb(60, 76, 114);\
 }\
-.ace-crunch .ace_support.ace_constant {\
-color: rgb(6, 150, 14);\
-}\
-.ace-crunch .ace_support.ace_type,\
+\
 .ace-crunch .ace_support.ace_class {\
 color: rgb(109, 121, 222);\
 }\
@@ -134,7 +127,13 @@ background: rgba(0, 0, 0, 0.07);\
 background-color : #dcdcdc;\
 }\
 .ace-crunch .ace_gutter-cell {\
+margin: 0;\
 padding-left: 9px;\
+width: 24px;\
+text-align: right;\
+}\
+.ace-crunch .ace_gutter-layer {\
+width: 100% !important;\
 }\
 .ace-crunch .ace_marker-layer .ace_selected-word {\
 background: rgb(250, 250, 255);\
