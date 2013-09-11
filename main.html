@@ -32,7 +32,7 @@
 	<div id="toolbar">
 		<span class="windowMenu" style="display: none;">
 			<a id="fileMenu">File</a>
-			<a id="editMenu" style="display: none;">Edit</a>
+			<a id="editMenu">Edit</a>
 			<span class="sep"></span>
 		</span>
 		<button id="save" disabled="disabled" class="icon"><span>Save</span></button>
@@ -63,7 +63,20 @@
 			<div id="panel-prefs" class="panel">
 				<div class="panel-header"><span>Preferences</span></div>
 				<div class="panel-body">
-					<input type="checkbox" id="chk-minify"> Minify Crunched CSS
+					<label>
+						<input type="checkbox" data-pref="minify" id="prefs-minify">
+						Minify Crunched CSS
+					</label>
+					
+					<label>
+						<input type="checkbox" data-pref="filemonitoring" id="prefs-filemonitoring">
+						Enable File Monitoring
+					</label>
+
+					<label>
+						<input type="checkbox" data-pref="saveOnCrunch" id="prefs-saveOnCrunch">
+						Save on Crunch
+					</label>
 				</div>
 			</div>
 		</div></td>
@@ -100,9 +113,19 @@
 			<div id="scroller">
 				<ul id="tabs">
 					<li class="t">
-						<a class="tab" href="#"><span class="filename">new.less</span><span class="save" style="display: none;">*</span><span class="close"><img src="img/skin/closeicon.png"></span></a>
-						<div class="subtabs-outer"><div class="subtabs"></div></div>
-						<div class="messages"><h3>Compiler Errors</h3><div class="description"></div><span class="close"><img src="img/skin/closeicon.png"></span></div>
+						<a class="tab" href="#">
+							<span class="filename">new.less</span>
+							<span class="save" style="display: none;">*</span>
+							<span class="close"><img src="img/skin/closeicon.png"></span>
+						</a>
+						<div class="subtabs-outer">
+							<div class="subtabs"></div>
+						</div>
+						<div class="messages">
+							<h3>Compiler Errors</h3>
+							<div class="description"></div>
+							<span class="close"><img src="img/skin/closeicon.png"></span>
+						</div>
 						<div class="editor"></div>
 					</li>
 					<li class="n">
@@ -110,12 +133,19 @@
 					</li>
 				</ul>
 			</div>
-			<div id="findbar-outer"><div id="findbar">
-				<form id="find"><input type="text" /></form>
-				<button class="up"></button>
-				<button class="down"></button>
-				<span class="close"><img src="img/skin/closeicon.png"></span>
-			</div></div>
+			<div id="dropdowns-outer">
+				<div id="findbar">
+					<form id="find"><input placeholder ="find..." type="text" /></form>
+					<button class="up"></button>
+					<button class="down"></button>
+					<span class="close"><img src="img/skin/closeicon.png"></span>
+				</div>
+				<div id="gotolinebar">
+					<form id="gotoline"><input placeholder ="goto line..." type="text" /></form>
+					<button class="go"></button>
+					<span class="close"><img src="img/skin/closeicon.png"></span>
+				</div>
+			</div>
 			<button class="tabarrow" id="arrow-left" disabled="disabled"><span></span></button>
 			<button class="tabarrow" id="arrow-right" disabled="disabled"><span></span></button>
 		</div></td>
@@ -131,7 +161,7 @@
 	<script src="js/ace/ace.js"></script>
 	<!-- <script src="js/ace/theme-textmate.js"></script> -->
 	<script src="js/ace/mode-less.js"></script>
-	<script src="js/less-1.3.3.mod.js"></script>
+	<script src="js/less-1.4.2-beta.mod.js" id="lessjs" data-ver="1.4.2-beta"></script>
 	<script src="js/jquery.min.js"></script>
 	<script src="js/jwerty.js"></script>
 	<script src="js/resize.js"></script>
