@@ -2,7 +2,7 @@ var appUpdater = new runtime.air.update.ApplicationUpdaterUI();
 appUpdater.configurationFile = new air.File("app:/updateConfig.xml");
 appUpdater.initialize();
 
-console = air.Introspector.Console || null; 
+// console = air.Introspector.Console || null; 
 
 (function($) {
 
