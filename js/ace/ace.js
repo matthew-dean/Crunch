@@ -3491,9 +3491,7 @@ var useragent = require("../lib/useragent");
 var dom = require("../lib/dom");
 var lang = require("../lib/lang");
 
-/* Crunch; @losnir: setData is broken in Adobe AIR too.
-var BROKEN_SETDATA = useragent.isChrome < 18; */
-var BROKEN_SETDATA = useragent.isChrome < 18 || useragent.isAIR;
+var BROKEN_SETDATA = useragent.isChrome < 18;
 
 var TextInput = function(parentNode, host) {
     var text = dom.createElement("textarea");
