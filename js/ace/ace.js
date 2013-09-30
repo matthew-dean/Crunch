@@ -3691,7 +3691,7 @@ var TextInput = function(parentNode, host) {
             return;
         }
 
-        var clipboardData = e.clipboardData || window.clipboardData;
+        var clipboardData = useragent.isAIR ? false : (e.clipboardData || window.clipboardData);
 
         if (clipboardData && !BROKEN_SETDATA) {
             var supported = clipboardData.setData("Text", data);
@@ -3721,7 +3721,7 @@ var TextInput = function(parentNode, host) {
             return;
         }
 
-        var clipboardData = e.clipboardData || window.clipboardData;
+        var clipboardData = useragent.isAIR ? false : (e.clipboardData || window.clipboardData);
         
         if (clipboardData && !BROKEN_SETDATA) {
             var supported = clipboardData.setData("Text", data);
@@ -3744,7 +3744,7 @@ var TextInput = function(parentNode, host) {
     };
 
     var onPaste = function(e) {
-        var clipboardData = e.clipboardData || window.clipboardData;
+        var clipboardData = useragent.isAIR ? false : (e.clipboardData || window.clipboardData);
 
         if (clipboardData) {
             var data = clipboardData.getData("Text");
