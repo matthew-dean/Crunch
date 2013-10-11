@@ -1068,7 +1068,7 @@ appUpdater.initialize();
 				$(this).parent().animate({top : '-33px'}, 100, function() {
 					if(!$(this).siblings(":visible").length) {
 						$(this).parent().hide();
-						var activeTab = $("#tabs li.t.active").length && _activeTab.data('editor').focus();
+						$("#tabs li.t.active").length && $("#tabs li.t.active").data('editor').focus();
 					}
 					$(this).hide();
 				});
