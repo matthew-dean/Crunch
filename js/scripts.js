@@ -2,7 +2,13 @@ var appUpdater = new runtime.air.update.ApplicationUpdaterUI();
 appUpdater.configurationFile = new air.File("app:/updateConfig.xml");
 appUpdater.initialize();
 
-// console = air.Introspector.Console || null; 
+if(air.Introspector && air.Introspector.Console) {
+	console = air.Introspector.Console;
+}
+else {
+	console = {};
+	console.log = function() {};
+}
 
 (function($) {
 
@@ -15,14 +21,14 @@ appUpdater.initialize();
 
 		var isPlatformMac = navigator.platform.indexOf('Mac') > -1;
 		// Get stored state
-		
+
 		// Paths are the default folders for open/save file dialogs
-		var Paths = {
+		Paths = {
 			project: air.File.documentsDirectory,
 			css: air.File.documentsDirectory,
 			less: air.File.documentsDirectory
 		}
-		var App = {
+		App = {
 			paths: {
 				project: "",
 				css: "",
@@ -231,7 +237,7 @@ appUpdater.initialize();
 
 		function bindKey(keys, fn) {
 			jwerty.key(meta + '+' + keys, fn);
-			$('#tabs li textarea').live('keydown', jwerty.event(meta + '+' + keys, false));
+			$('#tabs li textarea').on('keydown', jwerty.event(meta + '+' + keys, false));
 		}
 
 		window.htmlLoader.addEventListener("nativeDragDrop", function(event) {
@@ -378,9 +384,9 @@ appUpdater.initialize();
 			var el;
 			var $firstTab = $('#tabs li:first-child');
 			if(position && position.length == 1)
-				el = $firstTab.clone(true, true).show().insertAfter(position);
+				el = $firstTab.clone(true, true).insertAfter(position);
 			else
-				el = $firstTab.clone(true, true).show().insertBefore($('#tabs li.n'));
+				el = $firstTab.clone(true, true).insertBefore($('#tabs li.n'));
 			t++;
 			el.attr('id', 'panel-' + t);
 			el.find('.messages').attr('id', 'messages-' + t);
@@ -539,23 +545,24 @@ appUpdater.initialize();
 
 		// Less.js tries to do an XMLHttpRequest. Not sure how to circumvent, so we'll just hijack that too.
 		// Yes, the fact that there are two hijackers is stupid, I know. There's a good explanation... well, a reasonable explanation, and I'll fix later.
-		var server = new MockHttpServer();
-		server.handle = function(request) {
-			if(request.url.match(/\.less/i)) {
-				request.url = request.url.replace(/app:\//ig, '');
-				var getFile = Paths.project.resolvePath(request.url);
-				if(!getFile.exists) {
-					request.receive(404, "Not found.");
-				} else {
-					request.setResponseHeader("Last-Modified", getFile.modificationDate);
-					var fileStream = new air.FileStream();
-					fileStream.open(getFile, air.FileMode.READ);
-					request.receive(200, fileStream.readUTFBytes(fileStream.bytesAvailable));
-					fileStream.close();
-				}
-			}
-		};
-		server.start();
+		// var server = new MockHttpServer();
+		// server.handle = function(request) {
+			// if(request.url.match(/\.less/i)) {
+				// request.url = request.url.replace(/app:\//ig, '');
+				// var getFile = Paths.project.resolvePath(request.url);
+				// if(!getFile.exists) {
+					// request.receive(404, "Not found.");
+				// } else {
+					// request.setResponseHeader("Last-Modified", getFile.modificationDate);
+					// var fileStream = new air.FileStream();
+					// fileStream.open(getFile, air.FileMode.READ);
+					// request.receive(200, fileStream.readUTFBytes(fileStream.bytesAvailable));
+					// fileStream.close();
+				// }
+			// }
+		// };
+		// server.start();
+		
 		$(window).bind('crunch.error', function(ev, e, href) {
 			var activeEl = $("#tabs li.active .messages");
 			var msg = e.message;
@@ -653,10 +660,11 @@ appUpdater.initialize();
 					//paths : [entryPath],
 					//entryPath : entryPath,
 					rootpath: entryPath,
-					relativeUrls: true,
+					relativeUrls: false,
 					filename: el.data('file-less').name
 				}).parse(el.data('editor').getSession().getValue(), function(err, tree) {
-
+					air.trace('Finished parsing...');
+					
 					if(err) {
 						throw err;
 					}
@@ -805,13 +813,13 @@ appUpdater.initialize();
 				var newFile = event.target;
 				if(crunch) {
 					el.data('file-css', newFile);
-					App.paths.css = newFile.parent;
+					App.paths.css = newFile.parent.nativePath;
 					updateOpenFile(el.data('file-less'), el.data('file-css'));
 				} else {
 					el.data('file-less', newFile);
 					el.find('.filename').html(newFile.name);
 					el.find('.tab').attr('title', newFile.nativePath);
-					App.paths.less = newFile.parent;
+					App.paths.less = newFile.parent.nativePath;
 				}
 				updateAppState();
 
@@ -889,8 +897,12 @@ appUpdater.initialize();
 			return tree;
 		}
 
-		function openProject(dir) {
-			App.paths.project = App.paths.less = App.paths.css = dir.nativePath;
+		function openProject(dir, dontInitPaths) {
+			
+			App.paths.project = dir.nativePath;
+			if(!dontInitPaths) {
+				App.paths.less = App.paths.css = dir.nativePath;
+			}
 			addRecentProject(dir);
 			updateAppState();
 			
@@ -934,8 +946,9 @@ appUpdater.initialize();
 			checkValidPaths();
 			
 			if(App.paths.project != "")
-				openProject(Paths.project);
+				openProject(Paths.project, true);
 			$.each(App.openFiles, function(idx, val) {
+				console.log('Open: ' + idx);
 				var $el = openFile(Paths.project.resolvePath(idx));
 				if(val.cssFile) {
 					$el.data('file-css', Paths.project.resolvePath(val.cssFile));
@@ -955,6 +968,48 @@ appUpdater.initialize();
 		function init() {
 			CreateMenus();
 			initAppState();
+			
+			less.env = "production";
+			// Restoring parser function from develop branch (replaces HTTP request)
+
+            less.Parser.importer = function(path, paths, callback, env) {
+					var entryPath = (paths.entryPath && paths.entryPath != "")
+						? paths.entryPath : env.rootpath;
+                    var file = Paths.project.resolvePath(entryPath).resolvePath(path);
+                    console.log(path);
+                    console.log(paths);
+					console.log(entryPath);
+                    console.log(env);
+                    // Adopted from the Node.js implementation
+                    if(file.exists) {
+                            var fileStream = new air.FileStream();
+                            fileStream.open(file, air.FileMode.READ);
+                            var fileData = fileStream.readUTFBytes(fileStream.bytesAvailable);
+                            fileStream.close();
+                      
+                            // Populate a scrollable list of imports. This will rock.
+                            //if(importsEnabled)
+                            //        addSubTab(file, fileData);
+                                    
+                            new (less.Parser)({
+                            	rootpath: env.rootpath,
+								relativeUrls: false,
+                            	filename : file.nativePath
+                            }).parse(fileData, function(e, root) {
+                                    callback(e, root, fileData);
+                            });
+                    } else {
+                            if( typeof (env.errback) === "function") {
+                                    env.errback.call(null, path, paths, callback, env);
+                            } else {
+                                    callback({
+                                            type : 'File',
+                                            message : "'" + file.nativePath + "' wasn't found.\n"
+                                    }, env.rootpath, file.nativePath);
+                            }
+                    }
+
+            };
 			
 			// @losnir: Will serve well every 'checkbox' based pref
 			$('#panel-prefs .panel-body input[type="checkbox"]').on('change', function() {
@@ -1085,12 +1140,12 @@ appUpdater.initialize();
 			$("#findbar input").on("input", function() {
 				findText($(this).val());
 			});
-			$("#dropdowns-outer > div input").live("keydown", jwerty.event('esc', function() {
+			$("#dropdowns-outer > div input").on("keydown", jwerty.event('esc', function() {
 				$(this).parent().siblings(".close").click();
-			})).live("keydown", jwerty.event('ctrl+g', function(e) {
+			})).on("keydown", jwerty.event('ctrl+g', function(e) {
 				e.preventDefault();
 				Commands.gotoLine();
-			})).live("keydown", jwerty.event('ctrl+f', function(e) {
+			})).on("keydown", jwerty.event('ctrl+f', function(e) {
 				e.preventDefault();
 				Commands.Find();
 			}));
