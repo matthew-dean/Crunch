@@ -247,7 +247,6 @@ less.Parser = function Parser(env) {
     }
 
     function getLocation(index, inputStream) {
-		/* Crunch @matthew-dean - sometimes there's nothin' here, man */
 		if(!inputStream) {
 			return {
 				line: 0,
@@ -285,10 +284,7 @@ less.Parser = function Parser(env) {
     }
 
     function LessError(e, env) {
-    	/* Crunch testing */
-    	console.log(e);
-    	console.log(env);
-    	
+  		
         var input = getInput(e, env),
             loc = getLocation(e.index, input),
             line = loc.line,
@@ -341,7 +337,6 @@ less.Parser = function Parser(env) {
 
             // Remove potential UTF Byte Order Mark
             input = input.replace(/^\uFEFF/, '');
-
             parser.imports.contents[env.currentFileInfo.filename] = input;
 
             // Split the input into chunks.
@@ -796,9 +791,8 @@ less.Parser = function Parser(env) {
 
                     /*jshint eqnull:true */
                     return new(tree.URL)((value.value != null || value instanceof tree.Variable)
-                                        /* Crunch; @losnir: We are not really in a browser, so disable url re-writing
-                                        ? value : new(tree.Anonymous)(value), env.currentFileInfo); */
-                                        ? value : new(tree.Anonymous)(value), "");
+                                        ? value : new(tree.Anonymous)(value), env.currentFileInfo); 
+
                 },
 
                 //
@@ -2195,12 +2189,8 @@ tree.functions = {
 
     "data-uri": function(mimetypeNode, filePathNode) {
 
-		/* Crunch - once again, we must patch */
-        // if (typeof window !== 'undefined') {
-            // return new tree.URL(filePathNode || mimetypeNode, this.currentFileInfo).eval(this.env);
-        // }
         if (typeof window !== 'undefined') {
-            return new tree.URL(filePathNode || mimetypeNode, "").eval(this.env);
+            return new tree.URL(filePathNode || mimetypeNode, this.currentFileInfo).eval(this.env);
         }
 
         var mimetype = mimetypeNode.value;
@@ -6519,9 +6509,6 @@ function errorHTML(e, rootHref) {
 }
 
 function error(e, rootHref) {
-    /* Crunch; @losnir: Let's bubble out the errors back to Crunch */
-    $(window).trigger('crunch.error',[e, rootHref]);
-    
     if (!less.errorReporting || less.errorReporting === "html") {
         errorHTML(e, rootHref);
     } else if (less.errorReporting === "console") {
@@ -6631,7 +6618,6 @@ function extractUrlParts(url, baseUrl) {
             }
         }
 
-        /* Crunch; @losnir: Not good! */
         for(i = 0; i < directories.length; i++) {
             if (directories[i] === ".." && i > 0) {
                 directories.splice(i-1, 2);

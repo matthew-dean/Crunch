@@ -395,6 +395,10 @@ else {
 			var editor = ace.edit("editor-" + t);
 			editor.setTheme("ace/theme/crunch");
 			editor.setShowPrintMargin(false);
+			editor.setBehavioursEnabled(false);
+			editor.setDisplayIndentGuides(false);
+			editor.setScrollSpeed(0.5);
+			editor.setShowInvisibles(false);
 			editor.getSession().setMode("ace/mode/less");
 			editor.commands.addCommands([{
 				name : "gotoline",
@@ -562,8 +566,7 @@ else {
 			// }
 		// };
 		// server.start();
-		
-		$(window).bind('crunch.error', function(ev, e, href) {
+		function handleError(ev, e, href) {
 			var activeEl = $("#tabs li.active .messages");
 			var msg = e.message;
 			// Fix line numbers later
@@ -572,8 +575,10 @@ else {
 			//		showMessage(activeEl, e.message + "<br>Filename: " + href
 			//			.replace('app:/' + $('#root').attr('title'),''));
 			showMessage(activeEl, e.message + "<br>Filename: " + href.replace('app://', ''));
-
-		});
+		}
+		less.errorReporting = handleError;
+		$(window).bind('crunch.error', handleError);
+		
 		function showMessage(el, msg) {
 			el.addClass('show').find('.description').html(msg);
 			el.closest('li').data('editor').resize();
@@ -656,20 +661,22 @@ else {
 			var output;
 			try {
 				var entryPath = el.data('file-less').nativePath.replace(/[\w\.-]+$/, '');
+				
 				Parser = new (less.Parser)({
-					//paths : [entryPath],
-					//entryPath : entryPath,
-					rootpath: entryPath,
+					javascriptEnabled: false,
+					//rootpath: entryPath,  -- putting in a rootpath appends to every URL
 					relativeUrls: false,
-					filename: el.data('file-less').name
+					//filename: el.data('file-less').name  -- should be full qualified path
+					filename: el.data('file-less').nativePath // ?
 				}).parse(el.data('editor').getSession().getValue(), function(err, tree) {
-					air.trace('Finished parsing...');
-					
+
 					if(err) {
 						throw err;
 					}
 					output = "/* CSS crunched with Crunch - http://crunchapp.net/ */\n" + tree.toCSS({
-						compress : App.prefs.minify
+						compress : App.prefs.minify,
+						verbose: true,
+                    	//sourceMap: true
 					});
 					//$('#output').val(output);
 					hideMessage(el.find('.messages'));
@@ -972,44 +979,37 @@ else {
 			less.env = "production";
 			// Restoring parser function from develop branch (replaces HTTP request)
 
-            less.Parser.importer = function(path, paths, callback, env) {
+			less.Parser.importer = function(path, paths, callback, env) {
 					var entryPath = (paths.entryPath && paths.entryPath != "")
 						? paths.entryPath : env.rootpath;
-                    var file = Paths.project.resolvePath(entryPath).resolvePath(path);
-                    console.log(path);
-                    console.log(paths);
-					console.log(entryPath);
-                    console.log(env);
-                    // Adopted from the Node.js implementation
-                    if(file.exists) {
-                            var fileStream = new air.FileStream();
-                            fileStream.open(file, air.FileMode.READ);
-                            var fileData = fileStream.readUTFBytes(fileStream.bytesAvailable);
-                            fileStream.close();
-                      
-                            // Populate a scrollable list of imports. This will rock.
-                            //if(importsEnabled)
-                            //        addSubTab(file, fileData);
-                                    
-                            new (less.Parser)({
-                            	rootpath: env.rootpath,
-								relativeUrls: false,
-                            	filename : file.nativePath
-                            }).parse(fileData, function(e, root) {
-                                    callback(e, root, fileData);
-                            });
-                    } else {
-                            if( typeof (env.errback) === "function") {
-                                    env.errback.call(null, path, paths, callback, env);
-                            } else {
-                                    callback({
-                                            type : 'File',
-                                            message : "'" + file.nativePath + "' wasn't found.\n"
-                                    }, env.rootpath, file.nativePath);
-                            }
-                    }
+			        var file = Paths.project.resolvePath(entryPath).resolvePath(path);
 
-            };
+			        // Adopted from the Node.js implementation
+			        if(file.exists) {
+			                var fileStream = new air.FileStream();
+			                fileStream.open(file, air.FileMode.READ);
+			                var fileData = fileStream.readUTFBytes(fileStream.bytesAvailable);
+			                fileStream.close();
+			          
+			                new (less.Parser)({
+			                	//rootpath: env.rootpath,
+								relativeUrls: false,
+			                	filename : file.nativePath
+			                }).parse(fileData, function(e, root) {
+			                        callback(e, root, fileData);
+			                });
+			        } else {
+			                if( typeof (env.errback) === "function") {
+			                        env.errback.call(null, path, paths, callback, env);
+			                } else {
+			                        callback({
+			                                type : 'File',
+			                                message : "'" + file.nativePath + "' wasn't found.\n"
+			                        }, env.rootpath, file.nativePath);
+			                }
+			        }
+			
+			};
 			
 			// @losnir: Will serve well every 'checkbox' based pref
 			$('#panel-prefs .panel-body input[type="checkbox"]').on('change', function() {
