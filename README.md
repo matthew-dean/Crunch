@@ -28,7 +28,7 @@ Testing Crunch
 --------------
 You've fixed something? Great! Now test it. Test on Mac. Test on Windows. Run our nifty little Less-to-CSS test.
 
-*[learn how](tests)*
+*[Learn how](tests)*
 
 Who Is Currently Awesome?
 --------------
