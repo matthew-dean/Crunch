@@ -27,7 +27,7 @@ else {
 			project: air.File.documentsDirectory,
 			css: air.File.documentsDirectory,
 			less: air.File.documentsDirectory
-		}
+		};
 		App = {
 			paths: {
 				project: "",
@@ -116,7 +116,7 @@ else {
 				updateState = true;
 				App.openFiles[file.nativePath] = {
 					rootFile: file.nativePath
-				}
+				};
 			}
 			if(App.recent.files.indexOf(file.nativePath) == -1) {
 				updateState = true;
@@ -628,7 +628,7 @@ else {
 					Crunch.FileMonitor.watch(file);
 					var fileData = stream.readUTFBytes(stream.bytesAvailable);
 				} else {
-					return
+					return;
 				}
 				stream.close();
 
@@ -760,7 +760,7 @@ else {
 					return false;
 				} finally {
 					stream.close();
-					setTimeout(function() { Crunch.FileMonitor.watch(fileSelect) }, 1000);
+					setTimeout(function() { Crunch.FileMonitor.watch(fileSelect); }, 1000);
 				}
 			} catch(err) {
 				alert("I failed in the saving of your glorious creation. Here's why: " + err.message);
@@ -979,36 +979,84 @@ else {
 			less.env = "production";
 			// Restoring parser function from develop branch (replaces HTTP request)
 
-			less.Parser.importer = function(path, paths, callback, env) {
-					var entryPath = (paths.entryPath && paths.entryPath != "")
-						? paths.entryPath : env.rootpath;
-			        var file = Paths.project.resolvePath(entryPath).resolvePath(path);
-
-			        // Adopted from the Node.js implementation
-			        if(file.exists) {
-			                var fileStream = new air.FileStream();
-			                fileStream.open(file, air.FileMode.READ);
-			                var fileData = fileStream.readUTFBytes(fileStream.bytesAvailable);
-			                fileStream.close();
-			          
-			                new (less.Parser)({
-			                	//rootpath: env.rootpath,
-								relativeUrls: false,
-			                	filename : file.nativePath
-			                }).parse(fileData, function(e, root) {
-			                        callback(e, root, fileData);
-			                });
-			        } else {
-			                if( typeof (env.errback) === "function") {
-			                        env.errback.call(null, path, paths, callback, env);
-			                } else {
-			                        callback({
-			                                type : 'File',
-			                                message : "'" + file.nativePath + "' wasn't found.\n"
-			                        }, env.rootpath, file.nativePath);
-			                }
-			        }
+			// less.Parser.fileLoader = function(path, paths, callback, env) {
+					// var entryPath = (paths.entryPath && paths.entryPath != "")
+						// ? paths.entryPath : env.rootpath;
+			        // var file = Paths.project.resolvePath(entryPath).resolvePath(path);
+					// console.log(callback);
+					// console.log(env);
+			        // // Adopted from the Node.js implementation
+			        // if(file.exists) {
+			                // var fileStream = new air.FileStream();
+			                // fileStream.open(file, air.FileMode.READ);
+			                // var fileData = fileStream.readUTFBytes(fileStream.bytesAvailable);
+			                // fileStream.close();
+// 			          
+			                // new (less.Parser)({
+			                	// //rootpath: env.rootpath,
+								// relativeUrls: false,
+			                	// filename : file.nativePath
+			                // }).parse(fileData, function(e, root) {
+			                        // callback(null, fileData, file.nativePath);
+			                // });
+			        // } else {
+	                        // callback({
+	                                // type : 'File',
+	                                // message : "'" + file.nativePath + "' wasn't found.\n"
+	                        // }, env.rootpath, file.nativePath);
+			        // }
+// 			
+			// };
 			
+			less.Parser.fileLoader = function(originalHref, currentFileInfo, callback, env, modifyVars) {
+				
+			    // sheet may be set to the stylesheet for the initial load or a collection of properties including
+			    // some env variables for imports
+	//		    var hrefParts = extractUrlParts(originalHref, window.location.href);
+	//		    var href      = hrefParts.url;
+				
+			    
+			    var entryPath = (currentFileInfo.currentDirectory && currentFileInfo.currentDirectory != "")
+						? currentFileInfo.currentDirectory : currentFileInfo.rootpath;
+			    var file = Paths.project.resolvePath(entryPath).resolvePath(originalHref); // file full URL
+
+			    var href = file.nativePath;
+			    
+			    var newFileInfo = {
+			        currentDirectory: file.parent.nativePath + '/',
+			        filename: file.name
+			    };
+			
+			    if (currentFileInfo) {  // is this sometimes not present? why?
+			        newFileInfo.entryPath = currentFileInfo.entryPath;
+			        newFileInfo.rootpath = currentFileInfo.rootpath;
+			        newFileInfo.rootFilename = currentFileInfo.rootFilename;
+			        newFileInfo.relativeUrls = currentFileInfo.relativeUrls;
+			    } else {
+			        newFileInfo.entryPath = entryPath;
+			        newFileInfo.rootpath = less.rootpath || entryPath;
+			        newFileInfo.rootFilename = href;
+			        newFileInfo.relativeUrls = env.relativeUrls;
+			    }
+			
+				if(file.exists) {
+					var fileStream = new air.FileStream();
+					fileStream.open(file, air.FileMode.READ);
+					var fileData = fileStream.readUTFBytes(fileStream.bytesAvailable);
+					fileStream.close();
+		          
+			        try {
+			            callback(null, fileData, href, newFileInfo, { lastModified: file.modificationDate });
+			        } catch (e) {
+			            callback(e, null, href);
+			        }
+		        } else {
+					callback({
+					        type : 'File',
+					        message : "'" + file.nativePath + "' wasn't found.\n"
+					}, null, href);
+		        }
+				
 			};
 			
 			// @losnir: Will serve well every 'checkbox' based pref
