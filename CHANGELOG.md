@@ -1,3 +1,6 @@
+# 1.8.1
+- Fix for Windows keybinding
+
 # 1.8
 ---
 - LESS.js is now 1.6.0
