@@ -400,7 +400,25 @@ else {
 //			editor.setScrollSpeed(0.5);
 			editor.setShowInvisibles(false);
 			editor.getSession().setMode("ace/mode/less");
+			
+			// wow. much duplication. so hack. such windows.
 			editor.commands.addCommands([{
+				name : "save",   
+				bindKey : {
+					win : "Ctrl-S",
+					mac : "Command-S",
+					sender : "editor"
+				},
+				exec : Commands.save
+			},{
+				name : "saveAs",
+				bindKey : {
+					win : "Ctrl-Shift-S",
+					mac : "Command-Shift-S",
+					sender : "editor"
+				},
+				exec : Commands.saveAs
+			},{
 				name : "crunch",
 				bindKey : {
 					win : "Ctrl-Enter",
