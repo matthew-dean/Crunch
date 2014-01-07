@@ -397,10 +397,18 @@ else {
 			editor.setShowPrintMargin(false);
 			editor.setBehavioursEnabled(false);
 			editor.setDisplayIndentGuides(false);
-			editor.setScrollSpeed(0.5);
+//			editor.setScrollSpeed(0.5);
 			editor.setShowInvisibles(false);
 			editor.getSession().setMode("ace/mode/less");
 			editor.commands.addCommands([{
+				name : "crunch",
+				bindKey : {
+					win : "Ctrl-Enter",
+					mac : "Command-Enter",
+					sender : "editor"
+				},
+				exec : Commands.crunch
+			},{
 				name : "gotoline",
 				bindKey : {
 					win : "Ctrl-G",
@@ -1334,7 +1342,7 @@ else {
 			fileMenu.addItem(new air.NativeMenuItem("", true));
 			
 			addMenuItem(fileMenu, "Save", Commands.save, "s");
-			addMenuItem(fileMenu, "Save As...", Commands.saveAs, "s");
+			addMenuItem(fileMenu, "Save As...", Commands.saveAs, "S");
 
 			fileMenu.addItem(new air.NativeMenuItem("", true));
 			var recentFiles = fileMenu.addSubmenu(new air.NativeMenu(), "Recent Files");
@@ -1475,7 +1483,7 @@ else {
 			openFile : openFile,
 			Parser: Parser,
 			App: App
-		}
+		};
 	}();
 
 	window.Crunch = Crunch;
