@@ -32,14 +32,12 @@ You've fixed something? Great! Now test it. Test on Mac. Test on Windows. Run ou
 
 Who Is Currently Awesome?
 --------------
-Crunch was made by Matt and Matt (although Matt did most of the work). Crunch is now maintained by an awesome team of  Crunch Individuals, or Crunchviduals™. They are:
+Crunch was made by two Matts, named Matt and Matt. Crunch is now maintained by an awesome team of  Crunch Individuals, or Crunchviduals™. They are:
 
 * Matthew Dean
-* Matt Kump
 * Nir Azuelos
 * Michael Norton
 * Andrew Matecha
-* Brandon Labbé
 * Mark Sandhu
 * Romel Dris
 * Mark Campbell
