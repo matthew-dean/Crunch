@@ -37,6 +37,7 @@ Crunch was made by two Matts, named Matt and Matt. Crunch is now maintained by a
 * Matthew Dean
 * Nir Azuelos
 * Michael Norton
+* Brandon Labbé
 * Andrew Matecha
 * Mark Sandhu
 * Romel Dris
