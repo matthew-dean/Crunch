@@ -912,6 +912,14 @@ div.img {
   margin-bottom: 4px;
   display: block;
 }
+h3 {
+  color: #8d471c;
+  font-size: 16px;
+}
+.divider {
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  margin: 12px;
+}
 #leftbar-top {
   background: url("../img/skin2/leftbar-top.png") no-repeat 0 0;
   position: absolute;

@@ -44,7 +44,10 @@ else {
 			prefs: {
 				minify: true,
 				filemonitoring: true,
-				saveOnCrunch: true
+				saveOnCrunch: true,
+				ieCompat: false,
+				strictMath: false,
+				strictUnits: false
 			}
 		};	
         var storedPrefs = air.EncryptedLocalStore.getItem("state");
@@ -703,6 +706,9 @@ else {
 					}
 					output = "/* CSS crunched with Crunch - http://crunchapp.net/ */\n" + tree.toCSS({
 						compress : App.prefs.minify,
+						ieCompat: App.prefs.ieCompat,
+						strictMath: App.prefs.strictMath,
+						strictUnits: App.prefs.strictUnits,
 						verbose: true,
                     	//sourceMap: true
 					});
