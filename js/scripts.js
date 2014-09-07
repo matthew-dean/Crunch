@@ -47,7 +47,8 @@ else {
 				saveOnCrunch: true,
 				ieCompat: false,
 				strictMath: false,
-				strictUnits: false
+				strictUnits: false,
+				openCSSafterCrunch: true
 			}
 		};	
         var storedPrefs = air.EncryptedLocalStore.getItem("state");
@@ -800,7 +801,7 @@ else {
 				alert("I failed in the saving of your glorious creation. Here's why: " + err.message);
 				return false;
 			}
-			if(crunch)
+			if(crunch && App.prefs.openCSSafterCrunch)
 				openFile(fileSelect, true);
 			el.data('saved', true);
 			el.find('.save').hide();
