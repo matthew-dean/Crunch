@@ -1018,3 +1018,50 @@ body.modal .secondary {
 #tab-prefs.active {
   background: url("../img/skin2/sideicon-prefs-active.png") no-repeat center, url("../img/skin2/sideicon-activebg.png") no-repeat;
 }
+/* Introduce Crunch2 style concepts? */
+#wrapper {
+  left: 63px;
+}
+.panel-body {
+  background: #f2f0ed;
+}
+#panel-prefs span {
+  padding-left: 2px;
+}
+#leftbar {
+  background: #525252;
+  width: 63px;
+}
+#leftbar-top {
+  background: #525252 url(../img/ico/crunch-icon_48.png) no-repeat center;
+  width: 63px;
+}
+#info,
+#help {
+  margin-left: 3px;
+}
+#actions {
+  margin-left: 6px;
+}
+#tabs li.active a.tab {
+  background: #edece8 !important;
+}
+#tab-project,
+#tab-prefs {
+  border-radius: 3px 0 0 3px;
+}
+#tab-project {
+  background-position: 37% 50% !important;
+}
+#tab-project.active {
+  background: #f2f0ed url("../img/skin2/sideicon-project-active.png") no-repeat center;
+}
+#tab-prefs {
+  background-position: 37% 50% !important;
+}
+#tab-prefs.active {
+  background: #f2f0ed url("../img/skin2/sideicon-prefs-active.png") no-repeat center;
+}
+#tabs .ace_gutter {
+  color: rgba(100, 86, 74, 0.7);
+}
