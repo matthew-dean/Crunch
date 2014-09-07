@@ -663,6 +663,8 @@ else {
 				else
 					el = newTab(false);
 				el.find('.filename').html(file.name);
+				
+
 				el.data('editor').getSession().setValue(fileData);
 
 				el.data('saved', true);

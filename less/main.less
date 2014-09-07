@@ -3,14 +3,14 @@ form { display: inline; }
 html { height: 100%; }
 body {
 	background-color: #EEE;
-	font-family: Quicksand, sans-serif;
+	.font1;
 	font-weight: 700;
 	font-size: 13.2px;
 	min-width: 600px;
 	min-height: 200px;
 	/*text-rendering: optimizeLegibility; */
 	margin: 0; padding: 0;
-	letter-spacing: -0.05em;
+	/* letter-spacing: -0.05em; */
 	overflow: hidden;
 	/* border: 1px solid #686868; */
 	position: relative;
@@ -21,19 +21,19 @@ h1 {
 	color: #6a5a4c;
 	font-size: 31px;
 	margin-top: 0;
-	letter-spacing: -0.06em;
+	/* letter-spacing: -0.06em; */
 }
 a, button { cursor:default !important; }
 h2 {
 	color: #6a5a4c;
 	font-size: 23px;
 	margin-top: 0;
-	letter-spacing: -0.06em;
+	/* letter-spacing: -0.06em; */
 }
 h3 {
 	color: #807540;
 	font-size: 17px;
-	font-family: Quicksand, sans-serif;
+	.font1;
 	margin-top: 0;
 	margin-bottom: 5px;
 }
@@ -111,8 +111,8 @@ body.modal {
 	margin: 0;
 	padding: 0;
 	list-style-type: none;
-	font-family: "Lucida Grande", "Lucida Sans Unicode", "Lucida Sans", Verdana, sans-serif;
-	font-size: 11px;
+	.font1;
+	font-size: 12px;
 	letter-spacing: 0;
 	font-weight: normal;
 }
@@ -381,7 +381,7 @@ body.modal {
 	right: 0;
 	display: none;
 }
-.editor, #editor-bg, #splash { 
+.editor.ace_editor, #editor-bg, #splash { 
 	position: absolute;
 	top: 49px;
 	left: 0;
@@ -389,7 +389,10 @@ body.modal {
 	right: 0;
 	border-top: 1px solid #ffffff;
 }
-.editor { left: 1px; top: 51px; }
+.editor.ace_editor { 
+    left: 1px; top: 51px; 
+    background: transparent;
+}
 #splash {
 	padding: 33px 33px 10px 89px;
 	overflow: auto;
@@ -448,7 +451,7 @@ body.modal {
 	color: #817641;
     line-height: 1;
 }
-.messages .description { font-family: Ubuntu, "Courier New", Courier, monospace; font-size: 12px; font-weight: normal;}
+.messages .description { .font2; font-size: 12px; font-weight: normal;}
 .messages.show { display: block; }
 
 #tabs li:first-child { display: none; }
@@ -531,7 +534,7 @@ button, div.drop {
 	vertical-align: middle;
 	-webkit-box-sizing: border-box; /* Safari/Chrome, other WebKit */
 	box-sizing: border-box;  
-	letter-spacing: -0.06em;
+	/* letter-spacing: -0.06em; */
 }
 
 button.primary {
@@ -670,7 +673,7 @@ button.primary span, div.drop span {
 	height: 27px;
 	vertical-align: middle;
 	position: relative;
-	-webkit-transition: top 0.3s ease;
+	-webkit-transition: -webkit-transform 0.15s ease;
 	font-size: 12px;
 	color: rgb(141,71,28);
 	text-shadow: 0 1px 0 rgba(255,255,255,0.43);
@@ -706,17 +709,26 @@ button.primary span, div.drop span {
 }
 #help { width: 58px; background-position: 13px -42px; height: 35px; margin: 10px 0;}
 #toolbar #convert {
-	background: url(../img/skin2/crunchit_t_text.png) no-repeat;
+	background: url(../img/skin2/crunchit_t_notext.png) no-repeat;
 	width: 117px;
 	height: 26px;
 	background-position: center;
 	position: absolute;
 	right: 20px;
-	top: 0;
+    -webkit-transform: translateX(-1);
     opacity: 0.85;
+    color: white; 
+    span {
+        opacity: 0.85;
+        text-shadow: 0 -1px 0 rgba(0,0,0,0.43);
+        font-size: 14px;
+        padding-left: 15px;
+        position: relative;
+        top: -2px;
+    }
 }
 #wrapper #toolbar #convert[disabled] { background-position: top; opacity: 0.2; }
-#toolbar #convert:hover { background-position: bottom; opacity: 1;}
+#toolbar #convert:hover { background-position: bottom; opacity: 1; -webkit-transform: translateX(0);}
 
 /* #new-file:hover { background-position: 0 100%; } */
 #open-file { background-image: url(../img/skin2/toolbar-icons.png); width: 31px; background-position: -23px 5px;}
@@ -737,11 +749,12 @@ button.primary span, div.drop span {
 
 #tabs .editor {
 	line-height: 20px;
-	font-family: Ubuntu, "Courier New", Courier, monospace;
+	.font2;
 	font-weight: normal;
 	letter-spacing: 0;
 	font-size: 14px;
-	color: #7a7974;
+	/* color: #7a7974; */
+	color: darken(#b7602a,10%);
 	text-shadow: 0 1px 0 rgba(255,255,255,0.43);
 }
 #tabs .ace_gutter {
