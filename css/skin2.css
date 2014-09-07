@@ -335,8 +335,8 @@ body.modal {
   background-color: rgba(141, 71, 28, 0.8);
   position: absolute;
   top: 4px;
-  height: 12px;
-  padding: 5px 6px;
+  height: 13px;
+  padding: 7px 6px;
   width: 8px;
   -webkit-box-sizing: content-box;
   box-sizing: content-box;
@@ -356,7 +356,6 @@ body.modal {
 #arrow-left {
   /*	-webkit-box-shadow: 1px 0 3px rgba(0,0,0,0.2), inset 0 1px 0 rgba(0,0,0,0.5); */
   border-right: 1px solid rgba(215, 146, 104, 0.8);
-  border-bottom: 1px solid #946f58;
   border-left: 1px solid #946f58;
   left: 0;
   padding-left: 7px;
@@ -364,7 +363,6 @@ body.modal {
 #arrow-right {
   /*	-webkit-box-shadow: -1px 0 3px rgba(0,0,0,0.2), inset 0 1px 0 rgba(0,0,0,0.5); */
   border-left: 1px solid rgba(215, 146, 104, 0.8);
-  border-bottom: 1px solid #946f58;
   right: 0;
   padding-right: 7px;
 }
@@ -374,7 +372,7 @@ body.modal {
 #dropdowns-outer {
   position: absolute;
   right: 21px;
-  top: 50px;
+  top: 31px;
   width: 260px;
   height: 33px;
   overflow: hidden;
@@ -464,15 +462,15 @@ body.modal {
 #editor-bg,
 #splash {
   position: absolute;
-  top: 49px;
+  top: 31px;
   left: 0;
   bottom: -4px;
   right: 0;
-  border-top: 1px solid #ffffff;
+  /* border-top: 1px solid #ffffff; */
 }
 .editor.ace_editor {
   left: 1px;
-  top: 51px;
+  top: 31px;
   background: transparent;
 }
 #splash {
@@ -513,7 +511,7 @@ body.modal {
 	);
 	background-size: 54px 100%;
 	background-repeat: repeat-y; */
-  background: #f9f8f5 url(../img/skin2/editor-left-repeat.png) repeat-y left;
+  background: #f9f8f5 url(../img/skin2/editor-left-repeat2.png) repeat-y left;
   background-position: 0px 0;
 }
 .messages.show + .editor {
@@ -561,7 +559,7 @@ body.modal {
   white-space: nowrap;
   display: block;
   overflow: hidden;
-  line-height: 27px;
+  line-height: 32px;
   /*	display: table; */
 }
 #tabs .messages {
@@ -586,9 +584,9 @@ a.new {
   background-color: rgba(192, 155, 132, 0.8);
   position: relative;
   top: 2px;
-  padding: 5px 28px 5px 10px;
+  padding: 8px 28px 5px 10px;
   font-size: 13.2px;
-  height: 13px;
+  height: 14px;
   line-height: 12px;
   text-decoration: none;
   color: #22212b;
@@ -597,8 +595,9 @@ a.new {
   background-image: url(../img/skin2/plus-button.png);
   background-repeat: no-repeat;
   background-position: center;
-  padding: 5px 10px;
+  padding: 7px 10px 6px;
   /*left: -2px; */
+  top: 1px;
 }
 a.tab.other {
   background: rgba(141, 71, 28, 0.8);
@@ -629,12 +628,12 @@ a.tab.other:hover {
   background: #8d471c;
 }
 #tabs li.active a.tab {
-  background: #e7e2de !important;
+  background: #f9f8f5 !important;
   -webkit-box-shadow: 0 1px 1px rgba(255, 255, 255, 0.5);
   position: relative;
-  top: 0;
+  top: -1px;
   border-radius: 5px 5px 0 0;
-  padding: 7px 28px 7px 10px;
+  padding: 8px 28px 8px 10px;
 }
 li.active a.tab.other {
   color: #8d471c !important;
@@ -959,6 +958,7 @@ li {
   left: 0;
   right: 0;
   border-left: 1px solid #bb9f8a;
+  display: none;
 }
 .modal .primary,
 .modal .secondary {
