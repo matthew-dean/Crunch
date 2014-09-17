@@ -12,6 +12,7 @@ else {
 
 (function($) {
 
+
 	var Crunch = function() {
 		var Parser;
 		var pendingClose = false;
@@ -403,6 +404,7 @@ else {
 			editor.setDisplayIndentGuides(false);
 //			editor.setScrollSpeed(0.5);
 			editor.setShowInvisibles(false);
+
 			editor.getSession().setMode("ace/mode/less");
 			
 			// wow. much duplication. so hack. such windows.
@@ -624,7 +626,7 @@ else {
 				file = new air.File(file);
 
 			// For now, only open CSS and LESS files.
-			if(!file.nativePath.match(/\.(less|css)$/i))
+			if(!App.pro && !file.nativePath.match(/\.(less|css)$/i))
 				return;
 			// Wait a tick, what if it's already open?
 			var found = false;
@@ -667,7 +669,10 @@ else {
 				else
 					el = newTab(false);
 				el.find('.filename').html(file.name);
-				
+
+				var modelist = ace.require("ace/ext/modelist");
+				var mode = modelist.getModeForPath(file.nativePath).mode;
+				el.data('editor').getSession().setMode(mode);
 
 				el.data('editor').getSession().setValue(fileData);
 
@@ -868,8 +873,12 @@ else {
 				saveFile(el, crunch, false, true);
 
 				if(closeAfterSave) {
-					//closeAfterSave.close();
 					closeTab(el);
+				}
+				else {
+					var modelist = ace.require("ace/ext/modelist");
+					var mode = modelist.getModeForPath(newFile.nativePath).mode;
+					el.data('editor').getSession().setMode(mode);
 				}
 			}
 
@@ -1010,7 +1019,9 @@ else {
 		function init() {
 			CreateMenus();
 			initAppState();
-			
+			if(App.pro) {
+				$('body').addClass('pro');
+			}
 			less.env = "production";
 			// Restoring parser function from develop branch (replaces HTTP request)
 
@@ -1501,6 +1512,21 @@ else {
 				}
 			}
 			return null;
+		}
+		
+		cheet('↑ ↑ ↓ ↓ ← → ← → b a', function () {
+			if(!App.pro) {
+				App.pro = true;
+				updateAppState();
+				alert('ACHIEVEMENT UNLOCKED!');	
+				$('body').addClass('godmode pro');
+			}
+			else {
+				App.pro = false;
+				updateAppState();
+				alert('ACHIEVEMENT UN-UNLOCKED!');	
+				$('body').removeClass('godmode pro');
+			}
 		}
 
 		return {

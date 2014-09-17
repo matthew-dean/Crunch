@@ -1,11 +1,11 @@
-define("ace/mode/less_highlight_rules",["require","exports","module","ace/lib/oop","ace/lib/lang","ace/mode/text_highlight_rules"], function(require, exports, module) {
+define("ace/mode/scss_highlight_rules",["require","exports","module","ace/lib/oop","ace/lib/lang","ace/mode/text_highlight_rules"], function(require, exports, module) {
 "use strict";
 
 var oop = require("../lib/oop");
 var lang = require("../lib/lang");
 var TextHighlightRules = require("./text_highlight_rules").TextHighlightRules;
 
-var LessHighlightRules = function() {
+var ScssHighlightRules = function() {
     
     var properties = lang.arrayToMap( (function () {
 
@@ -36,8 +36,8 @@ var LessHighlightRules = function() {
             "border-color|border-left-color|border-left-style|border-left-width|" +
             "border-left|border-right-color|border-right-style|border-right-width|" +
             "border-right|border-spacing|border-style|border-top-color|" +
-            "border-top-style|border-top-width|border-top|border-width|border|" +
-            "bottom|box-sizing|caption-side|clear|clip|color|content|counter-increment|" +
+            "border-top-style|border-top-width|border-top|border-width|border|bottom|" +
+            "box-shadow|box-sizing|caption-side|clear|clip|color|content|counter-increment|" +
             "counter-reset|cue-after|cue-before|cue|cursor|direction|display|" +
             "elevation|empty-cells|float|font-family|font-size-adjust|font-size|" +
             "font-stretch|font-style|font-variant|font-weight|font|height|left|" +
@@ -71,10 +71,11 @@ var LessHighlightRules = function() {
 
 
     var functions = lang.arrayToMap(
-        ("hsl|hsla|rgb|rgba|url|attr|counter|counters|lighten|darken|saturate|" +
-        "desaturate|fadein|fadeout|fade|spin|mix|hue|saturation|lightness|" +
-        "alpha|round|ceil|floor|percentage|color|iscolor|isnumber|isstring|" +
-        "iskeyword|isurl|ispixel|ispercentage|isem").split("|")
+        ("hsl|hsla|rgb|rgba|url|attr|counter|counters|abs|adjust_color|adjust_hue|" +
+         "alpha|join|blue|ceil|change_color|comparable|complement|darken|desaturate|" + 
+         "floor|grayscale|green|hue|if|invert|join|length|lighten|lightness|mix|" + 
+         "nth|opacify|opacity|percentage|quote|red|round|saturate|saturation|" +
+         "scale_color|transparentize|type_of|unit|unitless|unqoute").split("|")
     );
 
     var constants = lang.arrayToMap(
@@ -107,10 +108,8 @@ var LessHighlightRules = function() {
     );
     
     var keywords = lang.arrayToMap(
-        ("@mixin|@extend|@include|@import|@media|@debug|@warn|@if|@for|@each|" +
-        "@while|@else|@font-face|@-webkit-keyframes|if|and|!default|module|" +
-        "def|end|declare|when|not|and").split("|")
-    );
+        ("@mixin|@extend|@include|@import|@media|@debug|@warn|@if|@for|@each|@while|@else|@font-face|@-webkit-keyframes|if|and|!default|module|def|end|declare").split("|")
+    )
     
     var tags = lang.arrayToMap(
         ("a|abbr|acronym|address|applet|area|article|aside|audio|b|base|basefont|bdo|" + 
@@ -140,8 +139,16 @@ var LessHighlightRules = function() {
                 token : "string", // single line
                 regex : '["](?:(?:\\\\.)|(?:[^"\\\\]))*?["]'
             }, {
+                token : "string", // multi line string start
+                regex : '["].*\\\\$',
+                next : "qqstring"
+            }, {
                 token : "string", // single line
                 regex : "['](?:(?:\\\\.)|(?:[^'\\\\]))*?[']"
+            }, {
+                token : "string", // multi line string start
+                regex : "['].*\\\\$",
+                next : "qstring"
             }, {
                 token : "constant.numeric",
                 regex : numRe + "(?:em|ex|px|cm|mm|in|pt|pc|deg|rad|grad|ms|s|hz|khz|%)"
@@ -155,18 +162,13 @@ var LessHighlightRules = function() {
                 token : "constant.numeric",
                 regex : numRe
             }, {
-                token : function(value) {
-                    if (keywords.hasOwnProperty(value))
-                        return "keyword";
-                    else
-                        return "variable";
-                },
-                regex : "@[a-z0-9_\\-@]*\\b"
+                token : ["support.function", "string", "support.function"],
+                regex : "(url\\()(.*)(\\))"
             }, {
                 token : function(value) {
                     if (properties.hasOwnProperty(value.toLowerCase()))
                         return "support.type";
-                    else if (keywords.hasOwnProperty(value))
+                    if (keywords.hasOwnProperty(value))
                         return "keyword";
                     else if (constants.hasOwnProperty(value))
                         return "constant.language";
@@ -180,6 +182,9 @@ var LessHighlightRules = function() {
                         return "text";
                 },
                 regex : "\\-?[@a-z_][@a-z0-9_\\-]*"
+            }, {
+                token : "variable",
+                regex : "[a-z_\\-$][a-z0-9_\\-$]*\\b"
             }, {
                 token: "variable.language",
                 regex: "#[a-z0-9-_]+"
@@ -217,13 +222,33 @@ var LessHighlightRules = function() {
                 token : "comment", // comment spanning whole line
                 regex : ".+"
             }
+        ],
+        "qqstring" : [
+            {
+                token : "string",
+                regex : '(?:(?:\\\\.)|(?:[^"\\\\]))*?"',
+                next : "start"
+            }, {
+                token : "string",
+                regex : '.+'
+            }
+        ],
+        "qstring" : [
+            {
+                token : "string",
+                regex : "(?:(?:\\\\.)|(?:[^'\\\\]))*?'",
+                next : "start"
+            }, {
+                token : "string",
+                regex : '.+'
+            }
         ]
     };
 };
 
-oop.inherits(LessHighlightRules, TextHighlightRules);
+oop.inherits(ScssHighlightRules, TextHighlightRules);
 
-exports.LessHighlightRules = LessHighlightRules;
+exports.ScssHighlightRules = ScssHighlightRules;
 
 });
 
@@ -799,18 +824,18 @@ oop.inherits(FoldMode, BaseFoldMode);
 
 });
 
-define("ace/mode/less",["require","exports","module","ace/lib/oop","ace/mode/text","ace/mode/less_highlight_rules","ace/mode/matching_brace_outdent","ace/mode/behaviour/css","ace/mode/folding/cstyle"], function(require, exports, module) {
+define("ace/mode/scss",["require","exports","module","ace/lib/oop","ace/mode/text","ace/mode/scss_highlight_rules","ace/mode/matching_brace_outdent","ace/mode/behaviour/css","ace/mode/folding/cstyle"], function(require, exports, module) {
 "use strict";
 
 var oop = require("../lib/oop");
 var TextMode = require("./text").Mode;
-var LessHighlightRules = require("./less_highlight_rules").LessHighlightRules;
+var ScssHighlightRules = require("./scss_highlight_rules").ScssHighlightRules;
 var MatchingBraceOutdent = require("./matching_brace_outdent").MatchingBraceOutdent;
 var CssBehaviour = require("./behaviour/css").CssBehaviour;
 var CStyleFoldMode = require("./folding/cstyle").FoldMode;
 
 var Mode = function() {
-    this.HighlightRules = LessHighlightRules;
+    this.HighlightRules = ScssHighlightRules;
     this.$outdent = new MatchingBraceOutdent();
     this.$behaviour = new CssBehaviour();
     this.foldingRules = new CStyleFoldMode();
@@ -818,10 +843,10 @@ var Mode = function() {
 oop.inherits(Mode, TextMode);
 
 (function() {
-
+   
     this.lineCommentStart = "//";
     this.blockComment = {start: "/*", end: "*/"};
-    
+
     this.getNextLineIndent = function(state, line, tab) {
         var indent = this.$getIndent(line);
         var tokens = this.getTokenizer().getLineTokens(line, state).tokens;
@@ -845,7 +870,7 @@ oop.inherits(Mode, TextMode);
         this.$outdent.autoOutdent(doc, row);
     };
 
-    this.$id = "ace/mode/less";
+    this.$id = "ace/mode/scss";
 }).call(Mode.prototype);
 
 exports.Mode = Mode;

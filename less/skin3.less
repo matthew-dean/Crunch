@@ -1,13 +1,13 @@
 /* Introduce Crunch2 style concepts? */
 //@panelBody: lighten(#666462,50%);
-@panelBody: #f2f0ed;
+@panelBody: lighten(#f2f0ed,10%);
 #wrapper {
     left: 63px;
 }
 .panel-body {
     // background: lighten(#666462,50%);
     background: @panelBody;
-    //color: #999693;
+    color: #525252;
 }
 #panel-prefs span {
     padding-left: 2px;
@@ -20,6 +20,9 @@
 #leftbar-top {
     background: #525252 url(../img/ico/crunch-icon_48.png) no-repeat center;
     width: 63px;
+    .godmode & {
+        background: #525252 url(../img/skin2/guys.gif) no-repeat left top;
+    }
 }
 #info, #help {
     margin-left: 3px;
