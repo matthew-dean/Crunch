@@ -19,6 +19,7 @@ else {
 		var scrollWidth = 100;
 		var selectedTab = null;
 		var tabMenu = null;
+		var modelist = ace.require("ace/ext/modelist");
 
 		var isPlatformMac = navigator.platform.indexOf('Mac') > -1;
 		// Get stored state
@@ -624,10 +625,11 @@ else {
 		function openFile(file, silent) {
 			if(!file.nativePath)
 				file = new air.File(file);
-
+			
 			// For now, only open CSS and LESS files.
 			if(!App.pro && !file.nativePath.match(/\.(less|css)$/i))
 				return;
+			
 			// Wait a tick, what if it's already open?
 			var found = false;
 			var el = null;
@@ -662,7 +664,7 @@ else {
 				} else {
 					return;
 				}
-				stream.close();
+				stream.close(); 
 
 				if(silent)
 					el = newTab(false, $("#tabs li.t.active"));
@@ -670,9 +672,10 @@ else {
 					el = newTab(false);
 				el.find('.filename').html(file.name);
 
-				var modelist = ace.require("ace/ext/modelist");
-				var mode = modelist.getModeForPath(file.nativePath).mode;
-				el.data('editor').getSession().setMode(mode);
+				if(!file.nativePath.match(/\.(less|css)$/i)) {
+					var mode = modelist.getModeForPath(file.nativePath).mode;
+					el.data('editor').getSession().setMode(mode);
+				}
 
 				el.data('editor').getSession().setValue(fileData);
 
@@ -876,9 +879,10 @@ else {
 					closeTab(el);
 				}
 				else {
-					var modelist = ace.require("ace/ext/modelist");
-					var mode = modelist.getModeForPath(newFile.nativePath).mode;
-					el.data('editor').getSession().setMode(mode);
+					if(!newFile.nativePath.match(/\.(less|css)$/i)) {
+						var mode = modelist.getModeForPath(newFile.nativePath).mode;
+						el.data('editor').getSession().setMode(mode);
+					}
 				}
 			}
 
@@ -1252,10 +1256,10 @@ else {
 					$target = $target.parent();
 				if($target.is("li")) {
 					var title = $target.attr('title');
-					if(title.match(/\.(less|css)$/i)) {
-						var fileToOpen = new air.File(title);
-						openFile(fileToOpen);
-					}
+					//if(title.match(/\.(less|css)$/i)) {
+					var fileToOpen = new air.File(title);
+					openFile(fileToOpen);
+					//}
 				}
 			});
 			$('.new-less').click(Commands.newLess);
@@ -1527,7 +1531,7 @@ else {
 				alert('ACHIEVEMENT UN-UNLOCKED!');	
 				$('body').removeClass('godmode pro');
 			}
-		}
+		});
 
 		return {
 			init : init,

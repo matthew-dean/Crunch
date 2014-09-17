@@ -1,13 +1,16 @@
 /* Introduce Crunch2 style concepts? */
 //@panelBody: lighten(#666462,50%);
-@panelBody: lighten(#f2f0ed,10%);
+@panelBody: darken(#f2f0ed,2%);
 #wrapper {
     left: 63px;
 }
 .panel-body {
     // background: lighten(#666462,50%);
     background: @panelBody;
-    color: #525252;
+//    color: #525252;
+}
+#tabs .editor {
+    color: fadeout(lighten(rgb(60, 76, 114), 5%),5%);
 }
 #panel-prefs span {
     padding-left: 2px;

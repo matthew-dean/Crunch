@@ -205,6 +205,9 @@ body.modal {
 #root .file > a {
   opacity: 0.5;
 }
+.pro #root .file > a {
+  opacity: 1;
+}
 #root .file.css > a {
   opacity: 1;
 }
@@ -877,7 +880,6 @@ div.img {
   letter-spacing: 0;
   font-size: 14px;
   /* color: #7a7974; */
-  color: #8e4a20;
   text-shadow: 0 1px 0 rgba(255, 255, 255, 0.43);
 }
 #tabs .ace_gutter {
@@ -1023,7 +1025,10 @@ body.modal .secondary {
   left: 63px;
 }
 .panel-body {
-  background: #f2f0ed;
+  background: #eeebe7;
+}
+#tabs .editor {
+  color: rgba(69, 87, 131, 0.95);
 }
 #panel-prefs span {
   padding-left: 2px;
@@ -1035,6 +1040,9 @@ body.modal .secondary {
 #leftbar-top {
   background: #525252 url(../img/ico/crunch-icon_48.png) no-repeat center;
   width: 63px;
+}
+.godmode #leftbar-top {
+  background: #525252 url(../img/skin2/guys.gif) no-repeat left top;
 }
 #info,
 #help {
@@ -1051,13 +1059,13 @@ body.modal .secondary {
   background-position: 37% 50% !important;
 }
 #tab-project.active {
-  background: #f2f0ed url("../img/skin2/sideicon-project-active.png") no-repeat center;
+  background: #eeebe7 url("../img/skin2/sideicon-project-active.png") no-repeat center;
 }
 #tab-prefs {
   background-position: 37% 50% !important;
 }
 #tab-prefs.active {
-  background: #f2f0ed url("../img/skin2/sideicon-prefs-active.png") no-repeat center;
+  background: #eeebe7 url("../img/skin2/sideicon-prefs-active.png") no-repeat center;
 }
 #tabs .ace_gutter {
   color: rgba(100, 86, 74, 0.7);

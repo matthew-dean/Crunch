@@ -1,4 +1,6 @@
 /* @import url(scrollbar.css); */ 
+@editorBG: lighten(#f9f8f5,0%);
+
 form { display: inline; }
 html { height: 100%; }
 body {
@@ -436,7 +438,7 @@ body.modal {
 	);
 	background-size: 54px 100%;
 	background-repeat: repeat-y; */
-	background: #f9f8f5 url(../img/skin2/editor-left-repeat2.png) repeat-y left;
+	background: @editorBG url(../img/skin2/editor-left-repeat2.png) repeat-y left;
 	//background: #f9f8f5;
 	background-position: 0px 0;
 }
@@ -520,7 +522,7 @@ a.tab:hover, a.new:hover { background-color: rgba(192,155,132,1); }
 a.tab.other:hover { background: rgba(141,71,28,1); }
 #tabs li.active a.tab { 
 	//background: #e7e2de !important; 
-	background: #f9f8f5 !important; 
+	background: @editorBG !important; 
 	-webkit-box-shadow: 0 1px 1px rgba(255,255,255,0.5);
 	position: relative;
 	top: -1px;
@@ -763,7 +765,7 @@ button.primary span, div.drop span {
 	letter-spacing: 0;
 	font-size: 14px;
 	/* color: #7a7974; */
-	color: darken(#b7602a,10%);
+	//color: darken(#b7602a,10%);
 	text-shadow: 0 1px 0 rgba(255,255,255,0.43);
 }
 #tabs .ace_gutter {
