@@ -3,7 +3,7 @@ appUpdater.configurationFile = new air.File("app:/updateConfig.xml");
 appUpdater.initialize();
 
 if(air.Introspector && air.Introspector.Console) {
-	console = air.Introspector.Console;
+	console = air.Introspector.Console; 
 }
 else {
 	console = {};
@@ -1132,7 +1132,22 @@ else {
 				
 			$(window).on('crunch.filechanged', function(e, file) {
 				nativeWindow.activate();
-				openWindow('win/reload.html?' + encodeURIComponent(file.name) + '#' + encodeURIComponent(file.nativePath), 520, 225, true);
+				 
+				$("#tabs li.t").each(function() {
+					var $this = $(this);
+					if($this.data('file-less') && ($this.data('file-less').nativePath == file.nativePath)) {
+
+						if($this.data('saved'))
+							openFile(file);
+						else {
+							// TODO: Check to see if this file is already open
+							openWindow('win/reload.html?' + encodeURIComponent(file.name) + '#' + encodeURIComponent(file.nativePath), 520, 225, true);
+						}
+						return;
+					}
+				});
+
+				
 			});
 			$("#container > table").colResizable({
 				minWidth : 215,
