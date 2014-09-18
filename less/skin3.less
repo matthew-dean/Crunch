@@ -1,0 +1,59 @@
+/* Introduce Crunch2 style concepts? */
+//@panelBody: lighten(#666462,50%);
+@panelBody: darken(#f2f0ed,2%);
+#wrapper {
+    left: 63px;
+}
+.panel-body {
+    // background: lighten(#666462,50%);
+    background: @panelBody;
+//    color: #525252;
+}
+#tabs .editor {
+    color: fadeout(lighten(rgb(60, 76, 114), 5%),5%);
+}
+#panel-prefs span {
+    padding-left: 2px;
+}
+#leftbar {
+    //background: #4c5053;
+    background: #525252;
+    width: 63px;
+}
+#leftbar-top {
+    background: #525252 url(../img/ico/crunch-icon_48.png) no-repeat center;
+    width: 63px;
+    .godmode & {
+        background: #525252 url(../img/skin2/guys.gif) no-repeat left top;
+    }
+}
+#info, #help {
+    margin-left: 3px;
+}
+#actions {
+    margin-left: 6px;
+}
+#editor-bg {
+    // background: #edece8;
+}
+#tabs li.active a.tab { 
+//	background: #edece8 !important; 
+}
+#tab-project, #tab-prefs {
+    border-radius: 3px 0 0 3px;
+}
+#tab-project {
+    &.active {
+        background: @panelBody url("../img/skin2/sideicon-project-active.png") no-repeat center;
+    }
+    background-position: 37% 50% !important;
+}
+#tab-prefs {
+    &.active {
+        background: @panelBody url("../img/skin2/sideicon-prefs-active.png") no-repeat center;    
+    }
+    background-position: 37% 50% !important;
+}
+#tabs .ace_gutter { 
+    color: fadeout(#64564a,30%);   
+}

@@ -3,7 +3,7 @@ appUpdater.configurationFile = new air.File("app:/updateConfig.xml");
 appUpdater.initialize();
 
 if(air.Introspector && air.Introspector.Console) {
-	console = air.Introspector.Console;
+	console = air.Introspector.Console; 
 }
 else {
 	console = {};
@@ -12,12 +12,14 @@ else {
 
 (function($) {
 
+
 	var Crunch = function() {
 		var Parser;
 		var pendingClose = false;
 		var scrollWidth = 100;
 		var selectedTab = null;
 		var tabMenu = null;
+		var modelist = ace.require("ace/ext/modelist");
 
 		var isPlatformMac = navigator.platform.indexOf('Mac') > -1;
 		// Get stored state
@@ -44,7 +46,11 @@ else {
 			prefs: {
 				minify: true,
 				filemonitoring: true,
-				saveOnCrunch: true
+				saveOnCrunch: true,
+				ieCompat: false,
+				strictMath: false,
+				strictUnits: false,
+				openCSSafterCrunch: true
 			}
 		};	
         var storedPrefs = air.EncryptedLocalStore.getItem("state");
@@ -399,6 +405,7 @@ else {
 			editor.setDisplayIndentGuides(false);
 //			editor.setScrollSpeed(0.5);
 			editor.setShowInvisibles(false);
+
 			editor.getSession().setMode("ace/mode/less");
 			
 			// wow. much duplication. so hack. such windows.
@@ -618,10 +625,11 @@ else {
 		function openFile(file, silent) {
 			if(!file.nativePath)
 				file = new air.File(file);
-
+			
 			// For now, only open CSS and LESS files.
-			if(!file.nativePath.match(/\.(less|css)$/i))
+			if(!App.pro && !file.nativePath.match(/\.(less|css)$/i))
 				return;
+			
 			// Wait a tick, what if it's already open?
 			var found = false;
 			var el = null;
@@ -656,13 +664,19 @@ else {
 				} else {
 					return;
 				}
-				stream.close();
+				stream.close(); 
 
 				if(silent)
 					el = newTab(false, $("#tabs li.t.active"));
 				else
 					el = newTab(false);
 				el.find('.filename').html(file.name);
+
+				if(!file.nativePath.match(/\.(less|css)$/i)) {
+					var mode = modelist.getModeForPath(file.nativePath).mode;
+					el.data('editor').getSession().setMode(mode);
+				}
+
 				el.data('editor').getSession().setValue(fileData);
 
 				el.data('saved', true);
@@ -701,6 +715,9 @@ else {
 					}
 					output = "/* CSS crunched with Crunch - http://crunchapp.net/ */\n" + tree.toCSS({
 						compress : App.prefs.minify,
+						ieCompat: App.prefs.ieCompat,
+						strictMath: App.prefs.strictMath,
+						strictUnits: App.prefs.strictUnits,
 						verbose: true,
                     	//sourceMap: true
 					});
@@ -792,7 +809,7 @@ else {
 				alert("I failed in the saving of your glorious creation. Here's why: " + err.message);
 				return false;
 			}
-			if(crunch)
+			if(crunch && App.prefs.openCSSafterCrunch)
 				openFile(fileSelect, true);
 			el.data('saved', true);
 			el.find('.save').hide();
@@ -859,8 +876,13 @@ else {
 				saveFile(el, crunch, false, true);
 
 				if(closeAfterSave) {
-					//closeAfterSave.close();
 					closeTab(el);
+				}
+				else {
+					if(!newFile.nativePath.match(/\.(less|css)$/i)) {
+						var mode = modelist.getModeForPath(newFile.nativePath).mode;
+						el.data('editor').getSession().setMode(mode);
+					}
 				}
 			}
 
@@ -1001,7 +1023,9 @@ else {
 		function init() {
 			CreateMenus();
 			initAppState();
-			
+			if(App.pro) {
+				$('body').addClass('pro');
+			}
 			less.env = "production";
 			// Restoring parser function from develop branch (replaces HTTP request)
 
@@ -1108,7 +1132,22 @@ else {
 				
 			$(window).on('crunch.filechanged', function(e, file) {
 				nativeWindow.activate();
-				openWindow('win/reload.html?' + encodeURIComponent(file.name) + '#' + encodeURIComponent(file.nativePath), 520, 225, true);
+				 
+				$("#tabs li.t").each(function() {
+					var $this = $(this);
+					if($this.data('file-less') && ($this.data('file-less').nativePath == file.nativePath)) {
+
+						if($this.data('saved'))
+							openFile(file);
+						else {
+							// TODO: Check to see if this file is already open
+							openWindow('win/reload.html?' + encodeURIComponent(file.name) + '#' + encodeURIComponent(file.nativePath), 520, 225, true);
+						}
+						return;
+					}
+				});
+
+				
 			});
 			$("#container > table").colResizable({
 				minWidth : 215,
@@ -1232,10 +1271,10 @@ else {
 					$target = $target.parent();
 				if($target.is("li")) {
 					var title = $target.attr('title');
-					if(title.match(/\.(less|css)$/i)) {
-						var fileToOpen = new air.File(title);
-						openFile(fileToOpen);
-					}
+					//if(title.match(/\.(less|css)$/i)) {
+					var fileToOpen = new air.File(title);
+					openFile(fileToOpen);
+					//}
 				}
 			});
 			$('.new-less').click(Commands.newLess);
@@ -1493,6 +1532,21 @@ else {
 			}
 			return null;
 		}
+		
+		cheet('↑ ↑ ↓ ↓ ← → ← → b a', function () {
+			if(!App.pro) {
+				App.pro = true;
+				updateAppState();
+				alert('ACHIEVEMENT UNLOCKED!');	
+				$('body').addClass('godmode pro');
+			}
+			else {
+				App.pro = false;
+				updateAppState();
+				alert('ACHIEVEMENT UN-UNLOCKED!');	
+				$('body').removeClass('godmode pro');
+			}
+		});
 
 		return {
 			init : init,

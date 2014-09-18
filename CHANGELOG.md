@@ -1,3 +1,10 @@
+# 1.9.1
+---
+- Cleaner / updated design
+- Super special mode
+- New configuration / compiler options
+- Doesn't show "reload" prompt if no changes have been made
+
 # 1.8.1
 - Fix for Windows keybinding
 

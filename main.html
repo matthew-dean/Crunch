@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<title>Crunch</title>
 	
-	<link rel="stylesheet" type="text/css" href="/css/skin2.css">
+	<link rel="stylesheet" type="text/css" href="/css/style.css">
 	<script>
 	function preventDefault(event){ 
             event.preventDefault(); 
@@ -12,8 +12,10 @@
 	</script>
 </head>
 <body onDragEnter="preventDefault(event)" onDragOver="preventDefault(event)">
+<!-- Install web fonts right away -->
 <b class="font1" style="position:absolute; visibility:hidden">download please</b>
 <b class="font2" style="position:absolute; visibility:hidden">download please</b>
+
 <div id="leftbar-top"></div>
 <div id="leftbar">
 	<ul id="actions">
@@ -37,7 +39,7 @@
 		</span>
 		<button id="save" disabled="disabled" class="icon"><span>Save</span></button>
 		<button id="open-file" class="open-file icon"><span>Open File...</span></button>
-		<button id="convert" disabled="disabled"><span>Crunch It!</span></button>
+		<button id="convert" disabled="disabled"><span>Crunch File</span></button>
 		
 
 	</div>
@@ -63,11 +65,8 @@
 			<div id="panel-prefs" class="panel">
 				<div class="panel-header"><span>Preferences</span></div>
 				<div class="panel-body">
-					<label>
-						<input type="checkbox" data-pref="minify" id="prefs-minify">
-						Minify Crunched CSS
-					</label>
 					
+					<h3>Crunch Options</h3>
 					<label>
 						<input type="checkbox" data-pref="filemonitoring" id="prefs-filemonitoring">
 						Enable File Monitoring
@@ -77,6 +76,34 @@
 						<input type="checkbox" data-pref="saveOnCrunch" id="prefs-saveOnCrunch">
 						Save on Crunch
 					</label>
+					<label>
+						<input type="checkbox" data-pref="openCSSafterCrunch" >
+						Open CSS after Crunching
+					</label>
+					
+					<div class="divider"></div>
+
+					<h3>LESS Options</h3>
+					<label>
+						<input type="checkbox" data-pref="minify" id="prefs-minify">
+						Minify CSS
+					</label>
+
+					<label>
+						<input type="checkbox" data-pref="ieCompat">
+						IE8 Compatibility
+					</label>
+
+					<label>
+						<input type="checkbox" data-pref="strictMath">
+						Strict Math
+					</label>
+
+					<label>
+						<input type="checkbox" data-pref="strictUnits">
+						Strict Units
+					</label>
+
 				</div>
 			</div>
 		</div></td>
@@ -159,17 +186,19 @@
 	
 	<script src="AIRIntrospector.js"></script>
 	<script src="js/ace/ace.js"></script>
+	<script src="js/ace/ext-modelist.js"></script>
 	<!-- <script src="js/ace/theme-textmate.js"></script> -->
-	<script src="js/ace/mode-less.js"></script>
-	<script src="js/less.js" id="lessjs" data-ver="1.7.0"></script>
+	<script src="js/less.js" id="lessjs" data-ver="1.7.5"></script>
 	<script src="js/jquery.min.js"></script>
 	<script src="js/jwerty.js"></script>
-	<script src="js/resize.js"></script>
+	<script src="js/resize.js"></script> 
 	<script src="js/pulse.js"></script>
 	<script src="js/jquery.color.js"></script>
 	<script src="js/jsizes.min.js"></script>
 	<script src="js/jstree/jquery.jstree.js"></script>
 	<script src="js/jquery.mockjax.js"></script>
+	<script src="js/cheet.min.js"></script>
+
 	<!-- <script src="js/mock.js"></script> -->
 	<script src="js/scripts.js"></script>
 	<script src="js/filemonitor.js"></script>
