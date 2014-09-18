@@ -2,7 +2,7 @@
 - LESS.js updated to 1.7.5
 - Cleaner / updated design
 - More readable fonts
-- Super special mode
+- Super special mode that probably doesn't contain Easter eggs
 - New configuration / compiler options
 - Doesn't show "reload" prompt if no changes have been made
 
