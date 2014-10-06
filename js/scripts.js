@@ -53,21 +53,44 @@ else {
 				openCSSafterCrunch: true
 			}
 		};	
-        var storedPrefs = air.EncryptedLocalStore.getItem("state");
-        
-        if(storedPrefs != null) {
-			var val = storedPrefs.readUTFBytes(storedPrefs.length);
-        	$.extend(true, App, JSON.parse(val));
-			copyPaths();
+		var prefsPath = air.File.applicationStorageDirectory;
+		var prefsFile = prefsPath.resolvePath("prefs.json");
+
+		if(prefsFile.exists) {
+			var stream = new air.FileStream(); 
+			stream.open(prefsFile, air.FileMode.READ); 
+			var storedPrefs = stream.readUTFBytes(stream.bytesAvailable); 
+			stream.close();		
+			$.extend(true, App, JSON.parse(storedPrefs));
+		 	copyPaths();
 		}
+
 		function updateAppState() {
 			var str = JSON.stringify(App);
-			var bytes = new air.ByteArray();
-			bytes.writeUTFBytes(str);
-			air.EncryptedLocalStore.setItem("state", bytes);
-			copyPaths();
-
+			var stream = new air.FileStream(); 
+			stream.open(prefsFile, air.FileMode.WRITE); 
+			stream.writeUTFBytes(str); 
+			stream.close(); 
+			//copyPaths();
 		}
+
+        //var storedPrefs = air.EncryptedLocalStore.getItem("state");
+        
+  //       if(storedPrefs != null) {
+		// 	var val = storedPrefs.readUTFBytes(storedPrefs.length);
+  //       	$.extend(true, App, JSON.parse(val));
+		// 	copyPaths();
+		// }
+
+		// function updateAppState() {
+		// 	var str = JSON.stringify(App);
+		// 	var bytes = new air.ByteArray();
+		// 	bytes.writeUTFBytes(str);
+		// 	air.EncryptedLocalStore.setItem("state", bytes);
+		// 	//copyPaths();
+		// }
+
+
 		function applyAppSetting(pref) {
 			switch(pref) {
 				case 'filemonitoring':
@@ -95,7 +118,7 @@ else {
 			}
 			$.each(App.openFiles, function(idx, val) {
 				if(!root.resolvePath(idx).exists) {
-					delete App.openFiles[idx];	
+					delete App.openFiles[idx];
 					update = true;
 				}
 			});
@@ -583,11 +606,12 @@ else {
 		var lastCrunch;
 
 		// Intercept AJAX requests because AIR doesn't use them
+		$.mockjaxSettings.logging = false;
 		$.mockjax({
 			url : 'dir.html',
 			status : 200,
 			response : function(settings) {
-				this.responseText = getTree(settings.data.path);
+				this.responseText = getTree(settings.data.path, true);
 			}
 		});
 
@@ -858,7 +882,14 @@ else {
 			
 			setTimeout(function() {
 				try {
-					fileSelect.browseForSave("Save As");
+					// Try fixing opening directories on Mac
+					if(fileSelect.parent) {
+						fileSelect.parent.browseForSave("Save As");
+					}
+					else {
+						fileSelect.browseForSave("Save As");
+					}
+					
 					fileSelect.addEventListener(air.Event.SELECT, saveData);
 					if(filemonitored)
 						fileSelect.addEventListener(air.Event.CANCEL, reWatch);
@@ -937,7 +968,7 @@ else {
 			return $('<div/>').html(value).text();
 		}
 
-		function getTree(treePath) {
+		function getTree(treePath, end) {
 			var target = Paths.project.resolvePath(treePath);
 			var files = target.getDirectoryListing();
 			var tree = '<ul>';
@@ -956,7 +987,11 @@ else {
 						tree += ' class="jstree-leaf file css"';
 					else
 						tree += ' class="jstree-leaf file"';
-					tree += ' title="' + files[i].nativePath + '"><a href="#">' + files[i].name + '</a></li>';
+					tree += ' title="' + files[i].nativePath + '"><a href="#">' + files[i].name + '</a>'
+					if(files[i].isDirectory && !end) {
+						tree += getTree(files[i].nativePath, true);
+					}
+					tree += '</li>';
 				}
 			}
 			tree += '</ul>';
@@ -977,7 +1012,8 @@ else {
 			var directory = Paths.project;
 			
 			var tree = '<li id="root" class="jstree-open" title="' + directory.nativePath + '"><a href="#">' + directory.name + '</a>' + getTree(directory.nativePath) + '</li>';
-			$("#filelist").jstree({
+			var $fileTree = $('#filelist');
+			$fileTree.jstree({
 				"core" : {
 					"initially_open" : ["root"],
 					"animation" : 100
@@ -1002,7 +1038,17 @@ else {
 					"icons" : true
 				},
 				"plugins" : ["themes", "html_data", "ui", "types"]
+			}).bind("open_node.jstree", 'li', function (e, data) {
+				var ref = $.jstree._reference($fileTree);
+
+				$(data.args[0][0]).parent().find('li.jstree-closed').each(function() {
+					var $node = $(this);
+					if($node.find('ul').length === 0) {
+						ref.load_node_html(this);
+					}
+				});
 			});
+
 			$('#project').addClass("show").find("#open-project").removeClass('big');
 			$('#refresh').removeAttr('disabled').click(function() {
 				$('#filelist').jstree('refresh', -1);
