@@ -459,7 +459,7 @@ else {
 				},
 				exec : Commands.findNext
 			}, {
-			},{
+			}, {
 				name : "findprevious",
 				bindKey : {
 					win : "Ctrl-Shift-K|Shift-F3",
@@ -487,6 +487,17 @@ else {
 				exec : function() {
 					// Not implemented
 				}
+			}, {
+				name : "foldall",
+				bindKey : {
+					win : "Alt-0",
+					mac : "Command-Option-0",
+					sender : "editor"
+				},
+				exec : function() {
+					// Not implemented
+				}
+
 			}]);
 			editor.getSession().on('change', function() {
 				var activeEl = $("#tabs li.active");
@@ -955,6 +966,8 @@ else {
 		function openProject(dir, dontInitPaths) {
 			
 			App.paths.project = dir.nativePath;
+			Paths.less = Paths.css = Paths.project = dir;
+
 			if(!dontInitPaths) {
 				App.paths.less = App.paths.css = dir.nativePath;
 			}
@@ -1002,6 +1015,7 @@ else {
 			
 			if(App.paths.project != "")
 				openProject(Paths.project, true);
+
 			$.each(App.openFiles, function(idx, val) {
 				console.log('Open: ' + idx);
 				var $el = openFile(Paths.project.resolvePath(idx));
