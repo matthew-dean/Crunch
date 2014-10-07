@@ -882,13 +882,15 @@ else {
 			
 			setTimeout(function() {
 				try {
-					// Try fixing opening directories on Mac
-					if(fileSelect.parent) {
-						fileSelect.parent.browseForSave("Save As");
-					}
-					else {
+					// This fixes directory opening on Mac
+					// Unfortunately, breaks save As
+
+					// if(fileSelect.parent) {
+					// 	fileSelect.parent.browseForSave("Save As");
+					// }
+					// else {
 						fileSelect.browseForSave("Save As");
-					}
+					//}
 					
 					fileSelect.addEventListener(air.Event.SELECT, saveData);
 					if(filemonitored)
