@@ -4,7 +4,7 @@
 	<meta charset="utf-8">
 	<title>Crunch</title>
 	
-	<link rel="stylesheet" type="text/css" href="/css/skin2.css">
+	<link rel="stylesheet" type="text/css" href="/css/style.css">
 	<script>
 	function preventDefault(event){ 
             event.preventDefault(); 
@@ -12,8 +12,10 @@
 	</script>
 </head>
 <body onDragEnter="preventDefault(event)" onDragOver="preventDefault(event)">
+<!-- Install web fonts right away -->
 <b class="font1" style="position:absolute; visibility:hidden">download please</b>
 <b class="font2" style="position:absolute; visibility:hidden">download please</b>
+
 <div id="leftbar-top"></div>
 <div id="leftbar">
 	<ul id="actions">
@@ -32,12 +34,12 @@
 	<div id="toolbar">
 		<span class="windowMenu" style="display: none;">
 			<a id="fileMenu">File</a>
-			<a id="editMenu" style="display: none;">Edit</a>
+			<a id="editMenu">Edit</a>
 			<span class="sep"></span>
 		</span>
 		<button id="save" disabled="disabled" class="icon"><span>Save</span></button>
 		<button id="open-file" class="open-file icon"><span>Open File...</span></button>
-		<button id="convert" disabled="disabled"><span>Crunch It!</span></button>
+		<button id="convert" disabled="disabled"><span>Crunch File</span></button>
 		
 
 	</div>
@@ -63,14 +65,52 @@
 			<div id="panel-prefs" class="panel">
 				<div class="panel-header"><span>Preferences</span></div>
 				<div class="panel-body">
-					<input type="checkbox" id="chk-minify"> Minify Crunched CSS
+					
+					<h3>Crunch Options</h3>
+					<label>
+						<input type="checkbox" data-pref="filemonitoring" id="prefs-filemonitoring">
+						Enable File Monitoring
+					</label>
+
+					<label>
+						<input type="checkbox" data-pref="saveOnCrunch" id="prefs-saveOnCrunch">
+						Save on Crunch
+					</label>
+					<label>
+						<input type="checkbox" data-pref="openCSSafterCrunch" >
+						Open CSS after Crunching
+					</label>
+					
+					<div class="divider"></div>
+
+					<h3>LESS Options</h3>
+					<label>
+						<input type="checkbox" data-pref="minify" id="prefs-minify">
+						Minify CSS
+					</label>
+
+					<label>
+						<input type="checkbox" data-pref="ieCompat">
+						IE8 Compatibility
+					</label>
+
+					<label>
+						<input type="checkbox" data-pref="strictMath">
+						Strict Math
+					</label>
+
+					<label>
+						<input type="checkbox" data-pref="strictUnits">
+						Strict Units
+					</label>
+
 				</div>
 			</div>
 		</div></td>
 	
 		<td id="editor-window"><div class="inner">
 			<div id="editor-bg"></div>
-			<div id="editor"></div>
+			
 			<div id="splash">
 				<h1>Create a new file...</h1>
 				<button class="primary big new-less">
@@ -96,31 +136,43 @@
 				</div>
 				
 			</div>
-
+			<div class="subtabs-outer"><div class="subtabs"></div></div>
 			<div id="scroller">
 				<ul id="tabs">
 					<li class="t">
-						<a class="tab" href="#"><span class="filename">new.less</span><span class="save" style="display: none;">*</span><span class="close"><img src="img/skin/closeicon.png"></span></a>
-						<div class="subtabs-outer"><div class="subtabs" style="display: none">
-							<span class="active main t"><span class="filename">Source</span><span class="save" style="display: none;">*</span></span>
-							<span class="crunched t" style="display: none;"><span class="filename">Compiled</span><span class="save" style="display: none;">*</span></span>
-							<div class="imports"><div>
-								
-							</div></div>
-						</div></div>
-						<div class="messages"><h3>Compiler Errors</h3><div class="description"></div><span class="close"><img src="img/skin/closeicon.png"></span></div>
+						<a class="tab" href="#">
+							<span class="filename">new.less</span>
+							<span class="save" style="display: none;">*</span>
+							<span class="close"><img src="img/skin/closeicon.png"></span>
+						</a>
+						<div class="subtabs-outer">
+							<div class="subtabs"></div>
+						</div>
+						<div class="messages">
+							<h3>Compiler Errors</h3>
+							<div class="description"></div>
+							<span class="close"><img src="img/skin/closeicon.png"></span>
+						</div>
+						<div class="editor"></div>
 					</li>
 					<li class="n">
 						<a class="new new-less" id="new-file">&nbsp;</a>
 					</li>
 				</ul>
 			</div>
-			<div id="findbar-outer"><div id="findbar">
-				<form id="find"><input type="text" /></form>
-				<button class="up"></button>
-				<button class="down"></button>
-				<span class="close"><img src="img/skin/closeicon.png"></span>
-			</div></div>
+			<div id="dropdowns-outer">
+				<div id="findbar">
+					<form id="find"><input placeholder ="find..." type="text" /></form>
+					<button class="up"></button>
+					<button class="down"></button>
+					<span class="close"><img src="img/skin/closeicon.png"></span>
+				</div>
+				<div id="gotolinebar">
+					<form id="gotoline"><input placeholder ="goto line..." type="text" /></form>
+					<button class="go"></button>
+					<span class="close"><img src="img/skin/closeicon.png"></span>
+				</div>
+			</div>
 			<button class="tabarrow" id="arrow-left" disabled="disabled"><span></span></button>
 			<button class="tabarrow" id="arrow-right" disabled="disabled"><span></span></button>
 		</div></td>
@@ -134,18 +186,20 @@
 	
 	<script src="AIRIntrospector.js"></script>
 	<script src="js/ace/ace.js"></script>
+	<script src="js/ace/ext-modelist.js"></script>
 	<!-- <script src="js/ace/theme-textmate.js"></script> -->
-	<script src="js/ace/mode-less.js"></script>
-	<script src="js/less-1.3.3.js"></script>
+	<script src="js/less.js" id="lessjs" data-ver="1.7.5"></script>
 	<script src="js/jquery.min.js"></script>
 	<script src="js/jwerty.js"></script>
-	<script src="js/resize.js"></script>
+	<script src="js/resize.js"></script> 
 	<script src="js/pulse.js"></script>
 	<script src="js/jquery.color.js"></script>
 	<script src="js/jsizes.min.js"></script>
 	<script src="js/jstree/jquery.jstree.js"></script>
 	<script src="js/jquery.mockjax.js"></script>
-<!--	<script src="js/mock.js"></script> -->
+	<script src="js/cheet.min.js"></script>
+
+	<!-- <script src="js/mock.js"></script> -->
 	<script src="js/scripts.js"></script>
 	<script src="js/filemonitor.js"></script>
 

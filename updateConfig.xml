@@ -4,7 +4,5 @@
     <delay>0.5</delay> 
 	<defaultUI> 
 		<dialog name="checkForUpdate" visible="false" /> 
-		<dialog name="downloadUpdate" visible="false" /> 
-		<dialog name="downloadProgress" visible="false" /> 
 	</defaultUI> 
 </configuration>

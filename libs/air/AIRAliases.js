@@ -15,6 +15,14 @@ var air;
 if (window.runtime)
 {
     if (!air) air = {};
+    // workers
+    air.Worker = window.runtime.flash.system.Worker;
+    air.WorkerDomain = window.runtime.flash.system.WorkerDomain;
+    air.WorkerState = window.runtime.flash.system.WorkerState;
+    air.MessageChannelState = window.runtime.flash.system.MessageChannelState;
+    air.Condition = window.runtime.flash.concurrent.Condition;
+    air.Mutex = window.runtime.flash.concurrent.Mutex;
+    
     // functions
     air.trace = window.runtime.trace;
     air.navigateToURL = window.runtime.flash.net.navigateToURL;

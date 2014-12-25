@@ -1,80 +1,113 @@
-/// DEVELOPMENT SETTINGS
-var subTabsEnabled = true;
-var importsEnabled = false;
-
 var appUpdater = new runtime.air.update.ApplicationUpdaterUI();
 appUpdater.configurationFile = new air.File("app:/updateConfig.xml");
 appUpdater.initialize();
 
-//var AIRIntrospectorConfig = new Object();
-//AIRIntrospectorConfig.debuggerKey = 152;
+if(air.Introspector && air.Introspector.Console) {
+	console = air.Introspector.Console; 
+}
+else {
+	console = {};
+	console.log = function() {};
+}
 
-if(air && air.Introspector) {
-	console = air.Introspector.Console;
-	//console.log('test');
-}(function($) {
+(function($) {
+
 
 	var Crunch = function() {
 		var Parser;
 		var pendingClose = false;
 		var scrollWidth = 100;
-		var Editor;
-		var lessMode = require("ace/mode/less").Mode;
-		var EditSession = require("ace/edit_session").EditSession;
-		var UndoManager = require("ace/undomanager").UndoManager;
-		var canChangeSave = true;
-		var SaveDialog;
-		
+		var selectedTab = null;
+		var tabMenu = null;
+		var modelist = ace.require("ace/ext/modelist");
+
+		var isPlatformMac = navigator.platform.indexOf('Mac') > -1;
 		// Get stored state
-		var $crunchEl;
 
 		// Paths are the default folders for open/save file dialogs
-		var Paths = {
-			project : air.File.documentsDirectory,
-			css : air.File.documentsDirectory,
-			less : air.File.documentsDirectory
-		}
-		var App = {
-			paths : {
-				project : "",
-				css : "",
-				less : ""
+		Paths = {
+			project: air.File.documentsDirectory,
+			css: air.File.documentsDirectory,
+			less: air.File.documentsDirectory
+		};
+		App = {
+			paths: {
+				project: "",
+				css: "",
+				less: ""
 			},
 			// currently open files
-			openFiles : {},
-			activeTab : "",
-			recent : {
-				files : [],
-				folders : []
+			openFiles: {},
+			activeTab: "",
+			recent: {
+				files: [],
+				folders: []
 			},
-			prefs : {
-				minify : true
+			prefs: {
+				minify: true,
+				filemonitoring: true,
+				saveOnCrunch: true,
+				ieCompat: false,
+				strictMath: false,
+				strictUnits: false,
+				openCSSafterCrunch: true
 			}
-		};
-		var Sessions = {};
+		};	
+		var prefsPath = air.File.applicationStorageDirectory;
+		var prefsFile = prefsPath.resolvePath("prefs.json");
 
-		var storedPrefs = air.EncryptedLocalStore.getItem("state");
-
-		if(storedPrefs != null) {
-			var val = storedPrefs.readUTFBytes(storedPrefs.length);
-			$.extend(true, App, JSON.parse(val));
-			copyPaths();
+		if(prefsFile.exists) {
+			var stream = new air.FileStream(); 
+			stream.open(prefsFile, air.FileMode.READ); 
+			var storedPrefs = stream.readUTFBytes(stream.bytesAvailable); 
+			stream.close();		
+			$.extend(true, App, JSON.parse(storedPrefs));
+		 	copyPaths();
 		}
+
 		function updateAppState() {
 			var str = JSON.stringify(App);
-			var bytes = new air.ByteArray();
-			bytes.writeUTFBytes(str);
-			air.EncryptedLocalStore.setItem("state", bytes);
-			copyPaths();
+			var stream = new air.FileStream(); 
+			stream.open(prefsFile, air.FileMode.WRITE); 
+			stream.writeUTFBytes(str); 
+			stream.close(); 
+			//copyPaths();
 		}
 
+        //var storedPrefs = air.EncryptedLocalStore.getItem("state");
+        
+  //       if(storedPrefs != null) {
+		// 	var val = storedPrefs.readUTFBytes(storedPrefs.length);
+  //       	$.extend(true, App, JSON.parse(val));
+		// 	copyPaths();
+		// }
+
+		// function updateAppState() {
+		// 	var str = JSON.stringify(App);
+		// 	var bytes = new air.ByteArray();
+		// 	bytes.writeUTFBytes(str);
+		// 	air.EncryptedLocalStore.setItem("state", bytes);
+		// 	//copyPaths();
+		// }
+
+
+		function applyAppSetting(pref) {
+			switch(pref) {
+				case 'filemonitoring':
+					if(App.prefs[pref]) Crunch.FileMonitor.start();
+					else Crunch.FileMonitor.stop();
+					break;
+				default:
+					break;
+			}
+		}
 		function checkValidPaths() {
 			var update = false;
 			var root = Paths.project;
 			if(!root.resolvePath(App.paths.project).isDirectory) {
 				App.paths.project = "";
 				update = true;
-			}
+			} 
 			if(!root.resolvePath(App.paths.css).isDirectory) {
 				App.paths.css = "";
 				update = true;
@@ -89,11 +122,10 @@ if(air && air.Introspector) {
 					update = true;
 				}
 			});
-			if(update)
-				updateAppState();
-
+			
+			if(update) updateAppState();
+			
 		}
-
 		function copyPaths() {
 			var root = Paths.project;
 			if(root.resolvePath(App.paths.project).isDirectory) {
@@ -106,14 +138,14 @@ if(air && air.Introspector) {
 				Paths.less = root.resolvePath(App.paths.less);
 			}
 		}
-
+		
 		function addOpenFile(file) {
 			var updateState = false;
 			if(!(file.nativePath in App.openFiles)) {
 				updateState = true;
 				App.openFiles[file.nativePath] = {
-					rootFile : file.nativePath
-				}
+					rootFile: file.nativePath
+				};
 			}
 			if(App.recent.files.indexOf(file.nativePath) == -1) {
 				updateState = true;
@@ -124,113 +156,118 @@ if(air && air.Introspector) {
 			if(updateState)
 				updateAppState();
 		}
-
 		function updateOpenFile(less, css) {
 			if(less.nativePath in App.openFiles) {
 				App.openFiles[less.nativePath].cssFile = css.nativePath;
 				updateAppState();
 			}
 		}
-
 		function addRecentProject(dir) {
-
-			if(App.recent.folders.indexOf(dir.nativePath) == -1) {
+			
+			if(App.recent.folders.indexOf(dir.nativePath) == -1) {	
 				App.recent.folders.unshift(dir.nativePath);
 				if(App.recent.folders.length > 10)
 					App.recent.folders.pop();
 				updateAppState();
 			}
-
+			
 		}
-
 		function removeOpenFile(file) {
 			if(file && file.nativePath && (file.nativePath in App.openFiles)) {
 				delete App.openFiles[file.nativePath];
 				updateAppState();
 			}
 		}
+		//var lessParser = less.Parser;
+		//less.Parser = {};
+		//less.Parser.prototype = lessParser;
 
+
+		// Clunky, but works for now
 		Commands = {
-			newLess : function() {
+			newLess: function() {
 				newTab();
 			},
-			newCss : function() {
+			newCss: function() {
 				newTab(true);
 			},
-			openFile : function() {
-				var fileToOpen = new air.File(Paths.less.nativePath);
-				var txtFilter = new air.FileFilter("LESS file", "*.less;*.css");
-				try {
-					fileToOpen.browseForOpen("Open", [txtFilter]);
-					fileToOpen.addEventListener(air.Event.SELECT, fileSelected);
-				} catch (error) {
-					alert("FRAK. This happened: " + error.message);
-				}
-
-				function fileSelected(event) {
-					openFile(event.target);
-				}
-
+			openFile: function() {
+				$('#open-file:not(:disabled)').click();
 			},
-			openProject : function() {
-				var selectDir = new air.File(Paths.project.nativePath);
-				try {
-					selectDir.browseForDirectory("Select Directory");
-					selectDir.addEventListener(air.Event.SELECT, directorySelected);
-				} catch (error) {
-					alert("Failed:" + error.message);
-				}
-
-				function directorySelected(event) {
-					openProject(event.target);
-				}
-
+			openProject: function() {
+				$('#open-project:not(:disabled)').click();
 			},
-			save : function() {
-				
-				var $activeEl = $("#tabs li.active .subtabs .active");
-				trySave($activeEl, false);
+			save: function() {
+				$('#save:not(:disabled)').click();
 			},
-			saveAs : function() {
-				var $activeEl = $("#tabs li.active .subtabs .active");
-				if(!$activeEl.hasClass('.main'))
-					return;
-				saveAsFile($activeEl, false);
+			saveAs: function() {
+				var activeEl = $("#tabs li.active");
+				saveAsFile(activeEl, false);
 			},
-			crunch : function() {
-				var $activeEl = $("#tabs li.active");
-				lastCrunch = crunchFile($activeEl);
-				if(lastCrunch.err != null) {
-					showMessage($activeEl.find('.messages'), lastCrunch.err);
-					return;
+			crunch: function() {
+				var Crunch = $('#convert:not(:disabled)');
+				if(Crunch.length > 0) {
+					if(App.prefs.saveOnCrunch)
+						Commands.save();
+					Crunch.click();
 				}
-				if(!($activeEl.data('session').saved)) {
-					var answer = confirm('You have to save before crunching. Go ahead and save?');
-					if(answer) {
-						trySave($activeEl, false);
-					} else
-						return;
-				}
-				trySave($activeEl, true);
+			},
+			checkForUpdates: function() {
+				appUpdater.isCheckForUpdateVisible = true;
+				appUpdater.checkNow();
+			},
+			exit: function() {
+				closeWindow();
+			},
+			closeTab: function() {
+				tryCloseTab($("#tabs li.t.active"));
+			},
+			nextTab: function() {
+				var nextTab = $('#tabs li.t.active').next('li.t[id]').find('a');
+				if(nextTab.length > 0) setActive(nextTab);
+				else if($('#tabs li.t[id]').length > 1) setActive($('#tabs li.t[id]:first').find('a'));
+			},
+			previousTab: function() {
+				var previousTab = $('#tabs li.t.active').prev('li.t[id]').find('a');
+				if(previousTab.length > 0) setActive(previousTab);
+				else if($('#tabs li.t[id]').length > 1) setActive($('#tabs li.t[id]:last').find('a'));
+			},
+			selectAll: function() {
+				$("#tabs li.active").data("editor").selectAll();
+			},
+			Find: function() {
+				toggleDropdown($("#findbar"));
+			},
+			findNext: function() {
+				$("#tabs li.t.active").data("editor").findNext();
+			},
+			findPrevious: function() {
+				$("#tabs li.t.active").data("editor").findPrevious();
+			},
+			gotoLine: function() {
+				toggleDropdown($("#gotolinebar"));
 			}
 		};
+		
 
 		// Keyboard mappings
-		var meta = "ctrl";
-		if(navigator.platform.indexOf('Mac') > -1)
-			meta = "cmd"
+		var meta = isPlatformMac ? "cmd" : "ctrl";
+
 		bindKey('n', Commands.newLess);
 		bindKey('o', Commands.openFile);
 		bindKey('shift+o', Commands.openProject);
 		bindKey('s', Commands.save);
 		bindKey('shift+s', Commands.saveAs);
 		bindKey('enter', Commands.crunch);
+		bindKey('e', Commands.exit);
+		bindKey('w', Commands.closeTab);
+		bindKey('tab', Commands.nextTab);
+		bindKey('shift+tab', Commands.previousTab);
 
 		function bindKey(keys, fn) {
 			jwerty.key(meta + '+' + keys, fn);
-			$('#editor textarea').live('keydown', jwerty.event(meta + '+' + keys, false));
+			$('#tabs li textarea').on('keydown', jwerty.event(meta + '+' + keys, false));
 		}
-
 
 		window.htmlLoader.addEventListener("nativeDragDrop", function(event) {
 			var filelist = event.clipboard.getData(air.ClipboardFormats.FILE_LIST_FORMAT);
@@ -271,131 +308,69 @@ if(air && air.Introspector) {
 		}
 
 		function setActive(el) {
-			var $el = $(el);
-			console.log('Setting active tab...');
-			console.log($el);
-			var $scrollContainer;
-			var $tabContainer;
-			var $thisTab;
-			var tabSession;
+			$('#tabs li').removeClass('active');
+			var parent = $(el).parent();
+			parent.addClass('active');
+			if(parent.data('notless') || !parent.data('file-less')) {
+				$("#convert").attr('disabled', 'disabled');
+			} else {
+				$("#convert").removeAttr('disabled');
+			}
+			var width = $("#scroller").width();
+			var tabs = $('#tabs');
 
-			if($el.is("a")) {
-				$scrollContainer = $("#scroller");
-				$tabContainer = $('#tabs');	
-				$thisTab = $el.parent();
-				$tabContainer.find('li').removeClass('active');
-				$thisTab.addClass('active');
-				tabSession = $thisTab.find('span.t.active').data('session');
-			
-				if($thisTab.data('notless') || !$thisTab.data('file-less')) {
-					$("#convert").attr('disabled', 'disabled');
-				} else {
-					$("#convert").removeAttr('disabled');
-				}
-			
+			if((parent.outerWidth() + parent.position().left) > width) {
+				tabs.animate({
+					'margin-left' : (tabs[0].scrollWidth - width) * -1
+				}, {
+					duration : 'fast',
+					complete : function() {
+						adjustTabOverflow();
+					}
+				});
+			} else if(parent.position().left < 0) {
+				tabs.animate({
+					'margin-left' : tabs.margin().left - parent.position().left + 25
+				}, {
+					duration : 'fast',
+					complete : function() {
+						adjustTabOverflow();
+					}
+				});
 			}
-			else {
-				var $parentTab = $el.closest('.subtabs');
-				$scrollContainer = $parentTab.find('.imports');
-				$tabContainer = $scrollContainer.find('>div');
-				$thisTab = $el;
-				$parentTab.find('span.t').removeClass('active');
-				$el.addClass('active');
-				tabSession = $el.data('session');
-			}
-			
-			if($thisTab.length == 0)
-				return;
-			
-			var width = $scrollContainer.width();
-			var tabs = $tabContainer;
-			if(!($el.hasClass('.main') || $el.hasClass('.crunched'))) {
-				if(($thisTab.outerWidth() + $thisTab.position().left) > width) {
-					$tabContainer.animate({
-						'margin-left' : ($tabContainer[0].scrollWidth - width) * -1
-					}, {
-						duration : 'fast',
-						complete : function() {
-							adjustTabOverflow();
-						}
-					});
-				} else if($thisTab.position().left < 0) {
-					$tabContainer.animate({
-						'margin-left' : $tabContainer.margin().left - $thisTab.position().left + 25
-					}, {
-						duration : 'fast',
-						complete : function() {
-							adjustTabOverflow();
-						}
-					});
-				}
-			}
-			console.log('Switching to this tab\'s active session...');
-			console.log(tabSession);
-			
-			Editor.setSession(tabSession.session);
-			
-			if(tabSession.readonly) {
-				console.log('Setting readonly to true.');
-				Editor.setReadOnly(true);
-			}
-			else
-				Editor.setReadOnly(false);
-				
-			if(tabSession.saved)
-				$thisTab.find('.save:first').hide();
-			else
-				$thisTab.find('.save:first').show();
-			Editor.focus();
-			Editor.resize();
-
+			parent.data('editor').focus();
+			parent.data('editor').resize();
 		}
-		
-		function tryCloseTab($el) {
-			var pendingFiles = [];
-			$el.find('span.t').each(function() {
-				// Some sub-tabs don't have sessions yet (crunched file subtab)
-				if($(this).data('session') && !$(this).data('session').saved) {
-					pendingFiles.push($(this));
-				}
-			});
-			
-			if(pendingFiles.length != 0) {
-				console.log(SaveDialog);
-				SaveDialog.window.init(pendingFiles, $el);
-				//openWindow('win/save.html?#' + $el.attr('id'), 520, 225, true);
-			}
-			else
-				closeTab($el);
+
+		function tryCloseTab(el) {
+			if(!el.data('saved')) {
+				openWindow('win/save.html?#' + el.attr('id'), 520, 225, true);
+			} else
+				closeTab(el);
 		}
 
 		function closeTab(el) {
-
 			var i = $(el).index('#tabs > li.t');
 			var wasActive = $(el).hasClass('active');
 
 			// Stop monitoring file
 			if($(el).data('file-less'))
 				Crunch.FileMonitor.unwatch($(el).data('file-less'));
-
+			
 			// Remove from open files list
 			if(!pendingClose)
 				removeOpenFile($(el).data('file-less'));
-
-			$(el).remove();
+				
+			$(el).data('editor', null).remove();
 
 			if($('#tabs').children().length == 2) {
 				$('#splash').show();
-				$('#editor').css('z-index', -1);
 				$('#save, #save-as, #convert').attr('disabled', 'disabled');
 				if($("#findbar").css("top") == 0)
 					alert('visible');
-				$("#findbar").animate({
-					top : '-33px'
-				}, 100).find('input').blur();
+				$("#dropdowns-outer > div > .close").click();
 				//newTab();
 			} else {
-
 				if(wasActive) {
 					if(i == 1)
 						setActive($('#tabs > li.t > a')[i]);
@@ -406,7 +381,7 @@ if(air && air.Introspector) {
 			}
 			if(pendingClose)
 				closeWindow();
-
+				
 			adjustTabOverflow();
 			return false;
 		}
@@ -425,158 +400,191 @@ if(air && air.Introspector) {
 				$("#arrow-right").removeAttr("disabled");
 		}
 
-		function unSave(tabSession) {
-			console.log('Unsaving session...');
-			console.log(tabSession);
-			
-			if(tabSession.saved) {
-				tabSession.saved = false;
-				$('#tabs li.t, #tabs .subtabs span.t').each(function() {
-					var $el = $(this);
-					if($(this).data('session') == tabSession)
-						$el.find('.save:first').show();
-				});
-				
-			}
-		}
-		function setSave(tabSession) {
-			console.log('Saving session...');
-			console.log(tabSession);
-			
-			if(!tabSession.saved) {
-				tabSession.saved = true;
-				$('#tabs li.t, #tabs .subtabs span.t').each(function() {
-					var $el = $(this);
-					if($(this).data('session') == tabSession)
-						$el.find('.save:first').hide();
-				});
-				
+		function unSave(el) {
+			if(el.data('saved')) {
+				el.data('saved', false);
+				el.find('.save').show();
 			}
 		}
 
 		function newTab(css, position) {
 			$('#splash').hide();
-			$('#editor').css('z-index', 1);
 			$('#save, #save-as').removeAttr('disabled');
-			var $el;
+			var el;
 			var $firstTab = $('#tabs li:first-child');
 			if(position && position.length == 1)
-				$el = $firstTab.clone(true, true).show().insertAfter(position);
+				el = $firstTab.clone(true, true).insertAfter(position);
 			else
-				$el = $firstTab.clone(true, true).show().insertBefore($('#tabs li.n'));
+				el = $firstTab.clone(true, true).insertBefore($('#tabs li.n'));
 			t++;
-			$el.attr('id', 'panel-' + t);
-			$el.find('.messages').attr('id', 'messages-' + t);
+			el.attr('id', 'panel-' + t);
+			el.find('.messages').attr('id', 'messages-' + t);
+			el.find('.editor').attr('id', 'editor-' + t);
 
-			var tabSession = getTabSession();
-			// tabSession.session.on('change', function() {
-				// if(!canChangeSave) return;
-				// unSave($el);
-			// });
+			var editor = ace.edit("editor-" + t);
+			editor.setTheme("ace/theme/crunch");
+			editor.setShowPrintMargin(false);
+			editor.setBehavioursEnabled(false);
+			editor.setDisplayIndentGuides(false);
+//			editor.setScrollSpeed(0.5);
+			editor.setShowInvisibles(false);
+
+			editor.getSession().setMode("ace/mode/less");
 			
-			if(css) {
-				setTabType($el, true);
-				$el.find('> a > .filename').html('new.css');
-			}
-
-			$el.data('session', tabSession);
-			$el.find('.subtabs .main').data('session', tabSession);
-			setActive($el.find('a.tab'));
-			adjustTabOverflow();
-			return $el;
-		}
-		function getTabSession(file) {
-			if(file) {
-				if(file.nativePath in Sessions) {
-					return Sessions[file.nativePath];
-				} 
-				else {
-					var tabSession = {
-						saved: true
-					};
-					var session = new EditSession("", new lessMode());
-					session.setUndoManager(new UndoManager());
-					tabSession.session = session;
-					
-					tabSession.session.on('change', function() {
-						if(!canChangeSave) return;
-						unSave(tabSession);
-					});
-					
-					Sessions[file.nativePath] = tabSession;
-					
-					return tabSession;
+			// wow. much duplication. so hack. such windows.
+			editor.commands.addCommands([{
+				name : "save",   
+				bindKey : {
+					win : "Ctrl-S",
+					mac : "Command-S",
+					sender : "editor"
+				},
+				exec : Commands.save
+			},{
+				name : "saveAs",
+				bindKey : {
+					win : "Ctrl-Shift-S",
+					mac : "Command-Shift-S",
+					sender : "editor"
+				},
+				exec : Commands.saveAs
+			},{
+				name : "crunch",
+				bindKey : {
+					win : "Ctrl-Enter",
+					mac : "Command-Enter",
+					sender : "editor"
+				},
+				exec : Commands.crunch
+			},{
+				name : "gotoline",
+				bindKey : {
+					win : "Ctrl-G",
+					mac : "Command-L",
+					sender : "editor"
+				},
+				exec : Commands.gotoLine
+			},{
+				name : "find",
+				bindKey : {
+					win : "Ctrl-F",
+					mac : "Command-F",
+					sender : "editor"
+				},
+				exec : Commands.Find
+			}, {
+			},{
+				name : "findnext",
+				bindKey : {
+					win : "Ctrl-K|F3",
+					mac : "Command-K",
+					sender : "editor"
+				},
+				exec : Commands.findNext
+			}, {
+			}, {
+				name : "findprevious",
+				bindKey : {
+					win : "Ctrl-Shift-K|Shift-F3",
+					mac : "Command-Shift-K",
+					sender : "editor"
+				},
+				exec : Commands.findPrevious
+			}, {
+				name : "replace",
+				bindKey : {
+					win : "Ctrl-R",
+					mac : "Command-R",
+					sender : "editor"
+				},
+				exec : function() {
+					// Not implemented
 				}
+			}, {
+				name : "replaceall",
+				bindKey : {
+					win : "Ctrl-Shift-R",
+					mac : "Command-Shift-R",
+					sender : "editor"
+				},
+				exec : function() {
+					// Not implemented
+				}
+			}, {
+				name : "foldall",
+				bindKey : {
+					win : "Alt-0",
+					mac : "Command-Option-0",
+					sender : "editor"
+				},
+				exec : function() {
+					// Not implemented
+				}
+
+			}]);
+			editor.getSession().on('change', function() {
+				var activeEl = $("#tabs li.active");
+				//  && arguments[0].data.text.length==1
+				if(activeEl.data('dirty')) {
+					unSave(activeEl);
+					activeEl.data('dirty', false);
+				}
+			});
+			el.find('textarea').bind('keydown', function(e) {
+				el.data('dirty', true);
+			});
+			el.find("a.tab").on("contextmenu", function(e) {
+				e.preventDefault();
+				selectedTab = $(this).parent();
+				tabMenu.display(window.nativeWindow.stage, e.pageX, e.pageY);
+			});
+			if(css) {
+				setTabType(el, true);
+				el.find('.filename').html('new.css');
 			}
-			else {
-				var tabSession = {
-					saved: true
-				};
-				var session = new EditSession("", new lessMode());
-				session.setUndoManager(new UndoManager());
-				tabSession.session = session;
-				
-				tabSession.session.on('change', function() {
-					if(!canChangeSave) return;
-					unSave(tabSession);
-				});
-				return tabSession;
-			}
-			
-			
+			el.data('editor', editor);
+			el.data('saved', true);
+			setActive(el.find('a.tab'));
+			adjustTabOverflow();
+			return el;
 		}
 
-		function setTabType($el, notless) {
-			$el.data('notless', notless);
+		function setTabType(el, notless) {
+			el.data('notless', notless);
 			if(notless)
-				$el.find('a.tab').addClass('other');
+				el.find('a.tab').addClass('other');
 			else
-				$el.find('a.tab').removeClass('other');
+				el.find('a.tab').removeClass('other');
 		}
 
-		var commands = require("ace/commands/default_commands").commands;
+		function toggleDropdown(e) {
+			// @losnir: If already open, then just focus & highlight all
+			if(e.is(":visible")) {
+				e.find("input").focus().select();
+				return;
+			}
 
-		commands.push({
-			name : "find",
-			bindKey : {
-				win : "Ctrl-F",
-				mac : "Command-F",
-				sender : "editor"
-			},
-			exec : function() {
-				$("#findbar").animate({
-					top : '0'
-				}, 100).find('input').focus().select();
-			}
-		}, {
-			name : "replace",
-			bindKey : {
-				win : "Ctrl-R",
-				mac : "Command-R",
-				sender : "editor"
-			},
-			exec : function() {
-				// Not implemented
-			}
-		}, {
-			name : "replaceall",
-			bindKey : {
-				win : "Ctrl-Shift-R",
-				mac : "Command-Shift-R",
-				sender : "editor"
-			},
-			exec : function() {
-				// Not implemented
-			}
-		});
+			// @losnir: Let's close everything else
+			$("#dropdowns-outer > div:visible").each(function() {
+				$(this).find(".close").click();
+			});
+
+			// @losnir: Let's slide it down
+			e.show().animate({top : '0'}, 100, function() { $(this).find("input").focus().select(); }).parent().show();
+		}
 
 		function findText(val) {
-			Editor.find(val, {
+			$("#tabs li.active").data('editor').find(val, {
 				wrap : true,
 				caseSensitive : false,
 				wholeWord : false,
 				regExp : false
 			});
+			return false;
+		}
+
+		function gotoLine(val) {
+			$("#tabs li.active").data('editor').gotoLine(val, 0, true);
 			return false;
 		}
 
@@ -598,222 +606,161 @@ if(air && air.Introspector) {
 		var lastCrunch;
 
 		// Intercept AJAX requests because AIR doesn't use them
-		// This should be refactored. It's currently used for JSTree, but this is dumb.
-		// JSTree supports populating via objects but I couldn't get it to work.
+		$.mockjaxSettings.logging = false;
 		$.mockjax({
 			url : 'dir.html',
 			status : 200,
 			response : function(settings) {
-				this.responseText = getTree(settings.data.path);
+				this.responseText = getTree(settings.data.path, true);
 			}
 		});
+
+		// Less.js tries to do an XMLHttpRequest. Not sure how to circumvent, so we'll just hijack that too.
+		// Yes, the fact that there are two hijackers is stupid, I know. There's a good explanation... well, a reasonable explanation, and I'll fix later.
+		// var server = new MockHttpServer();
+		// server.handle = function(request) {
+			// if(request.url.match(/\.less/i)) {
+				// request.url = request.url.replace(/app:\//ig, '');
+				// var getFile = Paths.project.resolvePath(request.url);
+				// if(!getFile.exists) {
+					// request.receive(404, "Not found.");
+				// } else {
+					// request.setResponseHeader("Last-Modified", getFile.modificationDate);
+					// var fileStream = new air.FileStream();
+					// fileStream.open(getFile, air.FileMode.READ);
+					// request.receive(200, fileStream.readUTFBytes(fileStream.bytesAvailable));
+					// fileStream.close();
+				// }
+			// }
+		// };
+		// server.start();
+		function handleError(ev, e, href) {
+			var activeEl = $("#tabs li.active .messages");
+			var msg = e.message;
+			// Fix line numbers later
+			//		showMessage(activeEl, e.message + " (Line " + e.line + ")<br>Filename: " + href
+			//			.replace('app:/' + $('#root').attr('title'),''));
+			//		showMessage(activeEl, e.message + "<br>Filename: " + href
+			//			.replace('app:/' + $('#root').attr('title'),''));
+			showMessage(activeEl, e.message + "<br>Filename: " + href.replace('app://', ''));
+		}
+		less.errorReporting = handleError;
+		$(window).bind('crunch.error', handleError);
 		
-		// No longer needed as of LESS 1.3
-		// $(window).bind('crunch.error', function(ev, e, href) {
-			// air.trace('LESS error')
-			// var $activeEl = $("#tabs li.active .messages");
-			// var msg = e.message;
-			// // Fix line numbers later
-			// //		showMessage(activeEl, e.message + " (Line " + e.line + ")<br>Filename: " + href
-			// //			.replace('app:/' + $('#root').attr('title'),''));
-			// //		showMessage(activeEl, e.message + "<br>Filename: " + href
-			// //			.replace('app:/' + $('#root').attr('title'),''));
-			// showMessage($activeEl, e.message + "<br>Filename: " + href.replace('app://', ''));
-// 
-		// });
-		
-		function showMessage($el, msg) {
-			$el.add('#editor').addClass('show').find('.description').html(msg);
-			Editor.resize();
+		function showMessage(el, msg) {
+			el.addClass('show').find('.description').html(msg);
+			el.closest('li').data('editor').resize();
 		}
 
-		function hideMessage($el) {
-			$el.add('#editor').removeClass('show').find('.description').html('');
-			Editor.resize();
+		function hideMessage(el) {
+			el.removeClass('show').find('.description').html('');
+			el.closest('li').data('editor').resize();
 		}
 
-		function addSubTab(file, fileData) {
-			if(!$crunchEl.data('imports'))
-				$crunchEl.data('imports', {});
-			else {
-				if(file.nativePath in $crunchEl.data('imports'))
-					return;
-			}
-			$crunchEl.data('imports')[file.nativePath] = "";
-			
-			var tabSession;
-			if(!(file.nativePath in Sessions)) {
-				canChangeSave = false;
-				tabSession = getTabSession(file);
-				tabSession.session.setValue(fileData);
-				canChangeSave = true;
-			}
-			else
-				tabSession = getTabSession(file);
-			
-			var tabTemplate = '<span class="t"><span class="filename">' + file.name.replace('.less','')  +'</span><span class="save" style="display: none;">*</span></span>';
-			var $imports = $crunchEl.find('.subtabs .imports > div');
-			var $subtab = $(tabTemplate);
-			t++;
-			$subtab.attr('id', 'panel-' + t);
-			$subtab.data('file-less',file);
-			$subtab.data('session',tabSession);
-			$subtab.data('filename', file.name);
-			$imports.append($subtab);
-			if(!tabSession.saved)
-				$subtab.find('.save:first').show();			
-			
-		}
-		function getFileData(file) {
-			var stream = new air.FileStream();
-			// Add check to make sure file exists, otherwise return
-			if(file.exists) {
-				stream.open(file, air.FileMode.READ);
-				Crunch.FileMonitor.watch(file);
-				return stream.readUTFBytes(stream.bytesAvailable);
-			} else {
-				return false;
-			}
-			stream.close();
-		}
 		function openFile(file, silent) {
-			console.log('Opening file...');
-			
 			if(!file.nativePath)
 				file = new air.File(file);
 			
 			// For now, only open CSS and LESS files.
-			// Later, allow other file types that Ace supports?
-			if(!file.nativePath.match(/\.(less|css)$/i))
+			if(!App.pro && !file.nativePath.match(/\.(less|css)$/i))
 				return;
+			
 			// Wait a tick, what if it's already open?
 			var found = false;
-			var $el = null;
-
+			var el = null;
 			$("#tabs li.t").each(function() {
-
-				// Don't know if this is needed anymore with the new file monitoring of 1.5
 				if($(this).data('file-less') && ($(this).data('file-less').nativePath == file.nativePath)) {
-					if($(this).data('session').saved && $(this).data('file-less').modificationDate != file.modificationDate) {
-						var fileData = getFileData(file);
-						
-						canChangeSave = false;
-						$(this).data('session').session.setValue(fileData);
-						canChangeSave = true;
+					if($(this).data('saved') && $(this).data('file-less').modificationDate != file.modificationDate) {
+						var stream = new air.FileStream();
+						stream.open(file, air.FileMode.READ);
+						var fileData = stream.readUTFBytes(stream.bytesAvailable);
+						stream.close();
+						$(this).data('editor').getSession().setValue(fileData);
 					}
 					if(!silent)
 						setActive($(this).find('a.tab'));
 					else
-						$(this).find('span.crunched').pulse({
+						$(this).find('a.tab').pulse({
 							backgroundColor : ['rgba(141,71,28,1)', 'rgba(141,71,28,0.8)'],
 							color : ['#000000', '#FFFFFF']
 						}, 200, 3);
-					$el = $(this);
+					el = $(this);
 					found = true;
 				}
 			});
 			if(!found) {
+				var stream = new air.FileStream();
 				
+				// Add check to make sure file exists, otherwise return
+				if(file.exists) {
+					stream.open(file, air.FileMode.READ);
+					Crunch.FileMonitor.watch(file);
+					var fileData = stream.readUTFBytes(stream.bytesAvailable);
+				} else {
+					return;
+				}
+				stream.close(); 
+
 				if(silent)
-					$el = newTab(false, $("#tabs li.t.active"));
+					el = newTab(false, $("#tabs li.t.active"));
 				else
-					$el = newTab(false);
-				$el.find('> a > .filename').html(file.name);
+					el = newTab(false);
+				el.find('.filename').html(file.name);
 
-				var tabSession;
-				console.log('Creating file session...');
-				if(!(file.nativePath in Sessions)) {
-					
-					var fileData = getFileData(file);
-					if(fileData === false)
-						return;
-					
-					canChangeSave = false;
-					tabSession = getTabSession(file);
-					tabSession.session.setValue(fileData);
-					canChangeSave = true;
+				if(!file.nativePath.match(/\.(less|css)$/i)) {
+					var mode = modelist.getModeForPath(file.nativePath).mode;
+					el.data('editor').getSession().setMode(mode);
 				}
-				else {
-					tabSession = getTabSession(file);
-				}
-				
-				
-				//console.log(tabSession);
-					
-				$el.data('session', tabSession);
-					
-				if(tabSession.saved)
-					$el.find('.save.first').hide();
-				else
-					$el.find('.save:first').show();
-					
-				
-				$el.data('file-less', file);
-				$el.find('.subtabs .main').data('file-less', file).data('session', tabSession).data('filename', file.name).find('.filename').html(file.name);
-				
-				// Non-LESS files don't have subtabs. Because screw those files.
+
+				el.data('editor').getSession().setValue(fileData);
+
+				el.data('saved', true);
+				el.find('.save').hide();
 				if(!file.name.match(/\.less/i)) {
-					setTabType($el, true);
-					
+					setTabType(el, true);
 				}
-				else {
-					if(subTabsEnabled) {
-						$el.find('.subtabs').css('display','');
-					
-						// Cool feature, bra. We immediately create a Crunched file session from the LESS file we opened.
-						// That way, we can immediately support debugging without having to initially save a new CSS
-						var compiled = crunchFile($el);
-						console.log('Auto-creating compiled file...');
-						console.log(compiled);
-						var $crunchTab = $el.find('.subtabs .crunched');
-						if(compiled.err == null) {
-							var tabSession = getTabSession();
-							canChangeSave = false;
-							tabSession.session.setValue(compiled.output);
-							canChangeSave = true;
-							tabSession.readonly = true;
-							$crunchTab.data('session', tabSession).css('display','');
-						}
-							
-					}
-				}
-				
-				setActive($el.find('a.tab'));
+				el.data('file-less', file);
+				setActive(el.find('a.tab'));
 				addOpenFile(file);
-
+				
 				//setTimeout(function() {
 				//	$("li.active").data('editor').resize();
 				//},1000);
 
 			}
-			return $el;
+			return el;
 
 		}
 
-		function crunchFile($el) {
+		function crunchFile(el) {
 			var output;
-			var errMessage = null;
 			try {
-
-				// TODO: Should be top session
-				$crunchEl = $el;
+				var entryPath = el.data('file-less').nativePath.replace(/[\w\.-]+$/, '');
+				
 				Parser = new (less.Parser)({
-					paths : [$el.data('file-less').nativePath.replace(/[\w\.-]+$/, '')],
-					rootpath: ""
-				}).parse($el.data('session').session.getValue(), function(err, tree) {
-					// Useful for stuff later
-					//console.log(tree);
+					javascriptEnabled: false,
+					//rootpath: entryPath,  -- putting in a rootpath appends to every URL
+					relativeUrls: false,
+					//filename: el.data('file-less').name  -- should be full qualified path
+					filename: el.data('file-less').nativePath // ?
+				}).parse(el.data('editor').getSession().getValue(), function(err, tree) {
+
 					if(err) {
 						throw err;
 					}
 					output = "/* CSS crunched with Crunch - http://crunchapp.net/ */\n" + tree.toCSS({
-						compress : App.prefs.minify
+						compress : App.prefs.minify,
+						ieCompat: App.prefs.ieCompat,
+						strictMath: App.prefs.strictMath,
+						strictUnits: App.prefs.strictUnits,
+						verbose: true,
+                    	//sourceMap: true
 					});
 					//$('#output').val(output);
-					hideMessage($el.find('.messages'));
+					hideMessage(el.find('.messages'));
 				});
 			} catch(err) {
-				errMessage = err.message;
+				var errMessage = err.message;
 				//if(err.index) {
 				//	errMessage += ' Index: ' + err.index;
 				//}
@@ -823,14 +770,15 @@ if(air && air.Introspector) {
 				if(err.filename) {
 					errMessage += '<br>Filename: ' + err.filename;
 				}
+				showMessage(el.find('.messages'), errMessage);
 				return false;
 			}
 
-			return { output: output, err: errMessage };
+			return output;
 		}
 
-		function trySave($el, crunch, closeWindow) {
-			if($el.length == 0)
+		function trySave(el, crunch, closeWindow) {
+			if(el.length == 0)
 				return;
 			if(closeWindow) {
 				closeWindow.alwaysInFront = false;
@@ -839,48 +787,34 @@ if(air && air.Introspector) {
 			} else
 				closeWindow = false;
 			if(crunch)
-				fileSelect = $el.data('file-css');
+				fileSelect = el.data('file-css');
 			else
-				fileSelect = $el.data('file-less');
+				fileSelect = el.data('file-less');
 
 			if(!fileSelect) {
-				saveAsFile($el, crunch, closeWindow);
+				saveAsFile(el, crunch, closeWindow);
 			} else {
-				saveFile($el, crunch, false);
+				saveFile(el, crunch, false);
 				if(closeWindow)
-					tryCloseTab($el);
+					closeTab(el);
 			}
 		}
 
-		function saveFile($el, crunch, ask, update) {
+		function saveFile(el, crunch, ask, update) {
 			var fileSelect;
 			var writeData;
 
 			if(crunch) {
-				fileSelect = $el.data('file-css');
+				fileSelect = el.data('file-css');
 				try {
-					writeData = lastCrunch.output;
+					writeData = lastCrunch;
 				} catch(err) {
 					alert("I failed at saving. My bad. Here's what happened: " + err.message);
 					return false;
 				}
-				
-				var tabSession;
-				if(!(fileSelect.nativePath in Sessions)) {
-					canChangeSave = false;
-					tabSession = getTabSession(fileSelect);
-					tabSession.session.setValue(writeData);
-					tabSession.readonly = true;
-					canChangeSave = true;
-				}
-				else
-					tabSession = getTabSession(fileSelect);
-				
-				$el.find('.subtabs .crunched').css('display','').data('session', tabSession).find('.filename').html(fileSelect.name);
-				
 			} else {
-				fileSelect = $el.data('file-less');
-				writeData = Editor.getSession().getValue();
+				fileSelect = el.data('file-less');
+				writeData = el.data('editor').getSession().getValue();
 			}
 
 			Crunch.FileMonitor.unwatch(fileSelect);
@@ -895,8 +829,8 @@ if(air && air.Introspector) {
 				stream.open(fileSelect, air.FileMode.WRITE);
 				try {
 					stream.writeUTFBytes(writeData);
-					if($el.data('notless') && fileSelect.name.match(/\.less/i)) {
-						setTabType($el, false);
+					if(el.data('notless') && fileSelect.name.match(/\.less/i)) {
+						setTabType(el, false);
 					}
 
 				} catch(err) {
@@ -904,24 +838,16 @@ if(air && air.Introspector) {
 					return false;
 				} finally {
 					stream.close();
-					setTimeout(function() {
-						Crunch.FileMonitor.watch(fileSelect)
-					}, 1000);
+					setTimeout(function() { Crunch.FileMonitor.watch(fileSelect); }, 1000);
 				}
 			} catch(err) {
 				alert("I failed in the saving of your glorious creation. Here's why: " + err.message);
 				return false;
 			}
-			
-			// With subtabs completely off, we open the crunched file in a new main tab.
-			if(!subTabsEnabled) {
-				if(crunch)
-					openFile(fileSelect, true);
-			}
-			//$el.data('session').saved = true;
-			setSave($el.data('session'));
-			
-			//$el.find('.save:first').hide();
+			if(crunch && App.prefs.openCSSafterCrunch)
+				openFile(fileSelect, true);
+			el.data('saved', true);
+			el.find('.save').hide();
 
 			if(update) {
 				$('#filelist li').each(function() {
@@ -929,34 +855,43 @@ if(air && air.Introspector) {
 						$('#filelist').jstree('refresh', this);
 				});
 			}
-			setActive($el.find('a.tab'));
+			setActive(el.find('a.tab'));
 
 			return true;
 
 		}
 
-		function saveAsFile($el, crunch, closeAfterSave) {
-			var filename = $el.find('> a > .filename').html();
+		function saveAsFile(el, crunch, closeAfterSave) {
+			var filename = el.find('.filename').html();
 			var fileSelect;
 			var filemonitored = false;
 			if(crunch) {
-				if(!$el.data('file-css'))
+				if(!el.data('file-css'))
 					fileSelect = Paths.css.resolvePath(filename.replace('.less', '.css'));
 				else
-					fileSelect = $el.data('file-css');
+					fileSelect = el.data('file-css');
 			} else {
-				if(!$el.data('file-less'))
+				if(!el.data('file-less'))
 					fileSelect = Paths.less.resolvePath(filename);
 				else {
-					fileSelect = $el.data('file-less');
+					fileSelect = el.data('file-less');
 					Crunch.FileMonitor.unwatch(fileSelect);
 					filemonitored = true;
-				}
+				}	
 			}
-
+			
 			setTimeout(function() {
 				try {
-					fileSelect.browseForSave("Save As");
+					// This fixes directory opening on Mac
+					// Unfortunately, breaks save As
+
+					// if(fileSelect.parent) {
+					// 	fileSelect.parent.browseForSave("Save As");
+					// }
+					// else {
+						fileSelect.browseForSave("Save As");
+					//}
+					
 					fileSelect.addEventListener(air.Event.SELECT, saveData);
 					if(filemonitored)
 						fileSelect.addEventListener(air.Event.CANCEL, reWatch);
@@ -968,33 +903,36 @@ if(air && air.Introspector) {
 			function reWatch(event) {
 				Crunch.FileMonitor.watch(fileSelect);
 			}
-
 			function saveData(event) {
 				var newFile = event.target;
 				if(crunch) {
-					$el.data('file-css', newFile);
-					$el.find('.subtabs .crunched .filename').html(newFile.name);
+					el.data('file-css', newFile);
 					App.paths.css = newFile.parent.nativePath;
-					updateOpenFile($el.data('file-less'), $el.data('file-css'));
+					updateOpenFile(el.data('file-less'), el.data('file-css'));
 				} else {
-					$el.data('file-less', newFile);
-					$el.find('> a > .filename').html(newFile.name);
-					$el.find('.tab').attr('title', newFile.nativePath);
+					el.data('file-less', newFile);
+					el.find('.filename').html(newFile.name);
+					el.find('.tab').attr('title', newFile.nativePath);
 					App.paths.less = newFile.parent.nativePath;
 				}
 				updateAppState();
 
-				saveFile($el, crunch, false, true);
+				saveFile(el, crunch, false, true);
 
 				if(closeAfterSave) {
-					//closeAfterSave.close();
-					closeTab($el);
+					closeTab(el);
+				}
+				else {
+					if(!newFile.nativePath.match(/\.(less|css)$/i)) {
+						var mode = modelist.getModeForPath(newFile.nativePath).mode;
+						el.data('editor').getSession().setMode(mode);
+					}
 				}
 			}
 
 		}
 
-		function openWindow(url, width, height, utility, callback) {
+		function openWindow(url, width, height, utility) {
 			var winType;
 			if(!utility) {
 				winType = air.NativeWindowType.NORMAL;
@@ -1016,18 +954,11 @@ if(air && air.Introspector) {
 			if(utility)
 				options.owner = window.nativeWindow;
 			modalWin = air.HTMLLoader.createRootWindow(true, options, true, bounds);
-			if(callback)
-				modalWin.window.nativeWindow.visible = false;
-			if(utility)
-				modalWin.window.nativeWindow.alwaysInFront = true;
-			
-			
+
 			modalWin.load(new air.URLRequest(url));
 
 			modalWin.addEventListener(air.Event.HTML_DOM_INITIALIZE, function(e) {
 				e.target.window.parent = e.target.window.opener = this;
-				if(callback)
-					callback(e.target);
 			});
 		}
 
@@ -1039,7 +970,7 @@ if(air && air.Introspector) {
 			return $('<div/>').html(value).text();
 		}
 
-		function getTree(treePath) {
+		function getTree(treePath, end) {
 			var target = Paths.project.resolvePath(treePath);
 			var files = target.getDirectoryListing();
 			var tree = '<ul>';
@@ -1058,22 +989,33 @@ if(air && air.Introspector) {
 						tree += ' class="jstree-leaf file css"';
 					else
 						tree += ' class="jstree-leaf file"';
-					tree += ' title="' + files[i].nativePath + '"><a href="#">' + files[i].name + '</a></li>';
+					tree += ' title="' + files[i].nativePath + '"><a href="#">' + files[i].name + '</a>'
+					if(files[i].isDirectory && !end) {
+						tree += getTree(files[i].nativePath, true);
+					}
+					tree += '</li>';
 				}
 			}
 			tree += '</ul>';
 			return tree;
 		}
 
-		function openProject(dir) {
-			App.paths.project = App.paths.less = App.paths.css = dir.nativePath;
+		function openProject(dir, dontInitPaths) {
+			
+			App.paths.project = dir.nativePath;
+			Paths.less = Paths.css = Paths.project = dir;
+
+			if(!dontInitPaths) {
+				App.paths.less = App.paths.css = dir.nativePath;
+			}
 			addRecentProject(dir);
 			updateAppState();
-
+			
 			var directory = Paths.project;
-
+			
 			var tree = '<li id="root" class="jstree-open" title="' + directory.nativePath + '"><a href="#">' + directory.name + '</a>' + getTree(directory.nativePath) + '</li>';
-			$("#filelist").jstree({
+			var $fileTree = $('#filelist');
+			$fileTree.jstree({
 				"core" : {
 					"initially_open" : ["root"],
 					"animation" : 100
@@ -1098,108 +1040,176 @@ if(air && air.Introspector) {
 					"icons" : true
 				},
 				"plugins" : ["themes", "html_data", "ui", "types"]
+			}).bind("open_node.jstree", 'li', function (e, data) {
+				var ref = $.jstree._reference($fileTree);
+
+				$(data.args[0][0]).parent().find('li.jstree-closed').each(function() {
+					var $node = $(this);
+					if($node.find('ul').length === 0) {
+						ref.load_node_html(this);
+					}
+				});
 			});
+
 			$('#project').addClass("show").find("#open-project").removeClass('big');
 			$('#refresh').removeAttr('disabled').click(function() {
 				$('#filelist').jstree('refresh', -1);
 				$(this).toggleClass('click');
 			});
 		}
-
+		
 		function initAppState() {
 			checkValidPaths();
-
+			
 			if(App.paths.project != "")
-				openProject(Paths.project);
+				openProject(Paths.project, true);
+
 			$.each(App.openFiles, function(idx, val) {
+				console.log('Open: ' + idx);
 				var $el = openFile(Paths.project.resolvePath(idx));
 				if(val.cssFile) {
-					console.log('Has attached css file:');
-					console.log(val.cssFile);
-					var file = Paths.project.resolvePath(val.cssFile)
-					$el.data('file-css', file);
-					$el.find('span.crunched .filename').html(file.name);
+					$el.data('file-css', Paths.project.resolvePath(val.cssFile));
 				}
 			});
-
+			
 			$('#tabs li.t').each(function() {
 				if($(this).data('file-less') && $(this).data('file-less').nativePath == App.activeTab)
 					setActive($(this).find("a"));
 			});
-			$('#chk-minify').attr('checked', App.prefs.minify);
 
+			$('#panel-prefs .panel-body input[type="checkbox"]').each(function() {
+				$(this).attr('checked', App.prefs[$(this).data("pref")]);
+				applyAppSetting($(this).data("pref"));
+			});
 		}
-
 		function init() {
 			CreateMenus();
-			
-			// Create save window
-			openWindow('win/save.html?', 520, 225, true, function(win) {
-				SaveDialog = win;
-			});
-			
-			// Set up global editor
-			Editor = ace.edit('editor');
-			Editor.session.setMode("ace/mode/less");
-			Editor.setShowPrintMargin(false);
-			
-			// Set up parser function
-			less.Parser.importer = function(path, paths, callback, env) {
+			initAppState();
+			if(App.pro) {
+				$('body').addClass('pro');
+			}
+			less.env = "production";
+			// Restoring parser function from develop branch (replaces HTTP request)
 
-				var file = Paths.project.resolvePath(paths[0]).resolvePath(path);
+			// less.Parser.fileLoader = function(path, paths, callback, env) {
+					// var entryPath = (paths.entryPath && paths.entryPath != "")
+						// ? paths.entryPath : env.rootpath;
+			        // var file = Paths.project.resolvePath(entryPath).resolvePath(path);
+					// console.log(callback);
+					// console.log(env);
+			        // // Adopted from the Node.js implementation
+			        // if(file.exists) {
+			                // var fileStream = new air.FileStream();
+			                // fileStream.open(file, air.FileMode.READ);
+			                // var fileData = fileStream.readUTFBytes(fileStream.bytesAvailable);
+			                // fileStream.close();
+// 			          
+			                // new (less.Parser)({
+			                	// //rootpath: env.rootpath,
+								// relativeUrls: false,
+			                	// filename : file.nativePath
+			                // }).parse(fileData, function(e, root) {
+			                        // callback(null, fileData, file.nativePath);
+			                // });
+			        // } else {
+	                        // callback({
+	                                // type : 'File',
+	                                // message : "'" + file.nativePath + "' wasn't found.\n"
+	                        // }, env.rootpath, file.nativePath);
+			        // }
+// 			
+			// };
+			
+			less.Parser.fileLoader = function(originalHref, currentFileInfo, callback, env, modifyVars) {
+				
+			    // sheet may be set to the stylesheet for the initial load or a collection of properties including
+			    // some env variables for imports
+	//		    var hrefParts = extractUrlParts(originalHref, window.location.href);
+	//		    var href      = hrefParts.url;
+				
+			    
+			    var entryPath = (currentFileInfo.currentDirectory && currentFileInfo.currentDirectory != "")
+						? currentFileInfo.currentDirectory : currentFileInfo.rootpath;
+			    var file = Paths.project.resolvePath(entryPath).resolvePath(originalHref); // file full URL
 
-				// Adopted from the Node.js implementation
+			    var href = file.nativePath;
+			    
+			    var newFileInfo = {
+			        currentDirectory: file.parent.nativePath + '/',
+			        filename: file.name
+			    };
+			
+			    if (currentFileInfo) {  // is this sometimes not present? why?
+			        newFileInfo.entryPath = currentFileInfo.entryPath;
+			        newFileInfo.rootpath = currentFileInfo.rootpath;
+			        newFileInfo.rootFilename = currentFileInfo.rootFilename;
+			        newFileInfo.relativeUrls = currentFileInfo.relativeUrls;
+			    } else {
+			        newFileInfo.entryPath = entryPath;
+			        newFileInfo.rootpath = less.rootpath || entryPath;
+			        newFileInfo.rootFilename = href;
+			        newFileInfo.relativeUrls = env.relativeUrls;
+			    }
+			
 				if(file.exists) {
 					var fileStream = new air.FileStream();
 					fileStream.open(file, air.FileMode.READ);
 					var fileData = fileStream.readUTFBytes(fileStream.bytesAvailable);
 					fileStream.close();
-					
-					
-					// Populate a scrollable list of imports. This will rock.
-					if(importsEnabled)
-						addSubTab(file, fileData);
-						
-					new (less.Parser)({
-						paths : [file.nativePath.replace(/[\w\.-]+$/, '')].concat(paths),
-						filename : file.nativePath
-					}).parse(fileData, function(e, root) {
-						callback(e, root, fileData);
-					});
-				} else {
-					if( typeof (env.errback) === "function") {
-						env.errback.call(null, path, paths, callback, env);
-					} else {
-						callback({
-							type : 'File',
-							message : "'" + path + "' wasn't found.\n"
-						});
-					}
-				}
-
+		          
+			        try {
+			            callback(null, fileData, href, newFileInfo, { lastModified: file.modificationDate });
+			        } catch (e) {
+			            callback(e, null, href);
+			        }
+		        } else {
+					callback({
+					        type : 'File',
+					        message : "'" + file.nativePath + "' wasn't found.\n"
+					}, null, href);
+		        }
+				
 			};
-			initAppState();
-
-			$('#chk-minify').on('change', function() {
-				App.prefs.minify = $('#chk-minify').is(':checked');
+			
+			// @losnir: Will serve well every 'checkbox' based pref
+			$('#panel-prefs .panel-body input[type="checkbox"]').on('change', function() {
+				App.prefs[$(this).data("pref")] = $(this).is(":checked");
 				updateAppState();
+				applyAppSetting($(this).data("pref"));
 			});
+
 			$('#actions').on('click', "li", function(e) {
 				var $el = $(this);
 				$el.addClass('active').siblings().removeClass('active');
-
+				
 				if($el.attr('id') == 'tab-prefs') {
 					$('#panel-prefs').addClass('active');
 					$('#panel-files').removeClass('active');
-				} else {
+				}
+				else {
 					$('#panel-prefs').removeClass('active');
 					$('#panel-files').addClass('active');
 				}
 			});
-
+				
 			$(window).on('crunch.filechanged', function(e, file) {
 				nativeWindow.activate();
-				openWindow('win/reload.html?' + encodeURIComponent(file.name) + '#' + encodeURIComponent(file.nativePath), 520, 225, true);
+				 
+				$("#tabs li.t").each(function() {
+					var $this = $(this);
+					if($this.data('file-less') && ($this.data('file-less').nativePath == file.nativePath)) {
+
+						if($this.data('saved'))
+							openFile(file);
+						else {
+							// TODO: Check to see if this file is already open
+							openWindow('win/reload.html?' + encodeURIComponent(file.name) + '#' + encodeURIComponent(file.nativePath), 520, 225, true);
+						}
+						return;
+					}
+				});
+
+				
 			});
 			$("#container > table").colResizable({
 				minWidth : 215,
@@ -1207,32 +1217,29 @@ if(air && air.Introspector) {
 				gripInnerHtml : '<div id="resize"></div>',
 				onResize : function() {
 					if($('#tabs li.t.active').length > 0) {
-						Editor.resize();
+						$('#tabs li.t.active').data('editor').resize();
 						adjustTabOverflow();
 					}
 				}
 			});
 			$(window).resize(function() {
 				if($('#tabs li.t.active').length > 0) {
-					Editor.resize();
+					$('#tabs li.t.active').data('editor').resize();
 					adjustTabOverflow();
 				}
 			});
 
-			$('#tabs').on('click','li.t > a', function() {
+			$('#tabs > li.t > a').click(function() {
 				if(!pendingClose && $(this).parent().data('file-less')) {
 					App.activeTab = $(this).parent().data('file-less').nativePath;
 					updateAppState();
 				}
-				setActive($(this));
-			});
-			$('.subtabs').on('click', '.t', function() {
-				setActive($(this));
+				setActive(this);
 			});
 			$('.messages .close').click(function() {
 				hideMessage($(this).closest('.messages'));
 			});
-
+			
 			$("#arrow-left").click(function() {
 				var tabs = $("#tabs");
 				if(tabs.margin().left > -scrollWidth)
@@ -1277,30 +1284,48 @@ if(air && air.Introspector) {
 					});
 			});
 			$("#findbar .up").click(function() {
-				Editor.findPrevious();
+				Commands.findPrevious();
 			});
 			$("#findbar .down").click(function() {
-				Editor.findNext();
+				Commands.findNext();
 			});
 			$('#tabs a.tab .close').click(function() {
 				var listItem = $(this).parent().parent();
 				tryCloseTab(listItem);
-				return false;
 			});
 
-			$("#findbar .close").click(function() {
-				$("#findbar").animate({
-					top : '-33px'
-				}, 100);
-				Editor.focus();
+			$("#dropdowns-outer > div > .close").click(function() {
+				$(this).parent().animate({top : '-33px'}, 100, function() {
+					if(!$(this).siblings(":visible").length) {
+						$(this).parent().hide();
+						$("#tabs li.t.active").length && $("#tabs li.t.active").data('editor').focus();
+					}
+					$(this).hide();
+				});
 			});
-			$("#find").submit(function() {
-				findText($("#findbar input").val());
+			$("#gotoline").submit(function() {
+				if((/^\d+$/).test(n = $(this).find("input").val()))
+					gotoLine(n);
 				return false;
 			});
-			$("#findbar input").change(function() {
-				findText($("#findbar input").val());
+			$("#find").submit(function() {
+				findText($(this).find("input").val());
+				return false;
 			});
+			$("#findbar input").on("input", function() {
+				findText($(this).val());
+			});
+			$("#dropdowns-outer > div input").on("keydown", jwerty.event('esc', function() {
+				$(this).parent().siblings(".close").click();
+			})).on("keydown", jwerty.event('ctrl+g', function(e) {
+				e.preventDefault();
+				Commands.gotoLine();
+			})).on("keydown", jwerty.event('ctrl+f', function(e) {
+				e.preventDefault();
+				Commands.Find();
+			}));
+			$("#dropdowns-outer, #dropdowns-outer > div").hide();
+
 			$("#filelist").dblclick(function(e) {
 
 				var $target = $(event.target);
@@ -1308,45 +1333,91 @@ if(air && air.Introspector) {
 					$target = $target.parent();
 				if($target.is("li")) {
 					var title = $target.attr('title');
-					if(title.match(/\.(less|css)$/i)) {
-						var fileToOpen = new air.File(title);
-						openFile(fileToOpen);
-					}
+					//if(title.match(/\.(less|css)$/i)) {
+					var fileToOpen = new air.File(title);
+					openFile(fileToOpen);
+					//}
 				}
 			});
-
 			$('.new-less').click(Commands.newLess);
 			$('.new-css').click(Commands.newCss);
-			$('.open-file').click(Commands.openFile);
-			$('#save').click(Commands.save);
-			$('#save-as').click(Commands.saveAs);
-			$('#convert').click(Commands.crunch);
 
-			// $('#openwindow').click(function() {
-				// openWindow('win/save.html', 522, 225, true);
-			// });
-			$('#open-project').click(Commands.openProject);
+			$('.open-file').click(function() {
+				var fileToOpen = new air.File(Paths.less.nativePath);
+				var txtFilter = new air.FileFilter("LESS file", "*.less;*.css");
+				try {
+					fileToOpen.browseForOpen("Open", [txtFilter]);
+					fileToOpen.addEventListener(air.Event.SELECT, fileSelected);
+				} catch (error) {
+					alert("FRAK. This happened: " + error.message);
+				}
+
+				function fileSelected(event) {
+					openFile(event.target);
+				}
+
+			});
+			$('#save').click(function() {
+				var activeEl = $("#tabs li.active");
+				trySave(activeEl, false);
+			});
+			
+			$('#save-as').click(Commands.saveAs);
+			
+			$('#convert').bind('click', function(event) {
+				var activeEl = $("#tabs li.active");
+				lastCrunch = crunchFile(activeEl);
+				if(!lastCrunch)
+					return;
+
+				if(!(activeEl.data('saved'))) {
+					var answer = confirm('You have to save before crunching. Go ahead and save?');
+					if(answer) {
+						trySave(activeEl, false);
+					} else
+						return;
+				}
+				trySave(activeEl, true);
+
+			});
+			$('#openwindow').click(function() {
+				openWindow('win/save.html', 522, 225, true);
+			});
+			$('#open-project').bind('click', function(event) {
+				var selectDir = new air.File(Paths.project.nativePath);
+				try {
+					selectDir.browseForDirectory("Select Directory");
+					selectDir.addEventListener(air.Event.SELECT, directorySelected);
+				} catch (error) {
+					alert("Failed:" + error.message);
+				}
+
+				function directorySelected(event) {
+					openProject(event.target);
+				}
+
+			});
 
 			$('#info').click(function() {
 				openWindow('win/about.html', 522, 550, true);
 			});
 			$('#help').click(function() {
-				openWindow('win/help.html', 750, 490, false);
+				openWindow('win/help.html', 760, 490, false);
 			});
 		}
 
 		var application = air.NativeApplication.nativeApplication;
 
 		function CreateMenus() {
+			tabMenu = createTabMenu();
 			var fileMenu;
 			var editMenu;
 
 			if(air.NativeWindow.supportsMenu && nativeWindow.systemChrome != air.NativeWindowSystemChrome.NONE) {
 				$('.windowMenu').show();
 				fileMenu = createFileMenu();
+				editMenu = createEditMenu();
 
-				// Edit menu is hidden for now.
-				//editMenu = createEditMenu();
 				$('#fileMenu').click(function(e) {
 					fileMenu.display(window.nativeWindow.stage, $(this).position().left + 55, $(this).position().top + 27);
 				});
@@ -1356,6 +1427,7 @@ if(air && air.Introspector) {
 			}
 
 			if(air.NativeApplication.supportsMenu) {
+				// Let's get rid of those pesky Mac menus. We can add stuff in later.
 
 				var appMenu = application.menu;
 				while(appMenu.items.length > 1) {
@@ -1365,21 +1437,18 @@ if(air && air.Introspector) {
 				application.menu.addEventListener(air.Event.SELECT, selectCommandMenu);
 				fileMenu = application.menu.addItem(new air.NativeMenuItem("File"));
 				fileMenu.submenu = createFileMenu();
-				//	editMenu = application.menu.addItem(new air.NativeMenuItem("Edit"));
-				//	editMenu.submenu = createEditMenu();
-
+				editMenu = application.menu.addItem(new air.NativeMenuItem("Edit"));
+				editMenu.submenu = createEditMenu();
 			}
 		}
-
-		function addMenuItem(menu, label, func, key) {
+		function addMenuItem(menu, label, func, keyEq, keyMod) {
 
 			var cmd = menu.addItem(new air.NativeMenuItem(label));
 			cmd.addEventListener(air.Event.SELECT, func);
-			if(key)
-				cmd.keyEquivalent = key;
-
+			if(keyEq) cmd.keyEquivalent = keyEq;
+			if(keyMod !== undefined) cmd.keyEquivalentModifiers = keyMod;
 		}
-
+		
 		function createFileMenu() {
 			var fileMenu = new air.NativeMenu();
 			fileMenu.addEventListener(air.Event.SELECT, selectCommandMenu);
@@ -1388,21 +1457,26 @@ if(air && air.Introspector) {
 			addMenuItem(fileMenu, "New", Commands.newLess, "n");
 			addMenuItem(fileMenu, "Open File...", Commands.openFile, "o");
 			addMenuItem(fileMenu, "Open Project...", Commands.openProject, "O");
-
+			
 			fileMenu.addItem(new air.NativeMenuItem("", true));
-
+			
 			addMenuItem(fileMenu, "Save", Commands.save, "s");
 			addMenuItem(fileMenu, "Save As...", Commands.saveAs, "S");
 
 			fileMenu.addItem(new air.NativeMenuItem("", true));
 			var recentFiles = fileMenu.addSubmenu(new air.NativeMenu(), "Recent Files");
 			recentFiles.name = "recentFiles";
+			
 			recentFiles = fileMenu.addSubmenu(new air.NativeMenu(), "Recent Websites");
 			recentFiles.name = "recentSites";
-
+			
 			fileMenu.addItem(new air.NativeMenuItem("", true));
 			addMenuItem(fileMenu, "Crunch!", Commands.crunch, "enter");
-
+			
+			fileMenu.addItem(new air.NativeMenuItem("", true));
+			addMenuItem(fileMenu, "Check for updates...", Commands.checkForUpdates);
+			addMenuItem(fileMenu, "Exit", Commands.exit, "e");
+			
 			// var openProj = fileMenu.addItem(new air.NativeMenuItem("Recent Projects"));
 			// openProj.submenu = new air.NativeMenu();
 			// openProj.submenu.addEventListener(air.Event.PREPARING, updateRecentDocumentMenu);
@@ -1415,17 +1489,58 @@ if(air && air.Introspector) {
 			var editMenu = new air.NativeMenu();
 			editMenu.addEventListener(air.Event.SELECT, selectCommandMenu);
 
-			var copyCommand = editMenu.addItem(new air.NativeMenuItem("Copy"));
-			copyCommand.addEventListener(air.Event.SELECT, selectCommand);
-			copyCommand.keyEquivalent = "c";
-			var pasteCommand = editMenu.addItem(new air.NativeMenuItem("Paste"));
-			pasteCommand.addEventListener(air.Event.SELECT, selectCommand);
-			pasteCommand.keyEquivalent = "v";
+			addMenuItem(editMenu, "Select All", Commands.selectAll, "a");
+			//addMenuItem(editMenu, "Cut", Commands.cut, "x");
+			//addMenuItem(editMenu, "Copy", Commands.copy, "c");
+			//addMenuItem(editMenu, "Paste", Commands.paste, "v");
+
 			editMenu.addItem(new air.NativeMenuItem("", true));
+
+			addMenuItem(editMenu, "Find...", Commands.Find, "f");
+			addMenuItem(editMenu, "Find Next...", Commands.findNext, isPlatformMac ? "k" : "f3", isPlatformMac ? undefined : []);
+			addMenuItem(editMenu, "Find Previous...", Commands.findPrevious, isPlatformMac ? "K" : "F3", isPlatformMac ? undefined : []);
+
+			editMenu.addItem(new air.NativeMenuItem("", true));
+
+			addMenuItem(editMenu, "Goto Line...", Commands.gotoLine, isPlatformMac ? "l" : "g");
+
 			//var preferencesCommand = editMenu.addItem(new air.NativeMenuItem("Preferences"));
 			//preferencesCommand.addEventListener(air.Event.SELECT,selectCommand);
 
 			return editMenu;
+		}
+
+		function createTabMenu() {
+			var tabMenu = new air.NativeMenu();
+			tabMenu.addEventListener(air.Event.SELECT, selectCommandMenu);
+
+			addMenuItem(tabMenu, "Close", function() {
+				tryCloseTab(selectedTab);
+			});
+
+
+			addMenuItem(tabMenu, "Close others", function() {
+				$("#tabs li.t[id]").each(function() {
+					if($(this).attr("id") == selectedTab.attr("id")) return;
+					tryCloseTab($(this));
+				});
+			});	
+
+			/*addMenuItem(tabMenu, "Close tabs to the left", function() {
+				$("#tabs li.t[id]").each(function() {
+					if($(this).attr("id") == selectedTab.attr("id")) return false;
+					tryCloseTab($(this));
+				});
+			});*/
+
+			addMenuItem(tabMenu, "Close tabs to the right", function() {
+				$.each($("#tabs li.t[id]").get().reverse(), function() {
+					if($(this).attr("id") == selectedTab.attr("id")) return false;
+					tryCloseTab($(this));
+				});
+			});	
+
+			return tabMenu;		
 		}
 
 		function updateRecentMenus(event) {
@@ -1437,26 +1552,21 @@ if(air && air.Introspector) {
 				var menuItem = docMenu.addItem(new air.NativeMenuItem(App.recent.files[i]));
 				menuItem.data = Paths.project.resolvePath(App.recent.files[i]);
 				menuItem.addEventListener(air.Event.SELECT, function(e) {
-					if(e.target.data.exists)
-						openFile(e.target.data);
-					else
-						alert('File no longer exists.');
+					openFile(e.target.data);
 				});
 			}
+			
 			docMenu = air.NativeMenu(event.target).getItemByName("recentSites").submenu;
 			docMenu.removeAllItems();
-
+			
 			for(var i in App.recent.folders) {
 				var menuItem = docMenu.addItem(new air.NativeMenuItem(App.recent.folders[i]));
 				menuItem.data = Paths.project.resolvePath(App.recent.folders[i]);
 				menuItem.addEventListener(air.Event.SELECT, function(e) {
-					if(e.target.data.exists)
-						openProject(e.target.data);
-					else
-						alert('Directory no longer exists.');
+					openProject(e.target.data);
 				});
 			}
-
+			
 		}
 
 		function selectCommand(event) {
@@ -1484,16 +1594,30 @@ if(air && air.Introspector) {
 			}
 			return null;
 		}
+		
+		cheet('↑ ↑ ↓ ↓ ← → ← → b a', function () {
+			if(!App.pro) {
+				App.pro = true;
+				updateAppState();
+				alert('ACHIEVEMENT UNLOCKED!');	
+				$('body').addClass('godmode pro');
+			}
+			else {
+				App.pro = false;
+				updateAppState();
+				alert('ACHIEVEMENT UN-UNLOCKED!');	
+				$('body').removeClass('godmode pro');
+			}
+		});
 
 		return {
 			init : init,
 			closeTab : closeTab,
-			tryCloseTab: tryCloseTab,
 			trySave : trySave,
 			openFile : openFile,
-			Parser : Parser,
-			App : App
-		}
+			Parser: Parser,
+			App: App
+		};
 	}();
 
 	window.Crunch = Crunch;

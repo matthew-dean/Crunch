@@ -3,6 +3,7 @@
 var FileMonitor = function() {
 	var monitored = {};
 	var timer = null;
+	var interval = 2000;
 	
 	function watch(file) {
 
@@ -15,8 +16,7 @@ var FileMonitor = function() {
 			file: file
 		};
 		
-		if(timer === null)
-			timer = setInterval(watchInterval, 2000);
+		if(timer === null) start();
 	}
 	function unwatch(file) {
 		
@@ -44,9 +44,14 @@ var FileMonitor = function() {
 			}
 		});
 	}
+	function stop() { if(timer !== null) { clearInterval(timer); timer = null; } }
+	function start() { if(timer === null) { timer = setInterval(watchInterval, interval); } }
+
 	return {
 		watch: watch,
-		unwatch: unwatch
+		unwatch: unwatch,
+		stop: stop,
+		start: start
 	}
 }();
 
