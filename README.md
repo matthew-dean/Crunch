@@ -1,7 +1,7 @@
 Crunch!
 =======
 
-Crunch is part of a complete breakfast.
+**Crunch 2 is now available!** Go to http://getcrunch.co.
 
 Installing Crunch
 --------------
