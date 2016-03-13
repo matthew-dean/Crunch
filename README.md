@@ -11,7 +11,7 @@ Installing Crunch
 
 Loving Crunch
 -------------
-Go to http://crunchapp.net/ and express your love for Crunch by clicking on the "Buy Us A Coffee" link and donating. Everyone who is awesome does this. Donations do things like pay for web hosting and buy us coffees. (Donations never buy us tea because that would be lying.)
+Go to http://old.getcrunch.co/ and express your love for Crunch by clicking on the "Buy Us A Coffee" link and donating. Everyone who is awesome does this. Donations do things like pay for web hosting and buy us coffees. (Donations never buy us tea because that would be lying.)
 
 Who Made Crunch?
 --------------
