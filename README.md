@@ -1,4 +1,4 @@
-Crunch!
+Crunch 1.x
 =======
 
 **Crunch 2 is now available!** Go to http://getcrunch.co.
