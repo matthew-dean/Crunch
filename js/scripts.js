@@ -266,7 +266,7 @@ else {
 
 		function bindKey(keys, fn) {
 			jwerty.key(meta + '+' + keys, fn);
-			$('#tabs li textarea').on('keydown', jwerty.event(meta + '+' + keys, false));
+			$('#tabs li textarea').on('keydown', jwerty.key(meta + '+' + keys, false));
 		}
 
 		window.htmlLoader.addEventListener("nativeDragDrop", function(event) {
