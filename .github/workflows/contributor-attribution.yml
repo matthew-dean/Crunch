@@ -1,0 +1,76 @@
+name: Contributor attribution
+
+on:
+  pull_request:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  attribution:
+    name: Human attribution
+    if: github.event.deleted != true
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Check author identities and contributor credits
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+          ATTRIBUTION_BASELINE: "5f81c33f8c5ed048469bbb1ec091669455886bf0"
+        run: |
+          node --input-type=module <<'ATTRIBUTION_CHECK'
+          const creditPattern = new RegExp("(^(co-authored-by|signed-off-by):[ \\t]*((claude([ \\t]+(opus|sonnet|haiku|code)([ \\t]+[0-9.]+)?)?|chatgpt|codex|github[ \\t]+copilot|copilot|gemini|cursor|aider)[ \\t]*<|[^\\r\\n]*<noreply@(anthropic|openai)\\.com>)|^(Claude-Session:|[ \\t]*(\ud83e\udd16[ \\t]*)?Generated (with|by)[^\\r\\n]*(Claude|ChatGPT|Codex|Copilot|Gemini|Cursor|Aider)))", 'im');
+          const emailPattern = new RegExp("(^noreply@(anthropic|openai)\\.com$|(^|[+])(claude|chatgpt|codex|copilot(-swe-agent)?|gemini)(\\[bot\\])?@users\\.noreply\\.github\\.com$)", 'i');
+          const aiNames = /^(?:Claude(?: (?:Code|Opus|Sonnet|Haiku)(?: [0-9.]+)?)?|ChatGPT|OpenAI Codex|Codex|GitHub Copilot|Copilot|Gemini|AI Assistant)$/i;
+          const aiAccounts = /^(?:claude(?:\[bot\])?|chatgpt|chatgpt-codex-connector\[bot\]|copilot|copilot-swe-agent\[bot\]|gemini-code-assist\[bot\])$/i;
+          
+          export function attributionViolations(commits) {
+            return commits.filter((entry) => {
+              const { author, committer, message } = entry.commit;
+              return [author, committer].some((identity) =>
+                emailPattern.test(identity?.email ?? '') || aiNames.test(identity?.name ?? '')) ||
+                [entry.author, entry.committer].some((identity) => aiAccounts.test(identity?.login ?? '')) ||
+                creditPattern.test(message);
+            }).map((entry) => entry.sha);
+          }
+          
+          export async function verify({ repository, baseline, head, token, request = fetch }) {
+            if (!/^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/.test(repository) ||
+                !/^[a-f0-9]{40}$/i.test(baseline) || !/^[a-f0-9]{40}$/i.test(head)) {
+              throw new Error('Invalid repository or commit identifier.');
+            }
+            const seen = new Set();
+            const violations = new Set();
+            let expected;
+            for (let page = 1; ; page += 1) {
+              const response = await request(
+                `https://api.github.com/repos/${repository}/compare/${baseline}...${head}?per_page=100&page=${page}`,
+                { headers: { Authorization: `Bearer ${token}`, Accept: 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' } },
+              );
+              if (!response.ok) throw new Error(`GitHub commit metadata is unavailable (HTTP ${response.status}).`);
+              const data = await response.json();
+              if (!Array.isArray(data.commits) || !Number.isInteger(data.total_commits) || data.total_commits < 0) {
+                throw new Error('GitHub returned incomplete commit metadata.');
+              }
+              expected ??= data.total_commits;
+              if (expected !== data.total_commits) throw new Error('Commit comparison changed during verification.');
+              const previous = seen.size;
+              for (const entry of data.commits) seen.add(entry.sha);
+              for (const sha of attributionViolations(data.commits)) violations.add(sha);
+              if (seen.size >= expected) break;
+              if (seen.size === previous) throw new Error('GitHub did not return every commit in the comparison.');
+            }
+            if (violations.size) throw new Error(`AI contributor attribution found in ${[...violations].map((sha) => sha.slice(0, 12)).join(', ')}. Preserve human authorship and remove AI credits.`);
+            return { checked: seen.size };
+          }
+          const { readFileSync } = await import('node:fs');
+          const event = JSON.parse(readFileSync(process.env.GITHUB_EVENT_PATH, 'utf8'));
+          const result = await verify({ repository: process.env.GITHUB_REPOSITORY, baseline: process.env.ATTRIBUTION_BASELINE, head: event.pull_request?.head.sha ?? process.env.GITHUB_SHA, token: process.env.GITHUB_TOKEN });
+          console.log(`Verified human attribution in ${result.checked} commits.`);
+          ATTRIBUTION_CHECK
